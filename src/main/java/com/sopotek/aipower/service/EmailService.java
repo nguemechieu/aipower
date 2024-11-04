@@ -18,11 +18,9 @@ public class EmailService {
 
     public EmailService() throws IOException {
         this.mailSender = new MailConfig().getJavaMailSender();
-
         properties.load(
                 EmailService.class.getClassLoader().getResourceAsStream("application.properties") // Replace with your application properties file path
         );
-
 
     }
 
