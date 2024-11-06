@@ -11,7 +11,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(23)
     }
 }
 
@@ -60,7 +60,9 @@ dependencies {
     implementation 'com.fasterxml.jackson.module:jackson-module-jaxb-annotations:2.13.3'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
     implementation 'org.springdoc:springdoc-openapi-starter-common:2.2.0'
-
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-json'
+    implementation 'org.springframework:spring-web'
     // Environment variable handling
     implementation 'io.github.cdimascio:dotenv-java:2.2.2'
 
@@ -82,7 +84,7 @@ dependencies {
 
     // Development tools
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
     // Testing dependencies

@@ -2,8 +2,9 @@ import { useRef, useState, useEffect } from "react";
 import { faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
-import {Button} from "@mui/material";
+
+import { Button } from "@mui/material";
+import axios, {axiosPrivate} from "../api/axios.js";
 
 // Validation patterns
 const USER_REGEX = /^[A-z][A-z0-9-_]{3,23}$/;
@@ -102,9 +103,9 @@ const Register = () => {
       // Clear cookies/local storage if necessary
       localStorage.clear();
       sessionStorage.clear();
-      const response = await axios.post(
+      const response = await axiosPrivate.post(
           REGISTER_URL,
-          JSON.stringify({
+          {params:{
             username: user,
             password: pwd,
             email,
@@ -114,11 +115,9 @@ const Register = () => {
             birthdate: dob,
             phoneNumber: phone,
             gender,
-
             bio
-          })
+          }}
       );
-      console.log(response)
 
       if (response.status === 200) {
         setSuccess(true);
@@ -156,7 +155,7 @@ const Register = () => {
       setErrMsg(err.message || "Registration failed");
     } finally {
       setIsLoading(false);
-      errRef.current.focus();
+      if (errMsg) errRef.current.focus();
     }
   };
 
@@ -238,15 +237,7 @@ const Register = () => {
                   </label>
                 </div>
 
-                <Button  type="submit" id={'btnLogin'} onError={
-                  (e) => {
-                    e.preventDefault();
-                    setErrMsg("Registration failed");
-                  }
-                }
-
-                onSubmit={(e)=>handleSubmit(e)}
-                >
+                <Button type="submit" id="btnRegister">
                   {isLoading ? "Registering..." : "Sign Up"}
                 </Button>
               </form>

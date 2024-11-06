@@ -1,4 +1,4 @@
-package com.sopotek.aipower.config.cors;
+package com.sopotek.aipower.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +23,8 @@ public class MailConfig {
             image/jpeg jpeg jpg
             text/plain txt
             text/html html htm
+            application/json json
+            application/xml xml
             """;
 
         fileTypeMap.setMappings(mappings);

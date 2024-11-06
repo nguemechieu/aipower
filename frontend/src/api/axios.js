@@ -19,7 +19,7 @@ export const axiosPrivate = axios.create({
         'Accept': 'application/json'
     },
     withCredentials: true,
-    timeout: 10000,
+    timeout: 10000
 });
 
 // Authorization Interceptor

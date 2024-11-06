@@ -1,7 +1,9 @@
-import axios from "axios";
+
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth.js";
+import {Button} from "@mui/material";
+import axios from "../api/axios.js";
 
 const LOGIN_URL = "/api/v3/auth/login";
 
@@ -21,48 +23,14 @@ const Login = () => {
   useEffect(() => {
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
     if (token) {
-      setAuth({ username: username, role: role, token:token });
-      setRole(role)
+      setAuth({ username, role, token });
       navigate(from, { replace: true });
     }
-  }, [setAuth, from, navigate]);
+  }, []); // Empty dependency array to run only on mount
 
   useEffect(() => {
     if (username || password) setErrMsg("");
   }, [username, password]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const response = await axios.post(
-          LOGIN_URL,
-          JSON.stringify({ username:username, password:password }
-      ));
-
-      if (response.status === 200) {
-        const { token, role } = response.data;
-
-        setAuth({ username, role, token });
-
-        if (rememberMe) {
-          localStorage.setItem("token", token);
-        } else {
-          sessionStorage.setItem("token", token);
-        }
-
-        setUsername("");
-        setPassword("");
-        navigate(from, { replace: true });
-      }
-    } catch (err) {
-      handleLoginError(err);
-      localStorage.clear();
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleLoginError = (err) => {
     if (!err?.response) {
@@ -84,16 +52,50 @@ const Login = () => {
     }
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await axios.post(LOGIN_URL, {
+        params: {
+          username,
+          password,
+          rememberMe
+        }
+      });
+
+      if (response.status === 200) {
+        const { token, role } = response.data;
+        setAuth({ username, role, token });
+
+        if (rememberMe) {
+          localStorage.setItem("token", token);
+        } else {
+          sessionStorage.setItem("token", token);
+        }
+
+        setUsername("");
+        setPassword("");
+        navigate(from, { replace: true });
+      } else {
+        setErrMsg(response.status + " " + response.statusText);
+      }
+    } catch (err) {
+      handleLoginError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
       <section className="login-section">
         <div className="row justify-content-center">
           <div className="col-md-6">
             <h1 className="text-center">Login</h1>
 
-
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-
                 <input
                     type="text"
                     className="form-control"
@@ -103,10 +105,8 @@ const Login = () => {
                     onChange={(e) => setUsername(e.target.value)}
                     required
                 />
-
               </div>
               <div className="form-group">
-
                 <input
                     type="password"
                     className="form-control"
@@ -121,27 +121,20 @@ const Login = () => {
                 <div className="custom-control custom-checkbox">
                   <input
                       type="checkbox"
-                      placeholder={
-                    rememberMe? "Remember Me" : "Don't remember me"
-                      }
-                      className="form-check-input"  id="rememberMe"
+                      className="form-check-input"
+                      id="rememberMe"  aria-placeholder={'rememberMe'}
                       checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}/>
-
-
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  <label className="form-check-label" htmlFor="rememberMe">
+                    {rememberMe ? "Remember Me" : "Don't remember me"}
+                  </label>
                 </div>
               </div>
-              <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={loading}
-              >
+              <Button type="submit" className="btn btn-primary" disabled={loading}>
                 {loading ? "Logging in..." : "Login"}
-              </button>
-              <p
-                  className={errMsg ? "text-danger" : "offscreen"}
-                  aria-live="assertive"
-              >
+              </Button>
+              <p className={errMsg ? "text-danger" : "offscreen"} aria-live="assertive">
                 {errMsg}
               </p>
               <Link to="/forgotpassword" className="d-block">
@@ -153,7 +146,7 @@ const Login = () => {
               Don’t have an account? <Link to="/register">Register</Link>
             </p>
             <p>
-              By continuing, you agree to our{"  "}
+              By continuing, you agree to our{" "}
               <Link to="/terms-of-service">Terms of Service</Link> and{" "}
             </p>
           </div>

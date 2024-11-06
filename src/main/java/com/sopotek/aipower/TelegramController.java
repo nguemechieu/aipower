@@ -7,8 +7,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 
-@RestController
-@RequestMapping("/api/v3/telegram")
+@RestController ("/telegram")
 public class TelegramController {
 
     private final TelegramService telegramService=new TelegramService();

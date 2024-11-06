@@ -2,7 +2,7 @@ import React from 'react';
 
 const AccountSummary = () => {
     return (
-        <div className="account-summary">
+        <div className="Account-summary">
             <h2>Gain Capital Group, LLC</h2>
             <div>
                 <p><strong>A/C No:</strong> 24264448</p>

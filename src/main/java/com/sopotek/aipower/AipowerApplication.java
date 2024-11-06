@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import de.codecentric.boot.admin.server.config.EnableAdminServer;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 
 @SpringBootApplication(scanBasePackages = "com.sopotek.aipower")

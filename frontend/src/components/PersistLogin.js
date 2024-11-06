@@ -11,7 +11,7 @@ const PersistLogin = () => {
     const verifyToken = async () => {
       if (auth?.token) {  // Check if token exists before making the request
         try {
-          const response = await axios.get("/refresh", {
+          const response = await fetch("/api/v3/auth/refresh", {
             headers: {
               Authorization: `Bearer ${auth.token}`
             },
@@ -26,7 +26,7 @@ const PersistLogin = () => {
             }));
           }
         } catch (error) {
-          console.log("Token verification failed", error);
+          console.log("Token verification failed ", error);
           setAuth(null); // Clear auth context if verification fails
         }
       }
@@ -34,7 +34,7 @@ const PersistLogin = () => {
     };
 
     verifyToken().then(r =>
-    console.log("Request completed successfully" + r ))
+    console.log("Request completed successfully"  ))
   }, [auth, setAuth]);
 
   if (loading) {

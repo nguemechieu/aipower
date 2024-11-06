@@ -7,7 +7,7 @@ const NewsDisplay = () => {
 
     const fetchNewsData = async () => {
         try {
-            const response = await axios.get('/api/forexfactory');
+            const response = await axios.get('/api/v3/forexfactory');
             if (response.status !== 200) {
                 throw new Error(`HTTP error! status: ${response.data}`);
             }

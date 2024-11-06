@@ -5,7 +5,6 @@ import com.sopotek.aipower.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -13,11 +12,9 @@ import java.util.Date;
 
 @Service
 public class UserService {
-
     @Autowired
     UserRepository userRepository;
 
-    @Autowired
     PasswordEncoder passwordEncoder;
 
 

@@ -4,16 +4,19 @@ import com.sopotek.aipower.service.CryptoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@RestControllerAdvice
+@ApiResponse
+
 @RequestMapping("/api/v3/crypto")
 public class CryptoController {
-
-    private final CryptoService cryptoService;
+@Autowired CryptoService cryptoService;
 
     public CryptoController(CryptoService cryptoService) {
         this.cryptoService = cryptoService;

@@ -1,4 +1,4 @@
-package com.sopotek.aipower.config.cors;
+package com.sopotek.aipower.config;
 
 
 
