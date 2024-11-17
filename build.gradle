@@ -33,9 +33,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'de.codecentric:spring-boot-admin-starter-client:3.3.6'
+    implementation 'de.codecentric:spring-boot-admin-starter-server:3.3.6'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-    implementation 'de.codecentric:spring-boot-admin-starter-client'
-    implementation 'de.codecentric:spring-boot-admin-starter-server'
 
 
     // OpenAPI/Swagger

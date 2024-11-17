@@ -10,6 +10,7 @@ import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -110,5 +111,20 @@ public class UserService {
 
     public void deleteById(Long id) {
             userRepository.deleteById(id);
+    }
+
+    @CacheEvict(value = "users", allEntries = true)
+    public void clearAllUserCache() {
+        System.out.println("All entries in 'users' cache cleared.");
+    }
+
+    public String updateUser(Long id, String uname) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user!= null) {
+            user.setUsername(uname);
+            userRepository.save(user);
+            return "Username updated successfully";
+        }
+        return "No user found with id: " + id;
     }
 }

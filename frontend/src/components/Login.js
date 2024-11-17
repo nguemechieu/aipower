@@ -35,8 +35,14 @@ const Login = () => {
             400: "Missing Username or Password",
             401: "Unauthorized - Check your credentials",
             403: "Access Denied: Not authorized",
+            404: "User not found",
+            422: "Invalid username or password",
+            500: "Internal Server Error!\nPlease try again later",
+            503: "Service Unavailable - Please try again later"
         };
-        setErrMsg(messages[status] || "An error occurred. Please try again.");
+        setErrMsg(
+            messages[status]
+        );
     };
 
     const handleSubmit = async (e) => {
@@ -70,19 +76,21 @@ const Login = () => {
             <h2>Login</h2>
             <form className="login-form" onSubmit={handleSubmit}>
                 <div className="form-group">
-                    <label htmlFor="username">Username</label>
+
                     <input
                         id="username"
                         type="text"
+                        placeholder="Enter username"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
                     />
                 </div>
                 <div className="form-group">
-                    <label htmlFor="password">Password</label>
+
                     <input
                         id="password"
+                         placeholder="Enter password"
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -104,7 +112,7 @@ const Login = () => {
                 </button>
             </form>
             <div className="links">
-                <Link to="/forgotpassword">Forgot Password?</Link>
+                <Link to='/forgot-password'>Forgot Password?</Link>
                 <p>
                     Don’t have an account? <Link to="/register">Register</Link>
                 </p>

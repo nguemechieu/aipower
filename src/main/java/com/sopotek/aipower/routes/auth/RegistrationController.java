@@ -6,15 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v3/auth/register")
-@Validated
 public class RegistrationController {
 
 
@@ -27,7 +24,7 @@ public class RegistrationController {
 
     protected PasswordEncoder passwordEncoder;
 
-    @PostMapping
+    @PostMapping("/api/v3/register")
     public ResponseEntity<String> registerUser(@RequestBody User newUser) {
         try {
             // Check if the username already exists

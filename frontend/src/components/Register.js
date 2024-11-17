@@ -2,8 +2,6 @@ import { useRef, useState, useEffect } from "react";
 import { faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link, useNavigate } from "react-router-dom";
-
-
 import axios from "../api/axios.js";
 
 // Validation patterns
@@ -29,70 +27,59 @@ const Register = () => {
   const errRef = useRef();
   const navigate = useNavigate();
 
-  // State variables for each form field and validation
+  // State variables
   const [user, setUser] = useState("");
   const [validName, setValidName] = useState(false);
-
   const [email, setEmail] = useState("");
   const [validEmail, setValidEmail] = useState(false);
-
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [middleName, setMiddleName] = useState("");
-  const [role, setRole] = useState("USER");
-
-  const [dob, setDOB] = useState("");
+  const [role] = useState("USER");
+  const [birthdate, setBirthdate] = useState("");
   const [validDOB, setValidDOB] = useState(false);
-
-  const [phone, setPhone] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [validPhone, setValidPhone] = useState(false);
-
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [zipCode, setZipCode] = useState("");
   const [validZip, setValidZip] = useState(false);
   const [country, setCountry] = useState("");
-
-  const [pwd, setPwd] = useState("");
+  const [password, setPassword] = useState("");
   const [validPwd, setValidPwd] = useState(false);
-
   const [matchPwd, setMatchPwd] = useState("");
   const [validMatch, setValidMatch] = useState(false);
-
   const [gender, setGender] = useState("");
   const [profilePictureUrl, setProfilePictureUrl] = useState("");
   const [bio, setBio] = useState("");
   const [securityQuestion, setSecurityQuestion] = useState(securityQuestions[0]);
   const [securityAnswer, setSecurityAnswer] = useState("");
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-
-  const [friendCount, setFriendCount] = useState(0);
-  const [postCount, setPostCount] = useState(0);
-  const [followerCount, setFollowerCount] = useState(0);
-  const [followingCount, setFollowingCount] = useState(0);
+  const [friendCount] = useState(0);
+  const [postCount] = useState(0);
+  const [followerCount] = useState(0);
+  const [followingCount] = useState(0);
 
   const [errMsg, setErrMsg] = useState("");
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Focus the username input on load
   useEffect(() => {
     userRef.current.focus();
   }, []);
 
-  // Validate fields on input change
   useEffect(() => setValidName(USER_REGEX.test(user)), [user]);
   useEffect(() => setValidEmail(EMAIL_REGEX.test(email)), [email]);
-  useEffect(() => setValidDOB(new Date(dob) < new Date()), [dob]);
+  useEffect(() => setValidDOB(new Date(birthdate) < new Date()), [birthdate]);
   useEffect(() => setValidZip(ZIP_REGEX.test(zipCode)), [zipCode]);
-  useEffect(() => setValidPhone(PHONE_REGEX.test(phone)), [phone]);
+  useEffect(() => setValidPhone(PHONE_REGEX.test(phoneNumber)), [phoneNumber]);
   useEffect(() => {
-    setValidPwd(PWD_REGEX.test(pwd));
-    setValidMatch(pwd === matchPwd);
-  }, [pwd, matchPwd]);
+    setValidPwd(PWD_REGEX.test(password));
+    setValidMatch(password === matchPwd);
+  }, [password, matchPwd]);
 
-  useEffect(() => setErrMsg(""), [user, email, pwd, matchPwd, dob, zipCode, phone]);
+  useEffect(() => setErrMsg(""), [user, email, password, matchPwd, birthdate, zipCode, phoneNumber]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -100,74 +87,38 @@ const Register = () => {
     setErrMsg("");
 
     try {
-      // Clear cookies/local storage if necessary
-      localStorage.clear();
-      sessionStorage.clear();
-      const response = await axios.post(
-          REGISTER_URL, {
-            username: user,
-            password: pwd,
-            email,
-            firstName,
-            lastName,
-            middleName,
-            birthdate: dob,
-            phoneNumber: phone,
-            gender,
-            bio,
-            address,
-            city,
-            state,
-            zipCode,
-            country,
-            securityQuestion,
-            securityAnswer,
-            twoFactorEnabled,
-            friendCount,
-            postCount,
-            followerCount,
-            followingCount,
-            profilePictureUrl
-          }
-      );
+      const response = await axios.post(REGISTER_URL, {
+        username: user,
+        password,
+        email,
+        firstName,
+        lastName,
+        middleName,
+        birthdate,
+        phoneNumber,
+        gender,
+        bio,
+        address,
+        city,
+        state,
+        zipCode,
+        country,
+        securityQuestion,
+        securityAnswer,
+        twoFactorEnabled,
+        profilePictureUrl
+      });
 
       if (response.status === 200) {
         setSuccess(true);
-        // Reset all form fields after success
-        setUser("");
-        setPwd("");
-        setEmail("");
-        setFirstName("");
-        setLastName("");
-        setMiddleName("");
-        setDOB("");
-        setPhone("");
-        setAddress("");
-        setCity("");
-        setState("");
-        setZipCode("");
-        setCountry("");
-        setGender("");
-        setProfilePictureUrl("");
-        setBio("");
-        setSecurityQuestion(securityQuestions[0]);
-        setSecurityAnswer("");
-        setTwoFactorEnabled(false);
-        setFriendCount(0);
-        setPostCount(0);
-        setFollowerCount(0);
-        setFollowingCount(0);
-
-        // Navigate to Sign In page
         navigate("/", { replace: true });
       } else {
         setErrMsg(response.statusText);
       }
     } catch (err) {
-      setErrMsg(err.message || "Registration failed");
+      setErrMsg(err.response?.data?.message || "Registration failed");
     } finally {
       setIsLoading(false);
-      if (errMsg) errRef.current.focus();
     }
   };
 
@@ -175,83 +126,82 @@ const Register = () => {
       <section>
         {success ? (
             <div>
-              <h1>Success!</h1>
+              <h1>Registration Successful!</h1>
               <p>
                 <Link to="/">Sign In</Link>
               </p>
             </div>
         ) : (
             <div>
-              <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"}>{errMsg}</p>
-              <h1>Register</h1>
+             <h1>Register</h1>
               <form onSubmit={handleSubmit}>
-                <input type="hidden" name="roles" value={role} />
-
                 {/* Username */}
                 <div>
-                  <FontAwesomeIcon icon={faCheck} className={validName ? "valid" : "hide"} />
-                  <FontAwesomeIcon icon={faTimes} className={validName || !user ? "hide" : "invalid"} />
                   <input
                       type="text"
-                      id="username"
-                      placeholder="Enter username"
+                      placeholder="Username"
                       ref={userRef}
                       onChange={(e) => setUser(e.target.value)}
                       value={user}
                       required
                   />
+                  <FontAwesomeIcon icon={faCheck} className={validName ? "valid" : "hide"}/>
+                  <FontAwesomeIcon icon={faTimes} className={validName || !user ? "hide" : "invalid"}/>
                 </div>
 
                 {/* Email */}
                 <div>
-                  <FontAwesomeIcon icon={faCheck} className={validEmail ? "valid" : "hide"} />
-                  <FontAwesomeIcon icon={faTimes} className={validEmail || !email ? "hide" : "invalid"} />
-                  <input type="email" id="email" placeholder="Enter email" onChange={(e) => setEmail(e.target.value)} value={email} required />
+                  <input
+                      type="email"
+                      placeholder="Email"
+                      onChange={(e) => setEmail(e.target.value)}
+                      value={email}
+                      required
+                  />
+                  <FontAwesomeIcon icon={faCheck} className={validEmail ? "valid" : "hide"}/>
+                  <FontAwesomeIcon icon={faTimes} className={validEmail || !email ? "hide" : "invalid"}/>
                 </div>
 
-                {/* Additional fields */}
-                <div>
-                  <input type="text" id="firstName" placeholder="Enter first name" onChange={(e) => setFirstName(e.target.value)} value={firstName} required />
-                  <input type="text" id="lastName" placeholder="Enter last name" onChange={(e) => setLastName(e.target.value)} value={lastName} required />
-                  <input type="text" id="middleName" placeholder="Enter middle name" onChange={(e) => setMiddleName(e.target.value)} value={middleName} />
-                  <input type="text" id="phoneNumber" placeholder="Enter phone number" onChange={(e) => setPhone(e.target.value)} value={phone} required />
-                  <input type="date" id="dob" placeholder="Enter date of birth" onChange={(e) => setDOB(e.target.value)} value={dob} required />
-                </div>
+                {/* Other fields */}
+                <input type="text" placeholder="First Name" onChange={(e) => setFirstName(e.target.value)}
+                       value={firstName} required/>
+                <input type="text" placeholder="Last Name" onChange={(e) => setLastName(e.target.value)}
+                       value={lastName} required/>
+                <input type="text" placeholder="Middle Name" onChange={(e) => setMiddleName(e.target.value)}
+                       value={middleName}/>
+                <input type="date" placeholder="Birthdate" onChange={(e) => setBirthdate(e.target.value)}
+                       value={birthdate} required/>
+                <input type="text" placeholder="Phone Number" onChange={(e) => setPhoneNumber(e.target.value)}
+                       value={phoneNumber} required/>
+                <input type="text" placeholder="Address" onChange={(e) => setAddress(e.target.value)} value={address}/>
+                <input type="text" placeholder="City" onChange={(e) => setCity(e.target.value)} value={city}/>
+                <input type="text" placeholder="State" onChange={(e) => setState(e.target.value)} value={state}/>
+                <input type="text" placeholder="Zip Code" onChange={(e) => setZipCode(e.target.value)} value={zipCode}/>
+                <input type="text" placeholder="Country" onChange={(e) => setCountry(e.target.value)} value={country}/>
+                <input type="text" placeholder="Profile Picture URL"
+                       onChange={(e) => setProfilePictureUrl(e.target.value)} value={profilePictureUrl}/>
+                <textarea placeholder="Bio" onChange={(e) => setBio(e.target.value)} value={bio}></textarea>
+                <select onChange={(e) => setGender(e.target.value)} value={gender}>
+                  {genderOptions.map((option, index) => (
+                      <option key={index} value={option}>
+                        {option}
+                      </option>
+                  ))}
+                </select>
 
-                <div>
-                  <label htmlFor="gender">Gender</label>
-                  <select id="gender" onChange={(e) => setGender(e.target.value)} value={gender}>
-                    {genderOptions.map((option, index) => (
-                        <option key={index} value={option}>
-                          {option}
-                        </option>
-                    ))}
-                  </select>
-                </div>
+                <button type="submit"
 
-                <div>
-                  <label htmlFor="securityQuestion">Security Question</label>
-                  <select id="securityQuestion" onChange={(e) => setSecurityQuestion(e.target.value)} value={securityQuestion}>
-                    {securityQuestions.map((question, index) => (
-                        <option key={index} value={question}>
-                          {question}
-                        </option>
-                    ))}
-                  </select>
-                  <input type="text" id="securityAnswer" placeholder="Security Answer" onChange={(e) => setSecurityAnswer(e.target.value)} value={securityAnswer} />
-                </div>
-
-                {/* Two-Factor Enabled */}
-                <div>
-                  <label>
-                    <input type="checkbox" checked={twoFactorEnabled} onChange={(e) => setTwoFactorEnabled(e.target.checked)} />
-                    Enable Two-Factor Authentication
-                  </label>
-                </div>
-
-                <button type="submit" id="btnRegister">
-                  {isLoading ? "Registering..." : "Sign Up"}
+                        onClick={
+                          (e) => {
+                            e.preventDefault();
+                            handleSubmit(e).then(r => console.log(r));
+                          }
+                        }
+                        disabled={!validName || !validEmail || !validPwd || !validMatch || isLoading}>
+                  {isLoading ? "Registering..." : "Register"}
                 </button>
+                <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"}>{errMsg}</p>
+
               </form>
               <p>Already registered? <Link to="/">Sign In</Link></p>
             </div>
