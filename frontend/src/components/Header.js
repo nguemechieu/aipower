@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import {CardHeader} from "@mui/material";
+
 const Header = () => {
   return (
-    <CardHeader>
+    <h1>
       <h1>AiPower</h1>
       <div className="row">
         <div className="col-md-12">
@@ -37,6 +37,6 @@ const Header = () => {
         </div>
         </div>
 
-    </CardHeader>)};
+    </h1>)};
 
 export default Header;

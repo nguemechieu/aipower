@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
-  "proxy": "http://localhost:8081",
-  "homepage": "http://localhost:3000",
+  "proxy": "http://localhost:3000",
+  "homepage": "https://github.com/nguemechieu/aipower",
   "keywords": [
     "aipower",
     "react",
@@ -20,8 +20,10 @@
     "url": "git+https://github.com/nguemechieu/aipower.git"
   },
   "dependencies": {
+
     "@fortawesome/free-solid-svg-icons": "^6.6.0",
     "@fortawesome/react-fontawesome": "^0.2.2",
+
     "axios": "^1.7.7",
     "dotenv": "^16.4.5",
     "prettier": "^3.3.3",
@@ -31,7 +33,6 @@
     "react-markdown": "^8.0.2",
     "react-router-dom": "^6.3.0",
     "react-scripts": "^5.0.1",
-    "react-tooltip": "^4.2.16",
     "serve": "^14.2.4",
     "web-vitals": "^2.1.4"
   },

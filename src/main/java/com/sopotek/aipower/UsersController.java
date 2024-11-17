@@ -3,8 +3,7 @@ package com.sopotek.aipower;
 
 import com.sopotek.aipower.model.User;
 
-
-import com.sopotek.aipower.service.Db;
+import com.sopotek.aipower.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -17,13 +16,15 @@ import java.util.List;
 import java.util.Optional;
 
 
-
+@RestController
 @RequestMapping("/api/v3/users")
 public class UsersController {
 
-    Db userService=new Db();
+    private final UserService userService;
 
-    public UsersController() {
+    @Autowired
+    public UsersController(UserService userService) {
+        this.userService = userService;
 
     }
 //User logout

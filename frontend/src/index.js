@@ -47,23 +47,23 @@ class ErrorBoundary extends Component {
 
 createRoot(document.getElementById("root")).render(
     <StrictMode>
-
+        <ErrorBoundary>
 
         <BrowserRouter>
             <AuthProvider>
 
                         <Suspense fallback={
                             <LoadingSpinner />}>
-                            <ErrorBoundary>
+
                         <Routes>
                             <Route path="/*" element={<LazyApp />} />
                         </Routes>
-                            </ErrorBoundary>
+
 
                         </Suspense>
 
             </AuthProvider>
         </BrowserRouter>
-
+        </ErrorBoundary>
     </StrictMode>
 );

@@ -4,8 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +21,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Properties;
+@Getter
+@Setter
 @RestController
 @RequestMapping("/api/v3")
 public class NewsController {
@@ -26,16 +31,16 @@ public class NewsController {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient client = HttpClient.newHttpClient();
-    String apiKey;
-    Properties properties = new Properties();
+ @Value("${news.api.key}")
+  private   String apiKey;
+    private HttpRequest request;
 
-    public NewsController() throws IOException {
+    public NewsController() {
         objectMapper.configure(
                 com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES,
                 true
         );
-        this.properties.load(getClass().getClassLoader().getResourceAsStream("./application.properties"));
-        this.apiKey = properties.getProperty("news.api.key");
+
         logger.info(
                 this.toString()
         );
@@ -51,7 +56,8 @@ public class NewsController {
     @GetMapping("/forex-factory")
     public ResponseEntity<?> getForexFactoryCalendar() {
         try {
-            HttpRequest request = HttpRequest.newBuilder()
+
+            request = HttpRequest.newBuilder()
                     .uri(URI.create("https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=a603b210ca0358c2414daec0c5a1247b"))
                     .GET()
                     .build();
@@ -63,11 +69,48 @@ public class NewsController {
             }
 
             // Parse the JSON data into a List of ForexEvent
-            List<ForexFactoryCalendar.ForexEvent> forexEvents = objectMapper.readValue(response.body(), objectMapper.getTypeFactory().constructCollectionType(List.class, ForexFactoryCalendar.ForexEvent.class));
+            List<ForexFactoryCalendar> forexEvents = objectMapper.readValue(response.body(), objectMapper.getTypeFactory().constructCollectionType(List.class, ForexFactoryCalendar.class));
             return ResponseEntity.ok(forexEvents);
 
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error fetching Forex Factory calendar: " + e.getMessage());
+        }
+    }
+
+
+    @Value("${news.api.url}") String url;
+
+    @Override
+    public String toString() {
+        return "NewsController{" +
+                "objectMapper=" + objectMapper +
+                ", client=" + client +
+                ", apiKey='" + apiKey + '\'' +
+                ", request=" + request +
+                ", url='" + url + '\'' +
+                '}';
+    }
+
+    @GetMapping("/news")
+    public ResponseEntity<?> getNews() {
+        try {
+           request = HttpRequest.newBuilder()
+                   .uri(URI.create(url))
+                   .GET()
+                   .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode()!= 200) {
+                return ResponseEntity.status(response.statusCode()).body("Failed to fetch news: " + response.body());
+            }
+
+            // Parse the JSON data into a List of NewsItem
+            List<News> newsItems = objectMapper.readValue(response.body(), objectMapper.getTypeFactory().constructCollectionType(List.class, News.class));
+            return ResponseEntity.ok(newsItems);
+
+        } catch (IOException | InterruptedException e) {
+            return ResponseEntity.status(500).body("Error fetching news: " + e.getMessage());
         }
     }
 

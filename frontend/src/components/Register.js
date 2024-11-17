@@ -3,8 +3,8 @@ import { faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link, useNavigate } from "react-router-dom";
 
-import { Button } from "@mui/material";
-import axios, {axiosPrivate} from "../api/axios.js";
+
+import axios from "../api/axios.js";
 
 // Validation patterns
 const USER_REGEX = /^[A-z][A-z0-9-_]{3,23}$/;
@@ -103,9 +103,8 @@ const Register = () => {
       // Clear cookies/local storage if necessary
       localStorage.clear();
       sessionStorage.clear();
-      const response = await axiosPrivate.post(
-          REGISTER_URL,
-          {params:{
+      const response = await axios.post(
+          REGISTER_URL, {
             username: user,
             password: pwd,
             email,
@@ -115,8 +114,21 @@ const Register = () => {
             birthdate: dob,
             phoneNumber: phone,
             gender,
-            bio
-          }}
+            bio,
+            address,
+            city,
+            state,
+            zipCode,
+            country,
+            securityQuestion,
+            securityAnswer,
+            twoFactorEnabled,
+            friendCount,
+            postCount,
+            followerCount,
+            followingCount,
+            profilePictureUrl
+          }
       );
 
       if (response.status === 200) {
@@ -237,9 +249,9 @@ const Register = () => {
                   </label>
                 </div>
 
-                <Button type="submit" id="btnRegister">
+                <button type="submit" id="btnRegister">
                   {isLoading ? "Registering..." : "Sign Up"}
-                </Button>
+                </button>
               </form>
               <p>Already registered? <Link to="/">Sign In</Link></p>
             </div>

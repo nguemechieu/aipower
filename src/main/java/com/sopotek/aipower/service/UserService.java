@@ -7,6 +7,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.List;
+
 @Getter
 @Setter
 @Service
@@ -43,7 +46,7 @@ public class UserService {
      * @return true if the user exists and the password matches; false otherwise
      */
     public boolean authenticate(String username, String password) {
-        User user = userRepository.findByUsername(username);
+        User user = userRepository.findByUsername(username,password);
         return user != null && passwordEncoder.matches(password, user.getPassword());
     }
 
@@ -66,5 +69,46 @@ public class UserService {
                 .setExpiration(expiryDate)
                 .signWith(signingKey, SignatureAlgorithm.HS512) // Use the secure key
                 .compact();
+    }
+
+    public boolean isUserExist(String username) {
+        return userRepository.existsByUsername(username);
+    }
+
+    public boolean isUserPasswordValid(String username, String password) {
+        User user = userRepository.findByUsername(username,password);
+        return user!= null && passwordEncoder.matches(password, user.getPassword());
+    }
+
+    public void saveUser(@NotNull User newUser) {
+        newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
+        userRepository.save(newUser);
+    }
+
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElse(null);
+    }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public User update(Long id, User updatedItem) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user!= null) {
+            user.setUsername(updatedItem.getUsername());
+            user.setPassword(passwordEncoder.encode(updatedItem.getPassword()));
+            userRepository.save(user);
+            return user;
+        }
+        return null;
+    }
+
+    public boolean existsById(Long id) {
+        return userRepository.existsById(id);
+    }
+
+    public void deleteById(Long id) {
+            userRepository.deleteById(id);
     }
 }

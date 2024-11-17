@@ -16,8 +16,8 @@ import java.util.List;
 
 @RequestMapping("/api/v3/crypto")
 public class CryptoController {
-@Autowired CryptoService cryptoService;
-
+CryptoService cryptoService;
+@Autowired
     public CryptoController(CryptoService cryptoService) {
         this.cryptoService = cryptoService;
     }

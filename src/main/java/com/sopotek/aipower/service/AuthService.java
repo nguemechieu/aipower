@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -14,15 +15,14 @@ import java.util.Properties;
 
 @Service
 public class AuthService {
-
-    String SECRET_KEY;
+@Value("${application.secret.key}")
+private     String SECRET_KEY;
     int EXPIRATION_TIME_MINUTES;
 
-    public AuthService() throws IOException {
+    public AuthService() {
 
-        Properties propertyResolver = new Properties();
-        propertyResolver.load(getClass().getClassLoader().getResourceAsStream("application.properties"));
-        this.SECRET_KEY = propertyResolver.getProperty("ai.power.security.secret_key");
+
+
         this.EXPIRATION_TIME_MINUTES = 60 * 60 * 24 * 7;//Integer.parseInt(propertyResolver.getProperty("ai.power.security.token.expiration"));
     }
 
@@ -30,9 +30,9 @@ public class AuthService {
     public boolean validateToken(String token) {
         try {
             // Parse the token to verify it with the secret key
-            Jwts.parser()
+            Jwts.parserBuilder()
                     .setSigningKey(SECRET_KEY.getBytes(StandardCharsets.UTF_8))  // Use the secret key for verification
-                    .parseClaimsJws(token);  // This will throw an exception if the token is invalid
+                    .build().parseClaimsJws(token);  // This will throw an exception if the token is invalid
 
             return true;
         } catch (Exception e) {
@@ -53,9 +53,7 @@ public class AuthService {
         return "";
     }
 
-    // Validate JWT from cookies in a request
-    public boolean validateTokenFromCookies(HttpServletRequest request) {
-        String token = extractTokenFromCookies(request);
-        return token != null && validateToken(token);
-    }
+
+
+
 }

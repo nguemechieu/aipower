@@ -24,10 +24,11 @@ import AccountSummary from "./components/AccountSummary.js";
 
 // Define roles for clarity and reusability
 const ROLES = {
-  USER: "user",
-  EDITOR: "editor",
-  ADMIN: "admin",
-  LOUNGE: "lounge",
+  USER: "USER",
+  EDITOR: "MANAGER",
+  ADMIN: "ADMIN",
+    EMPLOYEE: "EMPLOYEE",
+    MANAGER: "MANAGER"
 };
 
 class About extends Component {
@@ -56,12 +57,11 @@ function App() {
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
           <Route path="admin/manager" element={<AdminUserManagement />} />
-
-<Route path="account" element={<AccountSummary/>}/>
+            <Route path="account" element={<AccountSummary/>}/>
           <Route path="register" element={<Register />} />
           <Route path="terms-of-service" element={<TermsOfService />} />
           <Route path="tradeadviser" element={<TradeAdviser />} />
-          <Route path="forgotpassword" element={<ForgotPassword />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="linkpage" element={<LinkPage />} />
           <Route path="login" element={<Login />} />
 
@@ -83,8 +83,8 @@ function App() {
               <Route path="admin" element={<Admin />} />
             </Route>
 
-            <Route element={<RequireAuth allowedRoles={[ROLES.EDITOR, ROLES.ADMIN]} />}>
-              <Route path="lounge" element={<Lounge />} />
+            <Route element={<RequireAuth allowedRoles={[ROLES.MANAGER, ROLES.ADMIN]} />}>
+              <Route path="manager" element={<Lounge />} />
             </Route>
           </Route>
         </Route>

@@ -4,16 +4,18 @@ import Footer from "./Footer.js";
 
 
 const Layout = () => {
-  return (
-    <>
+  return (<>
       <Header />
+
       <main className="App">
-        <div className="flex-grow">
+
+        <div className='login-container'>
           <Outlet />
         </div>
-      </main>
-      <Footer />
-    </>
+
+      </main> <Footer />
+      </>
+
   );
 };
 

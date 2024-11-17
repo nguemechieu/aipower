@@ -10,8 +10,12 @@ import java.util.List;
 @RestController("/chat")
 public class ChatGptController {
 
-    @Autowired
     ChatGPTService chatGPTService;
+
+    @Autowired
+    public ChatGptController(ChatGPTService chatGPTService) {
+        this.chatGPTService = chatGPTService;
+    }
 
     // Basic chat endpoint with single prompt
     @GetMapping("/message")

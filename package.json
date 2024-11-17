@@ -6,13 +6,12 @@
 
   "description": "A smart and social trade advisor web application",
 
-
-
   "scripts": {
 
     "dev": "node run.js development",
 
-    "prod":"node run.js production"
+    "prod": "node run.js production"
+
   },
 
   "author": "NOEL NGUEMECHIEU",
@@ -28,6 +27,8 @@
   },
 
   "dependencies": {
+
+    "@testing-library/react": "^16.0.1",
 
     "child_process": "^1.0.2"
 

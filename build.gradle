@@ -42,10 +42,16 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
     implementation 'org.jetbrains:annotations:24.0.1'
     implementation 'io.github.cdimascio:dotenv-java:2.2.2'
+    implementation 'org.apache.commons:commons-email:1.5'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'de.codecentric:spring-boot-admin-starter-client:3.0.0'
+
 
     // Jakarta Mail and Activation (Angus)
-    implementation 'org.eclipse.angus:angus-activation:1.0.0'
-    implementation 'org.eclipse.angus:jakarta.mail:2.0.1'
+    //implementation 'org.eclipse.angus:angus-activation:1.0.0'
+
+    implementation 'com.sun.mail:jakarta.mail:2.0.1'
+    implementation 'com.sun.activation:jakarta.activation:2.0.1'
 
     // JSON Web Token (JWT)
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
@@ -76,12 +82,7 @@ dependencyManagement {
         mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
     }
 }
-configurations {
-    all {
-        exclude group: 'javax.activation', module: 'activation'
-        exclude group: 'jakarta.activation', module: 'jakarta.activation-api'
-    }
-}
+
 
 tasks.named('test') {
     outputs.dir snippetsDir
