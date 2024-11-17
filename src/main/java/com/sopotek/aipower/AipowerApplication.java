@@ -1,11 +1,12 @@
 package com.sopotek.aipower;
 
+import de.codecentric.boot.admin.server.config.EnableAdminServer;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import io.github.cdimascio.dotenv.Dotenv;
+
 import org.springframework.boot.autoconfigure.domain.EntityScan;
-import de.codecentric.boot.admin.server.config.EnableAdminServer;
 
 
 @SpringBootApplication(scanBasePackages = "com.sopotek.aipower")

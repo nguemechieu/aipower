@@ -12,10 +12,7 @@
 
     "dev": "node run.js development",
 
-    "prod": "node run.js production",
-
-    "test": "echo \"Error: no test specified\" && exit 1"
-
+    "prod":"node run.js production"
   },
 
   "author": "NOEL NGUEMECHIEU",
@@ -32,27 +29,7 @@
 
   "dependencies": {
 
-    "@emotion/react": "^11.13.3",
-
-    "@emotion/styled": "^11.13.0",
-
-    "@fontsource/roboto": "^5.1.0",
-
-    "@mui/icons-material": "^6.1.5",
-
-    "@mui/material": "^6.1.5",
-
-    "@mui/styled-engine-sc": "^6.1.5",
-
-    "child_process": "^1.0.2",
-
-    "http": "^0.0.1-security",
-
-    "path": "^0.12.7",
-
-    "serve": "^14.2.4",
-
-    "styled-components": "^6.1.13"
+    "child_process": "^1.0.2"
 
   }
 

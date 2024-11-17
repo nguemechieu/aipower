@@ -29,24 +29,24 @@ function installJava() {
                 console.log("Java installed successfully.");
                 startFrontend();
             } else {
-                console.error("Java installation failed. Please install it manually from:");
+                console.error("Java installation failed. Please install it manually:");
                 console.error("Oracle: https://www.oracle.com/java/");
                 console.error("AdoptOpenJDK: https://adoptopenjdk.net/");
                 process.exit(1);
             }
         });
     } else if (process.platform === 'darwin') {
-        console.error("Java is required but not installed. Please install it via Homebrew with `brew install openjdk`.");
+        console.error("Please install Java via Homebrew with `brew install openjdk`.");
         process.exit(1);
     } else {
-        console.error("Java is required but not installed. Please install it manually with your package manager.");
+        console.error("Java is required. Install it manually with your package manager.");
         process.exit(1);
     }
 }
 
 function installNode() {
     if (process.platform === 'win32') {
-        console.log("Node.js not found. Attempting to install with Chocolatey...");
+        console.log("Node.js not found. Installing with Chocolatey...");
         const installProcess = spawn('choco', ['install', 'nodejs', '-y'], { shell: true, stdio: 'inherit' });
 
         installProcess.on('close', (code) => {
@@ -54,21 +54,22 @@ function installNode() {
                 console.log("Node.js installed successfully.");
                 startFrontend();
             } else {
-                console.error("Node.js installation failed. Please install it manually from:");
+                console.error("Node.js installation failed. Install it manually:");
                 console.error("https://nodejs.org/");
                 process.exit(1);
             }
         });
     } else if (process.platform === 'darwin') {
-        console.error("Node.js is required but not installed. Please install it via Homebrew with `brew install node`.");
+        console.error("Please install Node.js via Homebrew with `brew install node`.");
         process.exit(1);
     } else {
-        console.error("Node.js is required but not installed. Please install it manually with your package manager.");
+        console.error("Node.js is required. Install it manually with your package manager.");
         process.exit(1);
     }
 }
 
 function startBackend() {
+    console.log("Starting backend server...");
     const backendPath = path.join(__dirname, '.');
     const backendCommand = process.platform === 'win32' ? 'gradlew.bat' : './gradlew';
     const backendArgs = ['bootRun'];
@@ -97,7 +98,7 @@ function startFrontend() {
 
     if (mode === 'production') {
         console.log('Building React app for production...');
-        const buildProcess = spawn('npm', ['run', 'prod'], {
+        const buildProcess = spawn('npm', ['run', 'build'], {
             cwd: frontendPath,
             shell: true,
             stdio: 'inherit',
@@ -105,36 +106,15 @@ function startFrontend() {
 
         buildProcess.on('close', (code) => {
             if (code === 0) {
-                console.log('React app built successfully. Copying files to Spring Boot static directory...');
-
-                const copyCommand = process.platform === 'win32' ? 'xcopy' : 'cp';
-                const copyArgs = process.platform === 'win32'
-                    ? ['/s', '/e', 'build', path.join('..', '.', 'src', 'main', 'resources', 'static')]
-                    : ['-r', 'build/*', path.join('..', '.', 'src', 'main', 'resources', 'static')];
-
-                const copyProcess = spawn(copyCommand, copyArgs, {
-                    cwd: frontendPath,
-                    shell: true,
-                    stdio: 'inherit',
-                });
-
-                copyProcess.on('close', (copyCode) => {
-                    if (copyCode === 0) {
-                        console.log('Files copied successfully.');
-                        startBackend();
-                    } else {
-                        console.error(`Error copying files with exit code ${copyCode}`);
-                    }
-                });
+                console.log('React app built successfully. Starting backend server...');
+                startBackend();
             } else {
                 console.error(`React build process exited with code ${code}`);
             }
         });
     } else {
         console.log('Starting React app in development mode...');
-
-
-        frontendProcess = spawn('npm', ['dev'], {
+        frontendProcess = spawn('npm', ['start'], {
             cwd: frontendPath,
             shell: true,
             stdio: 'inherit',
@@ -152,14 +132,14 @@ function startFrontend() {
     }
 }
 
-// Check if Java is installed
+// Check for Java installation
 checkInstallation(
     'java',
     ['-version'],
     () => {
         console.log('Java is installed.');
 
-        // Check if Node.js is installed after confirming Java
+        // Check for Node.js after Java verification
         checkInstallation(
             'node',
             ['-v'],
@@ -173,7 +153,7 @@ checkInstallation(
     installJava
 );
 
-// Handle process termination for clean exit
+// Gracefully handle process termination
 process.on('SIGINT', () => {
     console.log('\nShutting down...');
 

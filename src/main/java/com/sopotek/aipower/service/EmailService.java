@@ -1,26 +1,21 @@
 package com.sopotek.aipower.service;
 
 import com.sopotek.aipower.config.MailConfig;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 @Service
 public class EmailService {
 
     private final Logger LOG = Logger.getLogger(EmailService.class.getName());
-    JavaMailSender mailSender;
-    Properties properties = new Properties();
 
-    public EmailService() throws IOException {
-        this.mailSender = new MailConfig().getJavaMailSender();
-        properties.load(
-                EmailService.class.getClassLoader().getResourceAsStream("application.properties") // Replace with your application properties file path
-        );
+    JavaMailSender mailSender;
+    public EmailService() {
+
 
     }
 

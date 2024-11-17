@@ -1,70 +1,50 @@
 package com.sopotek.aipower.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.ConfigurableMimeFileTypeMap;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
-import java.io.IOException;
 import java.util.Properties;
 
 @Configuration
 public class MailConfig {
 
-    @Bean
-    public ConfigurableMimeFileTypeMap configurableMimeFileTypeMap() {
-        ConfigurableMimeFileTypeMap fileTypeMap = new ConfigurableMimeFileTypeMap();
+    @Value("${spring.mail.host}")
+    private String smtp;
 
-        // Define multiple MIME types in a single string
-        String mappings = """
-            application/pdf pdf
-            image/png png
-            image/jpeg jpeg jpg
-            text/plain txt
-            text/html html htm
-            application/json json
-            application/xml xml
-            """;
+    @Value("${spring.mail.username}")
+    private String email;
 
-        fileTypeMap.setMappings(mappings);
+    @Value("${spring.mail.password}")
+    private String password;
 
-        return fileTypeMap;
-    }
 
-    @Bean
-    public JavaMailSender getJavaMailSender() throws IOException {
+    public JavaMailSender getJavaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost(smtp);
+        mailSender.setPort(587);
 
+        mailSender.setUsername(email);
+        mailSender.setPassword(password);
 
-        // Configure additional mail properties
-        Properties props = new Properties();
-        props.load(
-                MailConfig.class.getClassLoader().getResourceAsStream("./application.properties") // Replace with your application properties file path
-        );
+        Properties props = mailSender.getJavaMailProperties();
+        props.put("mail.transport.protocol", "smtp");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.debug", "true");
 
-        mailSender.setJavaMailProperties(props);
-        // Set the mail server host and port
-        mailSender.setHost(
-                props.getProperty(
-                        "spring.mail.host"
-                )
-        );  // Replace with your SMTP host
-        mailSender.setPort(587); // Typical port for TLS; change if needed
-
-        // Set the username and password for authentication
-        mailSender.setUsername(
-                props.getProperty(
-                        "spring.mail.username"
-                )  // Replace it with your email username
-        ); // Replace it with your email
-        mailSender.setPassword(
-                props.getProperty(
-                        "spring.mail.password"
-                )  // Replace it with your email password
-        );    // Replace it with your email password
         ConfigurableMimeFileTypeMap fileTypeMap = new ConfigurableMimeFileTypeMap();
-        mailSender.setDefaultFileTypeMap(fileTypeMap);
+        String mappings = """
+                image/jpeg jpeg jpg
+                text/plain txt
+                text/html html htm
+                application/json json
+                application/xml xml
+                """;
+
 
         return mailSender;
     }

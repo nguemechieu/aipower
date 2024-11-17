@@ -11,9 +11,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
-
 @Entity
 @Table(name = "users")
+
 public class User extends SecurityProperties.User {
 
     @Id

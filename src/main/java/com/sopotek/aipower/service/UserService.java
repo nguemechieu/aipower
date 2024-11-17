@@ -4,41 +4,67 @@ import com.sopotek.aipower.model.User;
 import com.sopotek.aipower.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.Key;
 import java.util.Date;
-
+@Getter
+@Setter
 @Service
 public class UserService {
-    @Autowired
-    UserRepository userRepository;
-
-    PasswordEncoder passwordEncoder;
 
 
-    String jwtSecret="q234rtyu78iu";
-
-
-    int jwtExpirationMs=3600;
-
-    public boolean authenticate(String username, String password) {
-        User user = userRepository.findByUsername(username);
-        // Check if user exists and password matches
-        return user!=null && passwordEncoder.matches(password, user.getPassword());
+    private UserRepository userRepository;
+@Autowired
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
 
     }
 
+    private PasswordEncoder passwordEncoder;
+
+    @Value("${application.secret.key}")
+    private String jwtSecret;
+
+    private static final int JWT_EXPIRATION_MS = 3600 * 1000; // 1 hour in milliseconds
+
+    /**
+     * Authenticates a user based on username and password.
+     *
+     * @param username the username
+     * @param password the raw password
+     * @return true if the user exists and the password matches; false otherwise
+     */
+    public boolean authenticate(String username, String password) {
+        User user = userRepository.findByUsername(username);
+        return user != null && passwordEncoder.matches(password, user.getPassword());
+    }
+
+    /**
+     * Generates a JWT token for the given username.
+     *
+     * @param username the username
+     * @return a JWT token
+     */
     public String generateToken(String username) {
         Date now = new Date();
-        Date expiryDate = new Date(now.toInstant().getNano() + jwtExpirationMs);
+        Date expiryDate = new Date(now.getTime() + JWT_EXPIRATION_MS);
+
+        // Generate a secure key from the secret
+        Key signingKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
 
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .signWith(signingKey, SignatureAlgorithm.HS512) // Use the secure key
                 .compact();
     }
 }
