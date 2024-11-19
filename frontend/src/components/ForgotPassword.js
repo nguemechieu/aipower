@@ -1,3 +1,4 @@
+import  React from 'react';
 
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useRef, useState, useEffect } from "react";
@@ -10,12 +11,10 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [rememberMe] = useState(false);
-
   const emailRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
-
   useEffect(() => {
     emailRef.current.focus();
   }, []);
@@ -32,24 +31,20 @@ const ForgotPassword = () => {
         "email":email
       });
 
-      if (response.status === 200) {
+      if(response.status === 200) {
         setSuccess(true);
         setLoading(false);
         setSent(true);
-
         localStorage.setItem("resetEmail", email);
         localStorage.setItem("resetToken", response.data.token);
         localStorage.setItem("resetExpires", response.data.expires);
-
-        rememberMe
-          ? localStorage.setItem("rememberMe", "true")
-          : localStorage.removeItem("rememberMe");
-
+            rememberMe?
+            localStorage.setItem("rememberMe", "true") :
+            localStorage.removeItem("rememberMe");
         setEmail("");
         navigate(`/login?reset=true&from=${from}`);
       }else {
         setLoading(false);
-
         if (response.status === 401){
           setErrMsg("Invalid email address");
         }
@@ -66,9 +61,7 @@ const ForgotPassword = () => {
       }
     } catch (error) {
       setLoading(false);
-      setErrMsg(
-        error.toString()
-      );
+      setErrMsg(error.toString());
     }
   };
 
@@ -79,7 +72,7 @@ const ForgotPassword = () => {
       <h1>Forgot Password</h1>
       <p>Enter your email address to reset your password.</p>
 
-      <form onSubmit={handleSubmit}>
+      <form >
         <input
           type="email"
           id="email"
@@ -104,7 +97,9 @@ const ForgotPassword = () => {
         )}
         {success && sent && <p>Check your email for further instructions.</p>}
 
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading}
+                onSubmit={(e)=>handleSubmit(e)}
+        >
           {loading ? "Loading..." : "Send Password Reset"}
           {loading && <span className="spinner">
             <svg className="spinner-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">

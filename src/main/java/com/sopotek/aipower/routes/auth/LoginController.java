@@ -37,7 +37,7 @@ public class LoginController {
             @RequestParam("password") String password
     ) {
         if (userService.isUserExist(username)) {
-            if (userService.isUserPasswordValid(username, password)) {
+            if (userService.authenticate(username, password)) {
                 String token = userService.generateToken(username);
 
                 HttpHeaders headers = new HttpHeaders();

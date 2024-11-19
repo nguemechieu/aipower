@@ -1,15 +1,23 @@
-version: '3.8'
-
 services:
-
-
   redis:
     image: redis
     ports:
       - "6379:6379"
+
+  db:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: tradeadviser
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
   backend:
     build:
-      context: ./aipower
+      context: ./
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
@@ -20,25 +28,21 @@ services:
       DB_PASSWORD: password
     depends_on:
       - db
+      - redis
+    entrypoint: [ "sh", "./wait-for-db.sh", "db", "java", "-jar", "build/libs/<your-backend-jar-name>.jar" ]
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 
   frontend:
     build:
-      context: ./frontend
+      context: ./frontend  # Ensure the frontend Dockerfile is in this directory
       dockerfile: Dockerfile
     ports:
-      - "3000:80"
-
-  db:
-    image: mysql:8.0
-    container_name: mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: tradeadviser
-    ports:
-      - "3306:3306"
-    volumes:
-      - db_data:/var/lib/mysql
+      - "3000:3000"
 
 volumes:
   db_data:

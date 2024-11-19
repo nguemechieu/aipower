@@ -7,10 +7,13 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.juli.logging.Log;
+import org.apache.juli.logging.LogFactory;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,15 +25,8 @@ import java.util.List;
 @Setter
 @Service
 public class UserService {
-
-
+private static final Log LOG = LogFactory.getLog(UserService.class);
     private UserRepository userRepository;
-@Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-
-    }
 
     private PasswordEncoder passwordEncoder;
 
@@ -38,6 +34,12 @@ public class UserService {
     private String jwtSecret;
 
     private static final int JWT_EXPIRATION_MS = 3600 * 1000; // 1 hour in milliseconds
+
+    @Autowired
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     /**
      * Authenticates a user based on username and password.
@@ -47,7 +49,7 @@ public class UserService {
      * @return true if the user exists and the password matches; false otherwise
      */
     public boolean authenticate(String username, String password) {
-        User user = userRepository.findByUsername(username,password);
+        User user = userRepository.findByUsernameAndPassword(username, password).get();
         return user != null && passwordEncoder.matches(password, user.getPassword());
     }
 
@@ -76,27 +78,28 @@ public class UserService {
         return userRepository.existsByUsername(username);
     }
 
-    public boolean isUserPasswordValid(String username, String password) {
-        User user = userRepository.findByUsername(username,password);
-        return user!= null && passwordEncoder.matches(password, user.getPassword());
-    }
+
 
     public void saveUser(@NotNull User newUser) {
         newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
         userRepository.save(newUser);
     }
 
+    @Cacheable(value = "users", key = "#id")
     public User getUserById(Long id) {
+        LOG.info("Fetching user by ID from the database.");
         return userRepository.findById(id).orElse(null);
     }
 
+    @Cacheable(value = "users")
     public List<User> getAllUsers() {
+        LOG.info("Fetching all users from the database.");
         return userRepository.findAll();
     }
 
     public User update(Long id, User updatedItem) {
         User user = userRepository.findById(id).orElse(null);
-        if (user!= null) {
+        if (user != null) {
             user.setUsername(updatedItem.getUsername());
             user.setPassword(passwordEncoder.encode(updatedItem.getPassword()));
             userRepository.save(user);
@@ -109,18 +112,20 @@ public class UserService {
         return userRepository.existsById(id);
     }
 
+    @CacheEvict(value = "users", key = "#id")
     public void deleteById(Long id) {
-            userRepository.deleteById(id);
+        userRepository.deleteById(id);
+        LOG.info("Deleted user with ID: " + id);
     }
 
     @CacheEvict(value = "users", allEntries = true)
     public void clearAllUserCache() {
-        System.out.println("All entries in 'users' cache cleared.");
+        LOG.info("All entries in 'users' cache cleared.");
     }
 
     public String updateUser(Long id, String uname) {
         User user = userRepository.findById(id).orElse(null);
-        if (user!= null) {
+        if (user != null) {
             user.setUsername(uname);
             userRepository.save(user);
             return "Username updated successfully";

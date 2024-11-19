@@ -28,8 +28,8 @@ public class RegistrationController {
     public ResponseEntity<String> registerUser(@RequestBody User newUser) {
         try {
             // Check if the username already exists
-            Optional<User> existingUser = Optional.ofNullable(userRepository.findByUsername(newUser.getUsername(),newUser.getPassword()));
-            if (existingUser.isPresent()) {
+            User existingUser = userRepository.findByUsernameAndPassword(newUser.getUsername(),newUser.getPassword()).get();
+            if (existingUser.isEnabled()) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists.");
             }
 

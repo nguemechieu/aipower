@@ -1,4 +1,4 @@
-package com.sopotek.aipower;
+package com.sopotek.aipower.model;
 
 
 
@@ -22,16 +22,8 @@ public class News {
     private String status;
     private int totalResults;
     private List<Article> articles;
-    public News() {
-    }
 
-    // Constructor
-    public News(String status, int totalResults, List<Article> articles) {
-        this.status = status;
-        this.totalResults = totalResults;
-        this.articles = articles;
 
-    }
 
     public News(String country, String date, String impact, String title, String previous, String previous1, String forecast) {
         this.country = country;
@@ -107,4 +99,45 @@ public class News {
 
         }
     }
+
+
+
+    // Constructor
+    public News(String status, int totalResults, List<Article> articles) {
+        this.status = status;
+        this.totalResults = totalResults;
+        this.articles = articles;
+    }
+
+
+
+
+
+
+        // Inner Source Class
+        @Getter
+        @Setter
+        public static class Source {
+            private String id;
+            private String name;
+
+            // Constructor
+            public Source(String id, String name) {
+                this.id = id;
+                this.name = name;
+            }
+
+            // Default Constructor
+            public Source() {
+            }
+
+            @Override
+            public String toString() {
+                return "Source{" +
+                        "id='" + id + '\'' +
+                        ", name='" + name + '\'' +
+                        '}';
+            }
+        }
+
 }

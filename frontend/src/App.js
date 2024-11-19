@@ -1,4 +1,6 @@
 // Importing the necessary parts and styles
+import React, {Component} from 'react'
+
 import "./App.css";
 import { Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout.js";
@@ -15,8 +17,6 @@ import Editor from "./components/Editor.js";
 import Admin from "./components/Admin.js";
 import Lounge from "./components/Lounge.js";
 import Login from "./components/Login.js";
-import { Component } from "react";
-import Contact from "./components/Contact.js";
 import PersistLogin from "./components/PersistLogin.js";
 import News from "./components/News.js";
 import AdminUserManagement from "./components/AdminUserManagement.js";
@@ -55,7 +55,7 @@ function App() {
         <Route element={<Layout />}>
           {/* Public routes */}
           <Route path="about" element={<About />} />
-          <Route path="contact" element={<Contact />} />
+
           <Route path="admin/manager" element={<AdminUserManagement />} />
             <Route path="account" element={<AccountSummary/>}/>
           <Route path="register" element={<Register />} />

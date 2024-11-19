@@ -1,25 +1,42 @@
-# Use Node.js to build the frontend
-FROM node:latest AS frontend-builder
-WORKDIR /app
 
-# Copy only the necessary files for dependency installation
-COPY package*.json ./
-RUN npm install --production
+FROM ubuntu:latest
+# Install required tools
+RUN apt-get update
+RUN apt-get install -y curl
 
-# Copy the rest of the frontend code and build
-COPY . .
+# Install required dependencies
+RUN  apt-get install -y findutils
+
+WORKDIR /app/frontend
+
+
+# Stage 1: Build the frontend
+FROM node:20 AS frontend-builder
+
+# Install dependencies and build the React app
+COPY package*.json ./package*.json
+RUN npm install
 RUN npm run build
 
-# Stage 2: Serve the frontend
-FROM nginx:latest
-WORKDIR /usr/share/nginx/html
-RUN apt-get update && apt-get install -y libtcnative-1
+COPY frontend/ ./
 
-# Copy the built frontend files to the Nginx static directory
-COPY --from=frontend-builder /app/build .
+# Stage 2: Build the backend
 
-# Expose the frontend server port
-EXPOSE 80
+FROM openjdk:23 AS backend-runner
+WORKDIR /app
 
-# Run Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Copy the backend files and frontend build output
+COPY ./ ./backend/
+
+
+COPY --from=frontend-builder /app/frontend/build ./backend/src/main/resources/static
+
+# Ensure Gradle wrapper is executable and build the backend
+WORKDIR /app/backend
+RUN chmod +x gradlew && ./gradlew build
+
+# Expose the backend port
+EXPOSE 8080
+
+# Run the backend
+CMD ["java", "-jar", "build/libs/backend-0.0.1-SNAPSHOT.jar"]

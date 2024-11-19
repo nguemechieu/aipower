@@ -8,9 +8,9 @@
 
   "scripts": {
 
-    "dev": "node run.js development",
+    "development": "node run.js development",
 
-    "prod": "node run.js production"
+    "production": "node run.js production"
 
   },
 
@@ -31,6 +31,14 @@
     "@testing-library/react": "^16.0.1",
 
     "child_process": "^1.0.2"
+
+  },
+
+  "devDependencies": {
+
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+
+    "babel-jest": "^29.7.0"
 
   }
 

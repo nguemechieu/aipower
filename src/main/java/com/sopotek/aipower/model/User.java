@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@NamedQuery(name = "User.findByEmail", query = "SELECT u FROM User u WHERE u.email = :email")
 @Table(name = "users")
 public class User extends SecurityProperties.User {
 
@@ -19,82 +20,97 @@ public class User extends SecurityProperties.User {
     private Long id;
 
     @Column(name = "user_name", unique = true, nullable = false, length = 50)
-    private String username;
+    private String username = "defaultUsername";
 
     @Column(nullable = false)
-    private String password;
+    private String password = "defaultPassword";
 
     @Column(unique = true, nullable = false, length = 100)
-    private String email;
+    private String email = "default@example.com";
 
     @Column(length = 15)
-    private String phoneNumber;
+    private String phoneNumber = "000-000-0000";
 
     @Column(length = 50)
-    private String firstName;
+    private String firstName = "Default";
 
     @Column(length = 50)
-    private String middleName;
+    private String middleName = "Default";
 
     @Column(length = 50)
-    private String lastName;
+    private String lastName = "User";
 
-    private LocalDate birthdate;
+    private LocalDate birthdate = LocalDate.of(1985, 1, 1);
 
     @Column(length = 10)
-    private String gender;
+    private String gender = "Unspecified";
 
     @Column(name = "profilePictureUrl")
-    private String profilePictureUrl;
+    private String profilePictureUrl = "https://robohash.org/default-profile.png?size=200x200";
 
-    @Column(length = 500)
-    private String bio;
+    @Column(name = "biography", length = 500)
+    private String bio = "This is a default biography.";
 
     @Column(name = "role")
-    private String role;
+    private String role = "USER";
 
-    private boolean enabled;
+    @Column(name = "accountNonExpired")
+    private boolean accountNonExpired = true;
+
+    private boolean accountNonLocked = true;
+
+    private boolean credentialsNonExpired = true;
+
+    @Column(name = "enabled")
+    private boolean enabled = true;
 
     @Column(name = "securityQuestion")
-    private String securityQuestion;
+    private String securityQuestion = "What is your default security question?";
 
     @Column(name = "securityAnswer")
-    private String securityAnswer;
+    private String securityAnswer = "DefaultAnswer";
 
-    private boolean twoFactorEnabled;
+    private boolean twoFactorEnabled = false;
 
     @Column(name = "accountCreationDate")
-    private LocalDate accountCreationDate;
+    private LocalDate accountCreationDate = LocalDate.now();
 
     @Column(name = "lastLoginDate")
-    private LocalDate lastLoginDate;
+    private LocalDate lastLoginDate = LocalDate.now();
 
     @Column(name = "address")
-    private String address;
+    private String address = "Default Address";
 
     @Column(length = 50)
-    private String city;
+    private String city = "Default City";
 
     @Column(length = 50)
-    private String state;
+    private String state = "Default State";
 
     @Column(length = 50)
-    private String country;
+    private String country = "Default Country";
 
     @Column(length = 10)
-    private String zipCode;
+    private String zipCode = "00000";
 
-    private int friendCount;
-    private int postCount;
-    private int followerCount;
-    private int followingCount;
-    private String resetToken;
-    private LocalDateTime resetTokenExpiryTime;
+    private int friendCount = 0;
+    private int postCount = 0;
+    private int followerCount = 0;
+    private int followingCount = 0;
 
-    @Column(name = "subscription_type", length = 20) // New column
-    private String subscriptionType;
+    private String resetToken = null;
+    private LocalDateTime resetTokenExpiryTime = null;
+
+private     boolean disable;
+
+    @Column(name = "subscription_type", length = 20)
+    private String subscriptionType = "FREE";
 
     public User() {
         super();
+    }
+
+    public boolean isDisabled() {
+        return disable;
     }
 }

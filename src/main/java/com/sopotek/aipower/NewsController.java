@@ -1,6 +1,7 @@
 package com.sopotek.aipower;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sopotek.aipower.model.News;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -20,33 +21,31 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
-import java.util.Properties;
+
 @Getter
 @Setter
 @RestController
 @RequestMapping("/api/v3")
 public class NewsController {
-    // Inside your NewsController class
+
     private static final Logger logger = LoggerFactory.getLogger(NewsController.class);
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient client = HttpClient.newHttpClient();
- @Value("${news.api.key}")
-  private   String apiKey;
-    private HttpRequest request;
+
+    @Value("${news.api.key}")
+    private String apiKey;
+
+    @Value("${news.api.url}")
+    private String url;
 
     public NewsController() {
-        objectMapper.configure(
-                com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES,
-                true
-        );
-
-        logger.info(
-                this.toString()
-        );
+        // Default constructor for Spring
+        objectMapper.findAndRegisterModules();
+        logger.info(this.toString());
     }
 
-    // Existing endpoints...
+    // Fetch Forex Factory calendar data
     @Operation(summary = "Fetches Forex Factory calendar data")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Fetched Forex Factory calendar successfully"),
@@ -56,8 +55,7 @@ public class NewsController {
     @GetMapping("/forex-factory")
     public ResponseEntity<?> getForexFactoryCalendar() {
         try {
-
-            request = HttpRequest.newBuilder()
+            HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=a603b210ca0358c2414daec0c5a1247b"))
                     .GET()
                     .build();
@@ -65,54 +63,61 @@ public class NewsController {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
+                logger.error("Failed to fetch Forex Factory calendar: {}", response.body());
                 return ResponseEntity.status(response.statusCode()).body("Failed to fetch Forex Factory calendar: " + response.body());
             }
 
-            // Parse the JSON data into a List of ForexEvent
-            List<ForexFactoryCalendar> forexEvents = objectMapper.readValue(response.body(), objectMapper.getTypeFactory().constructCollectionType(List.class, ForexFactoryCalendar.class));
+            // Parse the JSON data into a List of ForexFactoryCalendar
+            List<ForexFactoryCalendar> forexEvents = objectMapper.readValue(
+                    response.body(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, ForexFactoryCalendar.class)
+            );
+
             return ResponseEntity.ok(forexEvents);
 
-        } catch (Exception e) {
+        } catch (IOException | InterruptedException e) {
+            logger.error("Error fetching Forex Factory calendar", e);
             return ResponseEntity.status(500).body("Error fetching Forex Factory calendar: " + e.getMessage());
         }
     }
 
-
-    @Value("${news.api.url}") String url;
-
-    @Override
-    public String toString() {
-        return "NewsController{" +
-                "objectMapper=" + objectMapper +
-                ", client=" + client +
-                ", apiKey='" + apiKey + '\'' +
-                ", request=" + request +
-                ", url='" + url + '\'' +
-                '}';
-    }
-
+    // Fetch news data
+    @Operation(summary = "Fetches news data")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Fetched news successfully"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping("/news")
     public ResponseEntity<?> getNews() {
         try {
-           request = HttpRequest.newBuilder()
-                   .uri(URI.create(url))
-                   .GET()
-                   .build();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url + "?apiKey=" + apiKey))
+                    .GET()
+                    .build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            if (response.statusCode()!= 200) {
+            if (response.statusCode() != 200) {
+                logger.error("Failed to fetch news: {}", response.body());
                 return ResponseEntity.status(response.statusCode()).body("Failed to fetch news: " + response.body());
             }
 
-            // Parse the JSON data into a List of NewsItem
-            List<News> newsItems = objectMapper.readValue(response.body(), objectMapper.getTypeFactory().constructCollectionType(List.class, News.class));
-            return ResponseEntity.ok(newsItems);
+            // Parse the JSON data into a News object
+            News newsResponse = objectMapper.readValue(response.body(), News.class);
+
+            return ResponseEntity.ok(newsResponse);
 
         } catch (IOException | InterruptedException e) {
+            logger.error("Error fetching news", e);
             return ResponseEntity.status(500).body("Error fetching news: " + e.getMessage());
         }
     }
 
-
+    @Override
+    public String toString() {
+        return "NewsController{" +
+                "apiKey='" + apiKey + '\'' +
+                ", url='" + url + '\'' +
+                '}';
+    }
 }

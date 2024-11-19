@@ -7,7 +7,10 @@ import com.sopotek.aipower.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +22,17 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v3/users")
 public class UsersController {
+    @Autowired
+    private CacheManager cacheManager;
+
+    @PostConstruct
+    public void testCache() {
+        Cache cache = cacheManager.getCache("users");
+        if (cache == null) {
+            throw new IllegalStateException("Cache 'users' not found");
+        }
+        cache.put("testKey", "testValue");
+    }
 
     private final UserService userService;
 

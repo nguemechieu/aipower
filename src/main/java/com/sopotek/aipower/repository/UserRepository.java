@@ -1,51 +1,35 @@
 package com.sopotek.aipower.repository;
 
-import aj.org.objectweb.asm.commons.Remapper;
 import com.sopotek.aipower.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
+    // Find by username and password
+    @Query("SELECT u FROM User u WHERE u.username = :username AND u.password = :password")
+    Optional<User> findByUsernameAndPassword(@Param("username") String username, @Param("password") String password);
 
-   @Query(
-            "SELECT u FROM User u " +
-            "WHERE u.username = :username " +
-            "AND u.password = :password"
-   )
-    User findByUsername(String username, String password);
+    // Check if username exists
+    boolean existsByUsername(String username);
 
-    @Query("SELECT COUNT(u) > 0 FROM User u WHERE u.username = :username")
-    boolean existsByUsername(@Param("username") String username);
+    // Find by email
+    @Query("SELECT u FROM User u WHERE u.email = :email")
+    Optional<User> findByEmail(@Param("email") String email);
 
-
-    @Query(
-            "SELECT u FROM User u " +
-            "WHERE u.email = :email")
-    Optional<User> findByEmail(String email);
-
-    @Query(
-            "SELECT u FROM User u " +
-            "WHERE u.email = :email AND u.resetToken = :token")
-
-    Optional<User> findByResetToken(String token);
+    // Find by reset token and email
+    @Query("SELECT u FROM User u WHERE u.email = :email AND u.resetToken = :token")
+    Optional<User> findByResetTokenAndEmail(@Param("email") String email, @Param("token") String token);
 
 
-@Query(
-        "SELECT u " +
-        "FROM User u " +
-        "WHERE u.username IN :username " +
-        "ORDER BY u.friendCount DESC, u.postCount DESC, u.followerCount DESC, u.followingCount DESC " +
-        "LIMIT :limit"
-
-)
-    Optional<User> findByUsernames(String username);
-
-
+    // Find user by reset token
+    @Query("SELECT u FROM User u WHERE u.resetToken = :token")
+    Optional<User> findByResetToken(@Param("token") String token);
 
 }
