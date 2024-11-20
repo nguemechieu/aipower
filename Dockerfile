@@ -22,7 +22,7 @@ COPY frontend/ ./
 
 # Stage 2: Build the backend
 
-FROM openjdk:23 AS backend-runner
+FROM openjdk:17-alpine AS backend-runner
 WORKDIR /app
 
 # Copy the backend files and frontend build output
@@ -39,4 +39,4 @@ RUN chmod +x gradlew && ./gradlew build
 EXPOSE 8080
 
 # Run the backend
-CMD ["java", "-jar", "build/libs/backend-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "build/libs/aipower-0.0.1-SNAPSHOT.jar"]

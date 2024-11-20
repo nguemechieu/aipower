@@ -1,5 +1,6 @@
-package com.sopotek.aipower;
+package com.sopotek.aipower.routes;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sopotek.aipower.model.News;
 import io.swagger.v3.oas.annotations.Operation;
@@ -81,7 +82,9 @@ public class NewsController {
         }
     }
 
-    // Fetch news data
+
+
+
     @Operation(summary = "Fetches news data")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Fetched news successfully"),
@@ -90,8 +93,17 @@ public class NewsController {
     @GetMapping("/news")
     public ResponseEntity<?> getNews() {
         try {
+          String currentDate = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
+
+                    // Fetch news for the previous day
+                    String date = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date(new java.util.Date().getTime() - (1000 * 60 * 60 * 24)));
+
+                   // Create the HTTP request to fetch news data from News API
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url + "?apiKey=" + apiKey))
+                    .uri(URI.create(
+                          "https://newsapi.org/v2/everything?q=forex&from="+currentDate+"&sortBy=publishedAt&apikey="+apiKey
+
+                    ))
                     .GET()
                     .build();
 
@@ -102,10 +114,20 @@ public class NewsController {
                 return ResponseEntity.status(response.statusCode()).body("Failed to fetch news: " + response.body());
             }
 
-            // Parse the JSON data into a News object
-            News newsResponse = objectMapper.readValue(response.body(), News.class);
+            // Parse the JSON response
+            JsonNode rootNode = objectMapper.readTree(response.body());
 
-            return ResponseEntity.ok(newsResponse);
+            // Extract articles node
+            if (rootNode.has("articles")) {
+                List<News> newsList = objectMapper.readValue(
+                        rootNode.get("articles").toString(),
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, News.class)
+                );
+                return ResponseEntity.ok(newsList);
+            } else {
+                logger.error("Unexpected JSON structure: {}", response.body());
+                return ResponseEntity.status(500).body("Unexpected JSON structure");
+            }
 
         } catch (IOException | InterruptedException e) {
             logger.error("Error fetching news", e);
@@ -113,11 +135,5 @@ public class NewsController {
         }
     }
 
-    @Override
-    public String toString() {
-        return "NewsController{" +
-                "apiKey='" + apiKey + '\'' +
-                ", url='" + url + '\'' +
-                '}';
-    }
+
 }

@@ -1,4 +1,4 @@
-package com.sopotek.aipower;
+package com.sopotek.aipower.routes;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

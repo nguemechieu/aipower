@@ -1,4 +1,4 @@
-package com.sopotek.aipower;
+package com.sopotek.aipower.routes;
 
 
 import com.sopotek.aipower.service.ChatGPTService;
@@ -7,7 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-@RestController("/chat")
+@RestController
+@RequestMapping("/api/v3/chatgpt")
 public class ChatGptController {
 
     ChatGPTService chatGPTService;

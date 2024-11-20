@@ -1,0 +1,44 @@
+/* General Styles for the Footer */
+.footer {
+    background-color: #007bff; /* Primary blue color */
+    background-image: url("../../public/aipower2.png");
+    color: #caefd5; /* Text color */
+    padding: 20px 0; /* Vertical padding */
+    text-align: center; /* Center align text */
+    border-top: 1px solid #1f917c; /* Optional border at the top */
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for separation */
+}
+
+/* Footer Content */
+.footer-content {
+    max-width: 1200px; /* Limit the width */
+    margin: 0 auto; /* Center the footer content */
+    padding: 0 20px; /* Add padding for smaller screens */
+}
+
+/* Footer Links */
+.footer-links {
+    display: flex;
+    justify-content: center; /* Center the links */
+    gap: 15px; /* Space between links */
+    margin-top: 10px; /* Space above links */
+}
+
+.footer-links a {
+    color: white; /* Link color */
+    text-decoration: none; /* Remove underline */
+    font-size: 14px; /* Font size for links */
+    transition: color 0.3s ease-in-out; /* Smooth transition */
+}
+
+.footer-links a:hover {
+    color: #b16815; /* Lighter color on hover */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .footer-links {
+        flex-direction: column; /* Stack links vertically */
+        gap: 10px; /* Adjust spacing */
+    }
+}

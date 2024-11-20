@@ -1,9 +1,8 @@
-import React from 'react';
-
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth.js";
 import axios from "../api/axios.js";
+import "./Login.css"; // Import the CSS file for styling
 
 const LOGIN_URL = "/api/v3/auth/login";
 
@@ -20,54 +19,63 @@ const Login = () => {
     const [rememberMe, setRememberMe] = useState(false);
 
     useEffect(() => {
-        const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+        const token =
+            localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
         if (token) {
             setAuth({ username, token });
             navigate(from, { replace: true });
         }
-    }, []); // Run on mount only
+    }, [setAuth, navigate, from]);
 
     useEffect(() => {
         setErrMsg(""); // Clear error message on input change
     }, [username, password]);
-
-    const handleLoginError = (err) => {
-        const status = err?.response?.status;
-        const messages = {
-            400: "Missing Username or Password",
-            401: "Unauthorized - Check your credentials",
-            403: "Access Denied: Not authorized",
-            404: "User not found",
-            422: "Invalid username or password",
-            500: "Internal Server Error!\nPlease try again later",
-            503: "Service Unavailable - Please try again later"
-        };
-        setErrMsg(
-            messages[status]
-        );
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
         try {
-            const response = await axios.post(LOGIN_URL, { username, password, rememberMe });
+            const response = await axios.post(
+                LOGIN_URL,
+                JSON.stringify({ username, password, rememberMe }),
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                    },
+                }
+            );
 
             if (response.status === 200) {
-                const { token, role } = response.data;
-                setAuth({ username, role, rememberMe,token });
+                const { accessToken, refreshToken, role } = response.data;
+                setAuth({ username, role, rememberMe, accessToken, refreshToken });
 
-                rememberMe
-                    ? localStorage.setItem("token", token)
-                    : sessionStorage.setItem("token", token);
+                if (rememberMe) {
+                    localStorage.setItem("accessToken", accessToken);
+                } else {
+                    sessionStorage.setItem("accessToken", accessToken);
+                }
 
                 setUsername("");
                 setPassword("");
                 navigate(from, { replace: true });
+            } else {
+                setErrMsg(response.data.message || "Login failed.");
             }
         } catch (err) {
-            handleLoginError(err);
+            if (err.response) {
+                const { status } = err.response;
+                const errorMessages = {
+                    400: "Missing username or password",
+                    401: "Invalid username or password",
+                    403: "Access Denied: Not authorized",
+                    500: "Server Error, please try again later",
+                };
+                setErrMsg(errorMessages[status] || "An error occurred while logging in.");
+            } else {
+                setErrMsg("Unable to connect to the server. Please try again later.");
+            }
         } finally {
             setLoading(false);
         }
@@ -75,53 +83,56 @@ const Login = () => {
 
     return (
         <div className="login-container">
-            <h2>Login</h2>
-            <form className="login-form" onSubmit={handleSubmit}>
-                <div className="form-group">
-
-                    <input
-                        id="username"
-                        type="text"
-                        placeholder="Enter username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                    />
+            <div className="login-box">
+                <h2>Welcome Back</h2>
+                <p className="subtitle">Log in to access your account</p>
+                <form className="login-form" onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label htmlFor="username">Username</label>
+                        <input
+                            id="username"
+                            type="text"
+                            placeholder="Enter username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="password">Password</label>
+                        <input
+                            id="password"
+                            type="password"
+                            placeholder="Enter password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                    </div>
+                    <div className="form-group remember-me">
+                        <input
+                            id="remember-me"
+                            type="checkbox"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                        />
+                        <label htmlFor="remember-me">Remember Me</label>
+                    </div>
+                    {errMsg && <p className="error-message">{errMsg}</p>}
+                    <button type="submit" disabled={loading}>
+                        {loading ? "Logging in..." : "Login"}
+                    </button>
+                </form>
+                <div className="links">
+                    <Link to="/forgot-password">Forgot Password?</Link>
+                    <p>
+                        Don’t have an account? <Link to="/register">Register</Link>
+                    </p>
+                    <p>
+                        By continuing, you agree to our{" "}
+                        <Link to="/terms-of-service">Terms of Service</Link>.
+                    </p>
                 </div>
-                <div className="form-group">
-
-                    <input
-                        id="password"
-                         placeholder="Enter password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="form-group remember-me">
-                    <input
-                        id="remember-me"
-                        type="checkbox"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                    />
-                    <label htmlFor="remember-me">Remember Me</label>
-                </div>
-                {errMsg && <p className="error-message">{errMsg}</p>}
-                <button type="submit" disabled={loading}>
-                    {loading ? "Logging in..." : "Login"}
-                </button>
-            </form>
-            <div className="links">
-                <Link to='/forgot-password'>Forgot Password?</Link>
-                <p>
-                    Don’t have an account? <Link to="/register">Register</Link>
-                </p>
-                <p>
-                    By continuing, you agree to our{" "}
-                    <Link to="/terms-of-service">Terms of Service</Link>.
-                </p>
             </div>
         </div>
     );

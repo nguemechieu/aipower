@@ -3,14 +3,23 @@ import React, { useEffect, useState } from 'react';
 import axios from "../api/axios.js";
 
 const NewsDisplay = () => {
-    const [newsList, setNewsList] = useState([]); // State to handle all news items
+    const [newsList, setNewsList] = useState([
+        // Sample data for demonstration purposes
+        {
+            "id": 1,
+            "title": "AI Power's Innovative Solutions",
+            "date": "2022-02-14T12:00:00",
+            "content": "AI Power is introducing its latest innovative solutions for businesses. Check out our blog post for more details."
+        }
+    ]); // State to handle all news items
+    const [error, setError] = useState(null); // State to handle error messages
     const [upcomingNews, setUpcomingNews] = useState([]); // State to handle only upcoming events
 
     const fetchNewsData = async () => {
         try {
-            const response = await axios.get('/api/v3/forexfactory');
+            const response = await axios.get('/api/v3/news');
             if (response.status !== 200) {
-                throw new Error(`HTTP error! status: ${response.data}`);
+                setError(`HTTP error! status: ${response.data}`);
             }
             const currentNews = response.data.filter(news => new Date(news.date) <= new Date());
             const futureNews = response.data.filter(news => new Date(news.date) > new Date());
@@ -18,7 +27,7 @@ const NewsDisplay = () => {
             setNewsList(currentNews); // Set data for past/current events
             setUpcomingNews(futureNews); // Set data for upcoming events
         } catch (error) {
-            console.error('Error fetching news data:', error);
+            console.error('Error fetching news ');
         }
     };
 
@@ -28,9 +37,15 @@ const NewsDisplay = () => {
         });
     }, []);
 
-    return (
+    return (error?(
+        <div style={styles.error}>
+            <h1>News Error</h1>
+            <p>{error}</p>
+        </div>):(
         <div className={'container'} style={styles.container}>
             <h1 style={styles.title}>AI Power News</h1>
+
+
 
             <h2 style={styles.title}>Upcoming News</h2>
             {upcomingNews.length > 0 ? (
@@ -67,8 +82,8 @@ const NewsDisplay = () => {
             ) : (
                 <p style={styles.loading}>Loading news...</p>
             )}
-        </div>
-    );
+        </div>))
+
 };
 
 // Default styles for the component

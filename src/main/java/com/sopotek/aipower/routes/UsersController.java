@@ -1,4 +1,4 @@
-package com.sopotek.aipower;
+package com.sopotek.aipower.routes;
 
 
 import com.sopotek.aipower.model.User;
@@ -22,8 +22,13 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v3/users")
 public class UsersController {
-    @Autowired
+
     private CacheManager cacheManager;
+@Autowired
+    public UsersController(UserService userService, CacheManager cacheManager) {
+        this.userService = userService;
+        this.cacheManager = cacheManager;
+    }
 
     @PostConstruct
     public void testCache() {
@@ -36,11 +41,7 @@ public class UsersController {
 
     private final UserService userService;
 
-    @Autowired
-    public UsersController(UserService userService) {
-        this.userService = userService;
 
-    }
 //User logout
     @Operation(summary = "Logout a user")
     @ApiResponses(value = {

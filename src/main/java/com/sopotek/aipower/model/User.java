@@ -110,7 +110,4 @@ private     boolean disable;
         super();
     }
 
-    public boolean isDisabled() {
-        return disable;
-    }
 }

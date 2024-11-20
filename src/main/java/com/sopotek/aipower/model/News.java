@@ -23,9 +23,10 @@ public class News {
     private int totalResults;
     private List<Article> articles;
 
+    public News() {
+    }
 
-
-    public News(String country, String date, String impact, String title, String previous, String previous1, String forecast) {
+    public News(String country, String date, String impact, String title, String previous, String forecast) {
         this.country = country;
         this.date = date;
         this.impact = impact;

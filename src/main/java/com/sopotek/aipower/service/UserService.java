@@ -2,9 +2,6 @@ package com.sopotek.aipower.service;
 
 import com.sopotek.aipower.model.User;
 import com.sopotek.aipower.repository.UserRepository;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.juli.logging.Log;
@@ -14,11 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.security.Key;
-import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -26,19 +24,19 @@ import java.util.List;
 @Service
 public class UserService {
 private static final Log LOG = LogFactory.getLog(UserService.class);
+    private final EmailService emailService;
     private UserRepository userRepository;
 
     private PasswordEncoder passwordEncoder;
 
-    @Value("${application.secret.key}")
-    private String jwtSecret;
-
-    private static final int JWT_EXPIRATION_MS = 3600 * 1000; // 1 hour in milliseconds
 
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
+
+
     }
 
     /**
@@ -48,55 +46,35 @@ private static final Log LOG = LogFactory.getLog(UserService.class);
      * @param password the raw password
      * @return true if the user exists and the password matches; false otherwise
      */
+    @Transactional
+
+@Cacheable(
+        value = "users",
+        key = "#username"
+
+)
     public boolean authenticate(String username, String password) {
         User user = userRepository.findByUsernameAndPassword(username, password).get();
-        return user != null && passwordEncoder.matches(password, user.getPassword());
-    }
-
-    /**
-     * Generates a JWT token for the given username.
-     *
-     * @param username the username
-     * @return a JWT token
-     */
-    public String generateToken(String username) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + JWT_EXPIRATION_MS);
-
-        // Generate a secure key from the secret
-        Key signingKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-
-        return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(signingKey, SignatureAlgorithm.HS512) // Use the secure key
-                .compact();
-    }
-
-    public boolean isUserExist(String username) {
-        return userRepository.existsByUsername(username);
+        return passwordEncoder.matches(password, user.getPassword());
     }
 
 
 
-    public void saveUser(@NotNull User newUser) {
-        newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
-        userRepository.save(newUser);
-    }
 
+    @Transactional
     @Cacheable(value = "users", key = "#id")
     public User getUserById(Long id) {
         LOG.info("Fetching user by ID from the database.");
         return userRepository.findById(id).orElse(null);
     }
 
+    @Transactional
     @Cacheable(value = "users")
     public List<User> getAllUsers() {
         LOG.info("Fetching all users from the database.");
         return userRepository.findAll();
     }
-
+    @Transactional
     public User update(Long id, User updatedItem) {
         User user = userRepository.findById(id).orElse(null);
         if (user != null) {
@@ -108,6 +86,8 @@ private static final Log LOG = LogFactory.getLog(UserService.class);
         return null;
     }
 
+    @Transactional
+    @Cacheable(value = "users", key = "#id")
     public boolean existsById(Long id) {
         return userRepository.existsById(id);
     }
@@ -118,11 +98,11 @@ private static final Log LOG = LogFactory.getLog(UserService.class);
         LOG.info("Deleted user with ID: " + id);
     }
 
-    @CacheEvict(value = "users", allEntries = true)
-    public void clearAllUserCache() {
-        LOG.info("All entries in 'users' cache cleared.");
-    }
 
+
+
+    @Transactional
+    @Cacheable(value = "users", key = "#id")
     public String updateUser(Long id, String uname) {
         User user = userRepository.findById(id).orElse(null);
         if (user != null) {

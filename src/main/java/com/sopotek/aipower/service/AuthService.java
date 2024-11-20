@@ -15,7 +15,7 @@ import java.util.Properties;
 
 @Service
 public class AuthService {
-@Value("${application.secret.key}")
+@Value("${aipower.jwt.secret.key}")
 private     String SECRET_KEY;
     int EXPIRATION_TIME_MINUTES;
 

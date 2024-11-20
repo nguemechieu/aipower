@@ -8,13 +8,20 @@ import Footer from "./Footer.js";
 
 const Layout = () => {
   return (<>
-      <Header />
-
+          <Header />
       <main className="App">
+          <div className="flex-grow">
 
-        <div className='login-container'>
-          <Outlet />
-        </div>
+          <div className={'row'}>
+              <div className={'column'}>
+
+                  <Outlet />
+              </div>
+
+          </div>
+          </div>
+
+
 
       </main> <Footer />
       </>

@@ -50,11 +50,11 @@ String db_url ;
 
 
         registry.addMapping("/api/**") // Adjust the mapping to match your API endpoints
-                .allowedOrigins("http://localhost:3000") // Allow only your React app’s origin
-                .allowedMethods("GET", "POST", "PUT", "DELETE") // Add other methods as needed
-                .allowCredentials(true).exposedHeaders(
-                        "Authorization" // Add other headers as needed
-                );
+                .allowedOrigins("http://localhost:3000","localhost:9092","localhost:8081","localhost:8080") // Allow only your React app’s origin
+
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
 
 
 

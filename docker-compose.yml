@@ -1,8 +1,28 @@
+version: '3.8' # Ensure compatibility with Docker Compose 3.8
+
 services:
-  redis:
-    image: redis
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
     ports:
-      - "6379:6379"
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
 
   db:
     image: mysql:8.0
@@ -17,8 +37,9 @@ services:
 
   backend:
     build:
-      context: ./
+      context: .
       dockerfile: Dockerfile
+    container_name: backend
     ports:
       - "8080:8080"
     environment:
@@ -28,19 +49,24 @@ services:
       DB_PASSWORD: password
     depends_on:
       - db
-      - redis
-    entrypoint: [ "sh", "./wait-for-db.sh", "db", "java", "-jar", "build/libs/<your-backend-jar-name>.jar" ]
+    entrypoint:
+      - "sh"
+      - "./wait-for-db.sh"
+      - "db"
+      - "java"
+      - "-jar"
+      - "build/libs/aipower-0.0.1.snapshot.jar"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-
   frontend:
     build:
-      context: ./frontend  # Ensure the frontend Dockerfile is in this directory
+      context: ./frontend # Ensure the Dockerfile is in the ./frontend directory
       dockerfile: Dockerfile
+    container_name: frontend
     ports:
       - "3000:3000"
 

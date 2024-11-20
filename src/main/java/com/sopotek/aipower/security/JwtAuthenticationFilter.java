@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    @Value("${application.secret.key}")
+    @Value("${aipower.jwt.secret.key}")
     private String secretKey; // Ensure this is defined in your application.properties or .env
 
     @Contract(" -> new")

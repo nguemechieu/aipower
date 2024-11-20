@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito&display=swap');
+/*@import url('https://fonts.googleapis.com/css2?family=Nunito&display=swap');*/
 
 
 html {
@@ -11,141 +11,141 @@ html {
     max-width: 700px;
     margin: 20px auto;
     padding: 20px;
-    background-color: #f7f7f7;
+    background-color: #1d70cc;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     font-family: "Arial", sans-serif;
     color: #1c1e21;
 }
 
-.terms-title {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 10px;
-    color: #1c1e21;
-}
+/*.terms-title {*/
+/*    font-size: 32px;*/
+/*    font-weight: 700;*/
+/*    margin-bottom: 10px;*/
+/*    color: #1c1e21;*/
+/*}*/
 
-.terms-intro {
-    font-size: 16px;
-    margin-bottom: 20px;
-    line-height: 1.6;
-}
+/*.terms-intro {*/
+/*    font-size: 16px;*/
+/*    margin-bottom: 20px;*/
+/*    line-height: 1.6;*/
+/*}*/
 
-.terms-section-title {
-    font-size: 20px;
-    font-weight: 600;
-    margin-top: 20px;
-    color: #1c1e21;
-}
+/*.terms-section-title {*/
+/*    font-size: 20px;*/
+/*    font-weight: 600;*/
+/*    margin-top: 20px;*/
+/*    color: #1c1e21;*/
+/*}*/
 
-.terms-text {
-    font-size: 16px;
-    margin-bottom: 16px;
-    line-height: 1.6;
-}
+/*.terms-text {*/
+/*    font-size: 16px;*/
+/*    margin-bottom: 16px;*/
+/*    line-height: 1.6;*/
+/*}*/
 
-button {
-    background-color: #4267b2;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 20px;
-}
+/*button {*/
+/*    background-color: #4267b2;*/
+/*    color: white;*/
+/*    border: none;*/
+/*    padding: 8px 16px;*/
+/*    border-radius: 4px;*/
+/*    cursor: pointer;*/
+/*    margin-top: 20px;*/
+/*}*/
 
-button:hover {
-    background-color: #365899;
-}
+/*button:hover {*/
+/*    background-color: #365899;*/
+/*}*/
 
-body {
-    min-height: 100vh;
-    background-color: dodgerblue;
-}
+/*body {*/
+/*    min-height: 100vh;*/
+/*    background-color: dodgerblue;*/
+/*}*/
 
-.app {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 1rem 0.5rem;
-}
+/*.app {*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*    justify-content: center;*/
+/*    align-items: center;*/
+/*    min-height: 100vh;*/
+/*    padding: 1rem 0.5rem;*/
+/*}*/
 
-section {
-    width: 100%;
-    max-width: 420px;
-    min-height: 400px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    padding: 1rem;
-    background-color: rgba(0, 0, 0, 0.4);
-}
+/*section {*/
+/*    width: 100%;*/
+/*    max-width: 420px;*/
+/*    min-height: 400px;*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*    justify-content: flex-start;*/
+/*    padding: 1rem;*/
+/*    background-color: rgba(0, 0, 0, 0.4);*/
+/*}*/
 
-form {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    flex-grow: 1;
-    padding-bottom: 1rem;
-}
+/*form {*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*    justify-content: space-evenly;*/
+/*    flex-grow: 1;*/
+/*    padding-bottom: 1rem;*/
+/*}*/
 
-a,
-a:visited {
-    color: #fff;
-}
+/*a,*/
+/*a:visited {*/
+/*    color: #fff;*/
+/*}*/
 
-input[type="text"],
-input[type="password"],
-button,
-textarea {
-    font-family: 'Nunito', sans-serif;
-    font-size: 22px;
-    padding: 0.25rem;
-    border-radius: 0.5rem;
-}
+/*input[type="text"],*/
+/*input[type="password"],*/
+/*button,*/
+/*textarea {*/
+/*    font-family: 'Nunito', sans-serif;*/
+/*    font-size: 22px;*/
+/*    padding: 0.25rem;*/
+/*    border-radius: 0.5rem;*/
+/*}*/
 
-label,
-button {
-    margin-top: 1rem;
-}
+/*label,*/
+/*button {*/
+/*    margin-top: 1rem;*/
+/*}*/
 
-button {
-    padding: 0.5rem;
-}
+/*button {*/
+/*    padding: 0.5rem;*/
+/*}*/
 
-li {
-    list-style-type: none;
-}
+/*li {*/
+/*    list-style-type: none;*/
+/*}*/
 
-.instructions {
-    font-size: 0.75rem;
-    border-radius: 0.5rem;
-    background: #000;
-    color: #fff;
-    padding: 0.25rem;
-    position: relative;
-    bottom: -10px;
-}
+/*.instructions {*/
+/*    font-size: 0.75rem;*/
+/*    border-radius: 0.5rem;*/
+/*    background: #000;*/
+/*    color: #fff;*/
+/*    padding: 0.25rem;*/
+/*    position: relative;*/
+/*    bottom: -10px;*/
+/*}*/
 
-.instructions > svg {
-    margin-right: 0.25rem;
-}
+/*.instructions > svg {*/
+/*    margin-right: 0.25rem;*/
+/*}*/
 
-.offscreen {
-    position: absolute;
-    left: -9999px;
-}
+/*.offscreen {*/
+/*    position: absolute;*/
+/*    left: -9999px;*/
+/*}*/
 
-.hide {
-    display: none;
-}
+/*.hide {*/
+/*    display: none;*/
+/*}*/
 
-.valid {
-    color: limegreen;
-    margin-left: 0.25rem;
-}
+/*.valid {*/
+/*    color: limegreen;*/
+/*    margin-left: 0.25rem;*/
+/*}*/
 
 .invalid {
     color: red;
@@ -164,9 +164,9 @@ li {
     display: inline-block;
 }
 
-.flex-grow {
-    flex-grow: 1;
-    display: flex;
-    justify-content: flex-start;
-    align-items: flex-end;
-}
+/*.flex-grow {*/
+/*    flex-grow: 1;*/
+/*    display: flex;*/
+/*    justify-content: flex-start;*/
+/*    align-items: flex-end;*/
+/*}*/

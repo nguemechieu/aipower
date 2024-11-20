@@ -44,10 +44,11 @@ input[type="checkbox"] {
 }
 
 button {
-    background-color: #007bff;
+    background-color: #1f917c;
     color: white;
     border: none;
     cursor: pointer;
+    margin-top: 20px;
 }
 
 button:disabled {

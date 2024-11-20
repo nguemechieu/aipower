@@ -1,119 +1,104 @@
-import  React from 'react';
-
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useRef, useState, useEffect } from "react";
-import {axiosPrivate} from "../api/axios.js";
+import axios from "../api/axios.js";
+import "./ForgotPassword.css"; // Include your CSS file for styling
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [success, setSuccess] = useState(false);
   const [errMsg, setErrMsg] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [rememberMe] = useState(false);
   const emailRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
+
   useEffect(() => {
-    emailRef.current.focus();
+    emailRef.current?.focus();
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setSent(false);
     setSuccess(false);
     setErrMsg("");
 
-    try {
-      const response = await axiosPrivate.post("/v3/forgot-password", {
-        "email":email
-      });
 
-      if(response.status === 200) {
+       await axios.post("/api/v3/auth/forgot-password", {
+        email,
+      }).then(res=>{
+        setLoading(false);
         setSuccess(true);
-        setLoading(false);
-        setSent(true);
-        localStorage.setItem("resetEmail", email);
-        localStorage.setItem("resetToken", response.data.token);
-        localStorage.setItem("resetExpires", response.data.expires);
-            rememberMe?
-            localStorage.setItem("rememberMe", "true") :
-            localStorage.removeItem("rememberMe");
-        setEmail("");
-        navigate(`/login?reset=true&from=${from}`);
-      }else {
-        setLoading(false);
-        if (response.status === 401){
-          setErrMsg("Invalid email address");
-        }
-        else if (response.status === 400){
-          setErrMsg("Missing email address");
-        }
-        else if (response.status === 403){
-          setErrMsg("Access Denied: Not authorized");
-        }
-        else{
-          setErrMsg("An error occurred while sending the request");
-        }
+        localStorage.removeItem('accessToken');
+        window.location.href = '/login';
+        const  resetExpires=res.data.resetExpires;
+        const  resetToken=res.data.resetToken;
+        localStorage.setItem('resetToken',resetToken);
+        localStorage.setItem('resetExpires',resetExpires);
+        navigate(from, { replace: true }); // Redirect to the previous page after successful password reset
 
-      }
-    } catch (error) {
-      setLoading(false);
-      setErrMsg(error.toString());
-    }
+
+
+      }).catch(err => {
+
+       if(err.status===(404)){
+          setErrMsg("Email address not found");
+
+       }
+       else if(err.status===(400)){
+          setErrMsg("Missing email address");
+       }
+       else if(err.status===(403)){
+          setErrMsg("Access Denied: Not authorized");
+       }
+       else{
+          setErrMsg("An error occurred while sending the request");
+       }
+
+       })
+
   };
 
-  const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   return (
-    <section >
-      <h1>Forgot Password</h1>
-      <p>Enter your email address to reset your password.</p>
+      <section className="forgot-password">
+        <h2>Forgot Password</h2>
+        <p className="instruction">
+          Enter your email address to receive password reset instructions.
+        </p>
 
-      <form >
-        <input
-          type="email"
-          id="email"
-          ref={emailRef}
-          required
-          placeholder="Enter your email address"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          aria-invalid={!!errMsg}
-          aria-describedby={errMsg ? "errmsg" : "offscreen"}
-          onFocus={() => setErrMsg("")}
-          autoComplete="off"
-          autoFocus
-          spellCheck="false"
-          pattern={pattern.source}
-          title="Please enter a valid email address."
-        />
-        {errMsg && (
-          <p id="errmsg" className="error">
-            {errMsg}
-          </p>
-        )}
-        {success && sent && <p>Check your email for further instructions.</p>}
+        {errMsg && <p className="error-message">{errMsg}</p>}
+        {success && <p className="success-message">Check your email for further instructions.</p>}
 
-        <button type="submit" disabled={loading}
-                onSubmit={(e)=>handleSubmit(e)}
-        >
-          {loading ? "Loading..." : "Send Password Reset"}
-          {loading && <span className="spinner">
-            <svg className="spinner-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="8" cy="8" r="3" fill="white" />
-              <circle cx="8" cy="8" r="3" fill="var(--spinner-color)" />
-            </svg>+
-          </span>}
-        </button>
+        <form onSubmit={handleSubmit} className="forgot-password-form">
+          <div className="form-group">
+            <label htmlFor="email">Email Address</label>
+            <input
+                type="email"
+                id="email"
+                ref={emailRef}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                aria-invalid={!isValidEmail}
+                placeholder="Enter your email address"
+                autoComplete="off"
+                pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+                title="Please enter a valid email address."
+            />
+          </div>
 
-        <div className={'footer'}>
-          <Link to={from}>Back</Link>
-        </div>
-      </form>
-    </section>
+          <button type="submit" className="submit-button" disabled={loading || !isValidEmail}>
+            {loading ? "Sending..." : "Send Password Reset"}
+            {loading && <span className="spinner"></span>}
+          </button>
+        </form>
+
+        <Link to={from} className="back-link">
+          Go Back
+        </Link>
+      </section>
   );
 };
 

@@ -1,8 +1,8 @@
 plugins {
-    id 'java'
     id 'org.springframework.boot' version '3.3.5'
     id 'io.spring.dependency-management' version '1.1.6'
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
+    id 'java'
 }
 
 group = 'com.sopotek'
@@ -10,7 +10,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(23)
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 
@@ -20,9 +20,9 @@ repositories {
 }
 
 ext {
-    set('snippetsDir', file("build/generated-snippets"))
-    set('springAiVersion', "1.0.0-M3")
-    set('springBootAdminVersion', "3.3.4")
+    snippetsDir = file("build/generated-snippets")
+    springAiVersion = "1.0.0-M3"
+    springBootAdminVersion = "3.3.4"
 }
 
 dependencies {
@@ -34,24 +34,28 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
-    implementation 'de.codecentric:spring-boot-admin-starter-client:3.3.6'
-    implementation 'de.codecentric:spring-boot-admin-starter-server:3.3.6'
+    implementation 'org.springframework.kafka:spring-kafka'
 
-    implementation 'com.hazelcast:hazelcast:5.3.5' // Replace with the latest version
+    // Spring Boot Admin
+    implementation "de.codecentric:spring-boot-admin-starter-client:${springBootAdminVersion}"
+    implementation "de.codecentric:spring-boot-admin-starter-server:${springBootAdminVersion}"
+    implementation 'org.apache.kafka:kafka-clients:3.4.0'
+
+
+    // Hazelcast and Caching
+    implementation 'com.hazelcast:hazelcast:5.3.5'
     implementation 'javax.cache:cache-api:1.1.1'
-
 
     // OpenAPI/Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+
+    // Utility Libraries
     implementation 'org.jetbrains:annotations:24.0.1'
     implementation 'io.github.cdimascio:dotenv-java:2.2.2'
     implementation 'org.apache.commons:commons-email:1.5'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'de.codecentric:spring-boot-admin-starter-client:3.0.0'
 
-
-    // Jakarta Mail and Activation (Angus)
-
+    // Jakarta Mail and Activation
     implementation 'com.sun.mail:jakarta.mail:2.0.1'
     implementation 'com.sun.activation:jakarta.activation:2.0.1'
 
@@ -85,6 +89,9 @@ dependencyManagement {
     }
 }
 
+tasks.named("bootJar") {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
 
 tasks.named('test') {
     outputs.dir snippetsDir
@@ -93,5 +100,5 @@ tasks.named('test') {
 
 tasks.named('asciidoctor') {
     inputs.dir snippetsDir
-    dependsOn test
+    dependsOn 'test'
 }

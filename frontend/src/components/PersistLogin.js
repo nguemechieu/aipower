@@ -11,7 +11,7 @@ const PersistLogin = () => {
     const verifyToken = async () => {
       if (auth?.token) {  // Check if token exists before making the request
         try {
-          const response = await fetch("/api/v3/auth/refresh", {
+          const response = await axios.post("/api/v3/auth/refresh", {
             headers: {
               Authorization: `Bearer ${auth.token}`
             },

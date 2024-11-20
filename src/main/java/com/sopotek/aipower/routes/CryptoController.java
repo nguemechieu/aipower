@@ -1,4 +1,4 @@
-package com.sopotek.aipower;
+package com.sopotek.aipower.routes;
 
 import com.sopotek.aipower.service.CryptoService;
 import io.swagger.v3.oas.annotations.Operation;
