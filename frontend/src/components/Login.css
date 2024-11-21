@@ -44,8 +44,8 @@ input[type="checkbox"] {
 }
 
 button {
-    background-color: #1f917c;
-    color: white;
+    background-color: #1d70cc;
+    color: rgb(107, 208, 227);
     border: none;
     cursor: pointer;
     margin-top: 20px;

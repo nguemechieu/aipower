@@ -1,21 +1,22 @@
-body, html {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-}
 
-.app {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  align-items: center;
-  justify-content: center;
-  background-color: #f1f1f1;
-}
 
-.main-content {
-  margin-top: 60px; /* Same as header height to prevent overlap */
-  padding: 20px;
-  background-color: #0a3463;
-  min-height: 100vh; /* Ensures the content takes up full height */
-}
+/*app {*/
+/*  display: flex;*/
+/*  flex-direction: column;*/
+/*  height: 100vh;*/
+/*  align-items: center;*/
+/*  justify-content: center;*/
+
+/*  color: #ffffff;*/
+/*  background: linear-gradient(to bottom, #072333, #8f94fb);*/
+/*  text-align: center;*/
+/*  font-size: 24px;*/
+/*}*/
+
+/*.main-content {*/
+/*  margin-top: 60px; !* Same as header height to prevent overlap *!*/
+/*  padding: 20px;*/
+/*  background-color: #0a3463;*/
+/*  border-radius: 8px;*/
+/*  min-height: 100vh; !* Ensures the content takes up full height *!*/
+/*}*/

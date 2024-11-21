@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -19,10 +21,9 @@ public class User extends SecurityProperties.User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_name", unique = true, nullable = false, length = 50)
     private String username = "defaultUsername";
 
-    @Column(nullable = false)
+
     private String password = "defaultPassword";
 
     @Column(unique = true, nullable = false, length = 100)
@@ -31,21 +32,20 @@ public class User extends SecurityProperties.User {
     @Column(length = 15)
     private String phoneNumber = "000-000-0000";
 
-    @Column(length = 50)
     private String firstName = "Default";
 
-    @Column(length = 50)
+
     private String middleName = "Default";
 
-    @Column(length = 50)
+
     private String lastName = "User";
 
     private LocalDate birthdate = LocalDate.of(1985, 1, 1);
 
-    @Column(length = 10)
-    private String gender = "Unspecified";
 
-    @Column(name = "profilePictureUrl")
+    private String gender = "Male";
+
+
     private String profilePictureUrl = "https://robohash.org/default-profile.png?size=200x200";
 
     @Column(name = "biography", length = 500)
@@ -54,31 +54,29 @@ public class User extends SecurityProperties.User {
     @Column(name = "role")
     private String role = "USER";
 
-    @Column(name = "accountNonExpired")
+
     private boolean accountNonExpired = true;
 
     private boolean accountNonLocked = true;
 
     private boolean credentialsNonExpired = true;
 
-    @Column(name = "enabled")
+
     private boolean enabled = true;
 
-    @Column(name = "securityQuestion")
+
     private String securityQuestion = "What is your default security question?";
 
-    @Column(name = "securityAnswer")
     private String securityAnswer = "DefaultAnswer";
 
     private boolean twoFactorEnabled = false;
 
-    @Column(name = "accountCreationDate")
+
     private LocalDate accountCreationDate = LocalDate.now();
 
-    @Column(name = "lastLoginDate")
+
     private LocalDate lastLoginDate = LocalDate.now();
 
-    @Column(name = "address")
     private String address = "Default Address";
 
     @Column(length = 50)
@@ -98,8 +96,8 @@ public class User extends SecurityProperties.User {
     private int followerCount = 0;
     private int followingCount = 0;
 
-    private String resetToken = null;
-    private LocalDateTime resetTokenExpiryTime = null;
+    private String resetToken = "TYTUYIUOIPO";
+    private LocalDateTime resetTokenExpiryTime ;
 
 private     boolean disable;
 
@@ -110,4 +108,24 @@ private     boolean disable;
         super();
     }
 
+    public Instant getExpiryDate() {
+        // Assuming birthdate is an instance of Date or LocalDate
+        if (birthdate == null) {
+            throw new IllegalArgumentException("Birthdate cannot be null");
+        }
+
+        // Convert birthdate to Instant for comparison
+        Instant birthdateInstant = Instant.from(birthdate);
+        Instant currentInstant = Instant.now();
+
+        // Calculate age in the past years
+        long ageInYears = Duration.between(birthdateInstant, currentInstant).toDays() / 365;
+
+        // Check if the age plus the condition (120 years) is valid
+        if (ageInYears < 120) {
+            return currentInstant.plus(Duration.ofDays((120 - ageInYears) * 365));
+        } else {
+            throw new IllegalStateException("Age exceeds the allowed limit of 120 years.");
+        }
+    }
 }

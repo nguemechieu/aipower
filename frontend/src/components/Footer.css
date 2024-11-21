@@ -1,11 +1,11 @@
 /* General Styles for the Footer */
-.footer {
-    background-color: #007bff; /* Primary blue color */
+footer {
+    background-color: rgba(77, 200, 196, 0.7); /* Primary blue color */
     background-image: url("../../public/aipower2.png");
     color: #caefd5; /* Text color */
     padding: 20px 0; /* Vertical padding */
     text-align: center; /* Center align text */
-    border-top: 1px solid #1f917c; /* Optional border at the top */
+    border-top: 1px solid #111e20; /* Optional border at the top */
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for separation */
 }
 
@@ -25,7 +25,7 @@
 }
 
 .footer-links a {
-    color: white; /* Link color */
+    color: #a7b115; /* Link color */
     text-decoration: none; /* Remove underline */
     font-size: 14px; /* Font size for links */
     transition: color 0.3s ease-in-out; /* Smooth transition */

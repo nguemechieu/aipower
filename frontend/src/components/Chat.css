@@ -1,5 +1,5 @@
 /* General Chat Layout */
-.facebook-chat {
+.chat {
     display: flex;
     height: 90vh;
     max-width: 100%;

@@ -1,5 +1,5 @@
 import React, { StrictMode, Suspense, lazy, Component } from "react";
-import "./index.css";
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { createRoot } from "react-dom/client";
 

@@ -23,7 +23,7 @@ import java.util.Optional;
 @RequestMapping("/api/v3/users")
 public class UsersController {
 
-    private CacheManager cacheManager;
+    private final CacheManager cacheManager;
 @Autowired
     public UsersController(UserService userService, CacheManager cacheManager) {
         this.userService = userService;

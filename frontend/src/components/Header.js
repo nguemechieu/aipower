@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     AppBar,
     Toolbar,
@@ -6,7 +6,6 @@ import {
     IconButton,
     Box,
     Avatar,
-    TextField,
     Menu,
     MenuItem,
 } from "@mui/material";
@@ -18,9 +17,11 @@ import {
     Receipt as InvestmentIcon,
     Public as MarketIcon,
     Settings as SettingsIcon,
-    Search as SearchIcon,
+    Inbox,
 } from "@mui/icons-material";
 import { axiosPrivate } from "../api/axios";
+import { useNavigate } from "react-router-dom";
+import "./Header.css";
 
 const Header = () => {
     const [user, setUser] = useState({
@@ -33,98 +34,76 @@ const Header = () => {
         profilePicture: "",
     });
 
-    const [error, setError] = useState("");
     const [anchorEl, setAnchorEl] = useState(null);
+    const navigate = useNavigate();
 
-    // Fetch user data from the backend
-    const fetchUserData = async () => {
-        const id = localStorage.getItem("id");
+    // Fetch user data on mount
+
+
+    // Handle logout
+    async function handleLogout(e) {
+        e.preventDefault();
         try {
-            const response = await axiosPrivate.get(`/api/v3/users/id:${id}`, {
-                withCredentials: true,
-            });
-
-            if (response.status === 200) {
-                setUser(response.data);
-            } else {
-                setError(`Failed to fetch user data: ${response.statusText}`);
-                console.error("Error fetching user data:", response.statusText);
-            }
-        } catch (err) {
-            setError("An error occurred while fetching user data.");
-            console.error("Error fetching user data:", err.message);
+            await axiosPrivate.post("/api/v3/auth/logout");
+            console.log("Logged out successfully");
+            localStorage.removeItem("accessToken");
+            window.location.href = "/login";
+        } catch (error) {
+            console.error("Failed to log out:", error.message);
         }
-    };
-
-    useEffect(() => {
-        fetchUserData().then(
-            (r)=>console.log(
-                `User data fetched successfully. User: ${user.username}`
-            )
-        ); // Fetch data on component mount
-    }, []);
+    }
 
     // Handle profile menu open/close
     const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
 
     return (
-        <AppBar position="static" sx={{ backgroundColor: "#0a3463" }}>
+        <AppBar position="static">
             <Toolbar>
                 {/* Logo */}
                 <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                    AIPower
+                    <img
+                        id="logo"
+                        src="../../aipower.png"
+                        alt="AIPower Logo"
+                        style={{ height: "40px", cursor: "pointer" }}
+                        onClick={() => navigate("/")}
+                    />
                 </Typography>
 
                 {/* Navigation Links */}
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <IconButton href="/" color="inherit">
+                    <IconButton href="/" color="inherit" aria-label="Home">
                         <HomeIcon />
                     </IconButton>
-                    <IconButton href="/friends" color="inherit">
+                    <IconButton href="/friends" color="inherit" aria-label="Friends">
                         <FriendsIcon />
                     </IconButton>
-                    <IconButton href="/chat" color="inherit">
+                    <IconButton href="/notifications" color="inherit" aria-label="Notifications">
                         <NotificationsIcon />
                     </IconButton>
-                    <IconButton href="/trade" color="inherit">
+                    <IconButton href="/chat" color="inherit" aria-label="Inbox">
+                        <Inbox />
+                    </IconButton>
+                    <IconButton href="/trade" color="inherit" aria-label="Trade">
                         <TradeIcon />
                     </IconButton>
-                    <IconButton href="/investment" color="inherit">
+                    <IconButton href="/investment" color="inherit" aria-label="Investment">
                         <InvestmentIcon />
                     </IconButton>
-                    <IconButton href="/market" color="inherit">
+                    <IconButton href="/market" color="inherit" aria-label="Market">
                         <MarketIcon />
                     </IconButton>
-                    <IconButton href="/settings" color="inherit">
+                    <IconButton href="/settings" color="inherit" aria-label="Settings">
                         <SettingsIcon />
                     </IconButton>
                 </Box>
 
-                {/* Search Bar */}
-                <Box sx={{ flexGrow: 1, mx: 2 }}>
-                    <TextField
-                        variant="outlined"
-                        size="small"
-                        placeholder="Search..."
-                        InputProps={{
-                            startAdornment: (
-                                <SearchIcon sx={{ mr: 1, color: "gray" }} />
-                            ),
-                        }}
-                        fullWidth
-                        onChange={(e) => console.log("Search Input:", e.target.value)}
-                    />
-                </Box>
-
                 {/* User Profile */}
                 <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography sx={{ mr: 2 }}>
-                        {user.firstName ? `${user.firstName} ${user.lastName}` : "John Doe"}
-                    </Typography>
                     <Avatar
                         src={user.profilePicture || "https://via.placeholder.com/32"}
-                        alt="User Profile"
+                        alt={user.username || "User"}
                         sx={{ cursor: "pointer" }}
                         onClick={handleMenuOpen}
                     />
@@ -133,8 +112,11 @@ const Header = () => {
                         open={Boolean(anchorEl)}
                         onClose={handleMenuClose}
                     >
-                        <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-                        <MenuItem onClick={handleMenuClose}>Logout</MenuItem>
+                        <MenuItem onClick={() => navigate("/profile")}>Profile</MenuItem>
+                        <MenuItem onClick={() => navigate("/settings")}>Settings</MenuItem>
+                        <MenuItem onClick={() => navigate("/help")}>Help</MenuItem>
+                        <MenuItem onClick={() => navigate("/about")}>About</MenuItem>
+                        <MenuItem onClick={handleLogout}>Logout</MenuItem>
                     </Menu>
                 </Box>
             </Toolbar>

@@ -1,28 +1,18 @@
-/* General Styles */
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
-    margin: 0;
-    padding: 0;
-}
+
 
 /* Section Styles */
 section.register {
     max-width: 600px;
     margin: 50px auto;
     padding: 20px;
-    background-color: #0a3936;
+    background-color: #caefd5;
+    color: #1d70cc;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgb(187, 200, 202);
+    position: relative;
+    z-index: 1;
 }
 
-/* Header Styles */
-section.register h1 {
-    text-align: center;
-    font-size: 24px;
-    color: #333333;
-    margin-bottom: 20px;
-}
 
 /* Form Styles */
 form {
@@ -38,7 +28,7 @@ form button {
     width: 100%;
     padding: 10px;
     font-size: 16px;
-    border: 1px solid #dddddd;
+    border: 1px solid #45d16f;
     border-radius: 5px;
     box-sizing: border-box;
 }
@@ -47,7 +37,7 @@ form button {
 form input:focus,
 form select:focus,
 form textarea:focus {
-    border-color: #007bff;
+    border-color: #ffffff;
     outline: none;
     box-shadow: 0 0 3px rgba(0, 123, 255, 0.5);
 }

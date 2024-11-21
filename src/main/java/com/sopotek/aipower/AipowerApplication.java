@@ -4,10 +4,6 @@ import de.codecentric.boot.admin.server.config.EnableAdminServer;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
-import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -18,10 +14,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.DispatcherServlet;
-
-import java.time.Duration;
-import java.util.Collections;
-import java.util.Properties;
 
 
 @EntityScan(basePackages = "com.sopotek.aipower.model")
@@ -37,19 +29,9 @@ public class AipowerApplication {
     private  static final Log LOG = LogFactory.getLog(AipowerApplication.class);
     public AipowerApplication() {
 
-
+LOG.info("Starting Aipower");
     }
-    @Bean
-    public DispatcherServlet dispatcherServlet() {
-        DispatcherServlet dispatcherServlet = new DispatcherServlet();
-        dispatcherServlet.setDetectAllHandlerMappings(true);
-        dispatcherServlet.setDetectAllHandlerAdapters(true);
-        dispatcherServlet.setDetectAllHandlerExceptionResolvers(true);
-        dispatcherServlet.setDetectAllViewResolvers(true);
-        dispatcherServlet.setDispatchOptionsRequest(true);
 
-        return dispatcherServlet;
-    }
 
     public static void main(String[] args) {
         Dotenv dotenv = Dotenv.load();

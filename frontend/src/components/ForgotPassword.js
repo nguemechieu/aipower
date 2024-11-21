@@ -15,7 +15,9 @@ const ForgotPassword = () => {
 
   useEffect(() => {
     emailRef.current?.focus();
-  }, []);
+
+    setEmail(email)
+  }, [email]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,9 +26,7 @@ const ForgotPassword = () => {
     setErrMsg("");
 
 
-       await axios.post("/api/v3/auth/forgot-password", {
-        email,
-      }).then(res=>{
+       await axios.post("/api/v3/auth/forgot-password", {email},).then(res=>{
         setLoading(false);
         setSuccess(true);
         localStorage.removeItem('accessToken');
@@ -77,6 +77,7 @@ const ForgotPassword = () => {
             <input
                 type="email"
                 id="email"
+                name="email"
                 ref={emailRef}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

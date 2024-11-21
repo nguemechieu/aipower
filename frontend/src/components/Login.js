@@ -18,19 +18,15 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
 
-    useEffect(() => {
-        const token =
-            localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
-        if (token) {
-            setAuth({ username, token });
-            navigate(from, { replace: true });
-        }
-    }, [setAuth, navigate, from]);
+
 
     useEffect(() => {
         setErrMsg(""); // Clear error message on input change
-    }, [username, password]);
-
+    }, [username, password,rememberMe]);
+useEffect(() => {
+    setUsername(username);
+    setPassword(password);
+},[username, password]);
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -38,18 +34,15 @@ const Login = () => {
         try {
             const response = await axios.post(
                 LOGIN_URL,
-                JSON.stringify({ username, password, rememberMe }),
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Accept: "application/json",
-                    },
+              {username,password,
+                  rememberMe
+
                 }
             );
 
             if (response.status === 200) {
-                const { accessToken, refreshToken, role } = response.data;
-                setAuth({ username, role, rememberMe, accessToken, refreshToken });
+                const { accessToken,id, refreshToken, role } = response.data;
+                setAuth({ id,role, rememberMe, accessToken, refreshToken });
 
                 if (rememberMe) {
                     localStorage.setItem("accessToken", accessToken);
@@ -64,18 +57,18 @@ const Login = () => {
                 setErrMsg(response.data.message || "Login failed.");
             }
         } catch (err) {
-            if (err.response) {
-                const { status } = err.response;
-                const errorMessages = {
-                    400: "Missing username or password",
-                    401: "Invalid username or password",
-                    403: "Access Denied: Not authorized",
-                    500: "Server Error, please try again later",
-                };
-                setErrMsg(errorMessages[status] || "An error occurred while logging in.");
-            } else {
-                setErrMsg("Unable to connect to the server. Please try again later.");
-            }
+           if(err.status ===404){
+               setErrMsg("User not found. Please check your credentials.");
+           }
+           else if(err.status ===400){
+               setErrMsg("Missing username or password");
+           }
+           else if(err.status ===401){
+               setErrMsg("Invalid username or password");
+           }
+           else if(err.status ===500){
+               setErrMsg("Server Error, please try again later");
+           }
         } finally {
             setLoading(false);
         }
@@ -92,7 +85,7 @@ const Login = () => {
                         <input
                             id="username"
                             type="text"
-                            placeholder="Enter username"
+                            placeholder="Enter username Or Email Address"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
@@ -111,12 +104,15 @@ const Login = () => {
                     </div>
                     <div className="form-group remember-me">
                         <input
-                            id="remember-me"
+                            id="rememberMe"
+                         name="rememberMe"
+                         value={rememberMe}
+
                             type="checkbox"
                             checked={rememberMe}
                             onChange={(e) => setRememberMe(e.target.checked)}
                         />
-                        <label htmlFor="remember-me">Remember Me</label>
+                        <label htmlFor="rememberMe">Remember Me</label>
                     </div>
                     {errMsg && <p className="error-message">{errMsg}</p>}
                     <button type="submit" disabled={loading}>
@@ -128,12 +124,13 @@ const Login = () => {
                     <p>
                         Don’t have an account? <Link to="/register">Register</Link>
                     </p>
-                    <p>
-                        By continuing, you agree to our{" "}
-                        <Link to="/terms-of-service">Terms of Service</Link>.
-                    </p>
+
                 </div>
             </div>
+            <p>
+                By continuing, you agree to our{" "}
+                <Link to="/terms-of-service">Terms of Service</Link>.
+            </p>
         </div>
     );
 };

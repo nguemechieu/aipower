@@ -1,18 +1,52 @@
 import React, { useState } from "react";
-import "./Settings.css";
+import {
+    Box,
+    Typography,
+    TextField,
+    Button,
+    Checkbox,
+    FormControlLabel,
+    FormGroup,
+    Select,
+    MenuItem,
+    Paper,
+
+    List,
+    ListItem,
+    ListItemText,
+    IconButton,
+    Tooltip, Grid, Grid2,
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import SaveIcon from "@mui/icons-material/Save";
 
 const Settings = () => {
+    // State for profile
     const [username, setUsername] = useState("JohnDoe123");
     const [email, setEmail] = useState("johndoe@example.com");
     const [password, setPassword] = useState("");
+
+    // State for preferences
     const [theme, setTheme] = useState("light");
+
+    // State for security
     const [twoFactor, setTwoFactor] = useState(false);
 
-    // Notification preferences
+    // State for notifications
     const [emailNotifications, setEmailNotifications] = useState(true);
     const [smsNotifications, setSmsNotifications] = useState(false);
     const [pushNotifications, setPushNotifications] = useState(true);
 
+    // State for subscriptions
+    const [subscriptions, setSubscriptions] = useState([
+        { id: 1, name: "Premium Membership" },
+        { id: 2, name: "Newsletter" },
+    ]);
+
+    const [newSubscription, setNewSubscription] = useState("");
+
+    // Handlers for saving settings
     const handleSaveProfile = () => {
         alert("Profile updated successfully!");
     };
@@ -29,117 +63,210 @@ const Settings = () => {
         alert("Notification preferences updated successfully!");
     };
 
+    const handleAddSubscription = () => {
+        if (newSubscription.trim()) {
+            setSubscriptions([
+                ...subscriptions,
+                { id: Date.now(), name: newSubscription },
+            ]);
+            setNewSubscription("");
+        }
+    };
+
+    const handleRemoveSubscription = (id) => {
+        setSubscriptions(subscriptions.filter((sub) => sub.id !== id));
+    };
+
     return (
-        <div className="settings-container">
-            <h2>Settings</h2>
+        <Box sx={{ padding: 4 }}>
+            <Typography variant="h4" gutterBottom>
+                Settings
+            </Typography>
 
             {/* Profile Section */}
-            <section className="settings-section">
-                <h3>Profile</h3>
-                <div className="form-group">
-                    <label htmlFor="username">Username</label>
-                    <input
-                        id="username"
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                    />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="email">Email</label>
-                    <input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-                </div>
-                <button className="save-button" onClick={handleSaveProfile}>
+            <Paper sx={{ padding: 4, marginBottom: 4 }} elevation={3}>
+                <Typography variant="h5" gutterBottom>
+                    Profile
+                </Typography>
+                <Grid2 container spacing={3}>
+                    <Grid2 item xs={12} sm={6}>
+                        <TextField
+                            label="Username"
+                            fullWidth
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                        />
+                    </Grid2>
+                    <Grid2 item xs={12} sm={6}>
+                        <TextField
+                            label="Email"
+                            fullWidth
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                    </Grid2>
+                </Grid2>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    sx={{ marginTop: 2 }}
+                    startIcon={<SaveIcon />}
+                    onClick={handleSaveProfile}
+                >
                     Save Profile
-                </button>
-            </section>
+                </Button>
+            </Paper>
 
             {/* Security Section */}
-            <section className="settings-section">
-                <h3>Security</h3>
-                <div className="form-group">
-                    <label htmlFor="password">Change Password</label>
-                    <input
-                        id="password"
-                        type="password"
-                        placeholder="Enter new password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                </div>
-                <div className="form-group checkbox-group">
-                    <input
-                        id="two-factor"
-                        type="checkbox"
-                        checked={twoFactor}
-                        onChange={(e) => setTwoFactor(e.target.checked)}
-                    />
-                    <label htmlFor="two-factor">Enable Two-Factor Authentication</label>
-                </div>
-                <button className="save-button" onClick={handleSaveSecurity}>
+            <Paper sx={{ padding: 4, marginBottom: 4 }} elevation={3}>
+                <Typography variant="h5" gutterBottom>
+                    Security
+                </Typography>
+                <TextField
+                    label="Change Password"
+                    fullWidth
+                    type="password"
+                    placeholder="Enter new password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    sx={{ marginBottom: 2 }}
+                />
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            checked={twoFactor}
+                            onChange={(e) => setTwoFactor(e.target.checked)}
+                        />
+                    }
+                    label="Enable Two-Factor Authentication"
+                />
+                <Button
+                    variant="contained"
+                    color="primary"
+                    sx={{ marginTop: 2 }}
+                    startIcon={<SaveIcon />}
+                    onClick={handleSaveSecurity}
+                >
                     Save Security Settings
-                </button>
-            </section>
+                </Button>
+            </Paper>
 
             {/* Notifications Section */}
-            <section className="settings-section">
-                <h3>Notifications</h3>
-                <div className="form-group checkbox-group">
-                    <input
-                        id="email-notifications"
-                        type="checkbox"
-                        checked={emailNotifications}
-                        onChange={(e) => setEmailNotifications(e.target.checked)}
+            <Paper sx={{ padding: 4, marginBottom: 4 }} elevation={3}>
+                <Typography variant="h5" gutterBottom>
+                    Notifications
+                </Typography>
+                <FormGroup>
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={emailNotifications}
+                                onChange={(e) => setEmailNotifications(e.target.checked)}
+                            />
+                        }
+                        label="Email Notifications"
                     />
-                    <label htmlFor="email-notifications">Email Notifications</label>
-                </div>
-                <div className="form-group checkbox-group">
-                    <input
-                        id="sms-notifications"
-                        type="checkbox"
-                        checked={smsNotifications}
-                        onChange={(e) => setSmsNotifications(e.target.checked)}
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={smsNotifications}
+                                onChange={(e) => setSmsNotifications(e.target.checked)}
+                            />
+                        }
+                        label="SMS Notifications"
                     />
-                    <label htmlFor="sms-notifications">SMS Notifications</label>
-                </div>
-                <div className="form-group checkbox-group">
-                    <input
-                        id="push-notifications"
-                        type="checkbox"
-                        checked={pushNotifications}
-                        onChange={(e) => setPushNotifications(e.target.checked)}
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={pushNotifications}
+                                onChange={(e) => setPushNotifications(e.target.checked)}
+                            />
+                        }
+                        label="Push Notifications"
                     />
-                    <label htmlFor="push-notifications">Push Notifications</label>
-                </div>
-                <button className="save-button" onClick={handleSaveNotifications}>
+                </FormGroup>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    sx={{ marginTop: 2 }}
+                    startIcon={<SaveIcon />}
+                    onClick={handleSaveNotifications}
+                >
                     Save Notification Preferences
-                </button>
-            </section>
+                </Button>
+            </Paper>
 
             {/* Preferences Section */}
-            <section className="settings-section">
-                <h3>Preferences</h3>
-                <div className="form-group">
-                    <label htmlFor="theme">Theme</label>
-                    <select
-                        id="theme"
-                        value={theme}
-                        onChange={(e) => setTheme(e.target.value)}
-                    >
-                        <option value="light">Light</option>
-                        <option value="dark">Dark</option>
-                    </select>
-                </div>
-                <button className="save-button" onClick={handleSavePreferences}>
+            <Paper sx={{ padding: 4, marginBottom: 4 }} elevation={3}>
+                <Typography variant="h5" gutterBottom>
+                    Preferences
+                </Typography>
+                <Select
+                    value={theme}
+                    onChange={(e) => setTheme(e.target.value)}
+                    fullWidth
+                    sx={{ marginBottom: 2 }}
+                 variant={
+                   "outlined"
+                 }>
+                    <MenuItem value="light">Light</MenuItem>
+                    <MenuItem value="dark">Dark</MenuItem>
+                    <MenuItem value="custom">Custom</MenuItem>
+                </Select>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<SaveIcon />}
+                    onClick={handleSavePreferences}
+                >
                     Save Preferences
-                </button>
-            </section>
-        </div>
+                </Button>
+            </Paper>
+
+            {/* Subscriptions Section */}
+            <Paper sx={{ padding: 4 }} elevation={3}>
+                <Typography variant="h5" gutterBottom>
+                    Subscriptions
+                </Typography>
+                <List>
+                    {subscriptions.map((subscription) => (
+                        <ListItem
+                            key={subscription.id}
+                            secondaryAction={
+                                <Tooltip title="Remove Subscription">
+                                    <IconButton
+                                        edge="end"
+                                        color="error"
+                                        onClick={() => handleRemoveSubscription(subscription.id)}
+                                    >
+                                        <DeleteIcon />
+                                    </IconButton>
+                                </Tooltip>
+                            }
+                        >
+                            <ListItemText primary={subscription.name} />
+                        </ListItem>
+                    ))}
+                </List>
+                <Box sx={{ display: "flex", alignItems: "center", marginTop: 2 }}>
+                    <TextField
+                        label="Add New Subscription"
+                        value={newSubscription}
+                        onChange={(e) => setNewSubscription(e.target.value)}
+                        fullWidth
+                    />
+                    <Tooltip title="Add Subscription">
+                        <IconButton
+                            color="primary"
+                            onClick={handleAddSubscription}
+                            sx={{ marginLeft: 1 }}
+                        >
+                            <AddCircleOutlineIcon />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+            </Paper>
+        </Box>
     );
 };
 

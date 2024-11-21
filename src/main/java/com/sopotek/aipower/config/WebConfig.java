@@ -7,6 +7,7 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Role;
+import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -15,7 +16,16 @@ import javax.sql.DataSource;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-
+    @Bean
+    public DispatcherServlet dispatcherServlet() {
+        DispatcherServlet dispatcherServlet = new DispatcherServlet();
+        dispatcherServlet.setDetectAllHandlerMappings(true);
+        dispatcherServlet.setDetectAllHandlerAdapters(true);
+        dispatcherServlet.setDetectAllHandlerExceptionResolvers(true);
+        dispatcherServlet.setDetectAllViewResolvers(true);
+        dispatcherServlet.setDispatchOptionsRequest(true);
+        return dispatcherServlet;
+    }
     @Override
     public void addResourceHandlers(@NotNull ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");

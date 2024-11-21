@@ -1,6 +1,6 @@
 // Importing the necessary parts and styles
 import React from 'react';
-import { Link, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import './App.css';
 
 // Component Imports
@@ -30,6 +30,10 @@ import AddInvestmentForm from "./components/AddInvestmentForm";
 import PerformanceChart from "./components/PerformanceChart";
 import InvestmentPage from "./components/InvestMentPage";
 import FriendsPage from "./components/FriendsPage";
+import Profile from "./components/Profile";
+import HelpPage from "./components/HelpPage";
+import ParentComponent from "./components/NotExample";
+import SwaggerUIComponent from "./components/SwaggerUIComponent";
 
 // Define roles for clarity and reusability
 const ROLES = {
@@ -37,7 +41,7 @@ const ROLES = {
   EDITOR: 'EDITOR',
   ADMIN: 'ADMIN',
   MANAGER: 'MANAGER',
-  EMPLOYEE: 'EMPLOYEE',
+  EMPLOYEE: 'EMPLOYEE'
 };
 
 // Functional "About" Component
@@ -69,14 +73,16 @@ const Aipower = () => {
   );
 };
 
-// Main App Component
+// Main App Part
 function App() {
   return (
       <Routes>
         {/* Main layout route wrapping all pages */}
         <Route element={<Layout />}>
+          <Route path={'/'} element={<Login />}/>
 
           {/* Public routes */}
+            <Route path={'help'} element={<HelpPage/>}/>
           <Route path="about" element={<About />} />
           <Route path="nguemechieu/aipower" element={<Aipower />} />
           <Route path="admin/manager" element={<AdminUserManagement />} />
@@ -87,7 +93,9 @@ function App() {
           <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="linkpage" element={<LinkPage />} />
             <Route path="login" element={<Login />} />
+          <Route path="/docs" element={<SwaggerUIComponent />} />
             <Route path="chat" element={<Chat />} />
+          <Route path="notifications" element={<ParentComponent />} />
             <Route path="trade" element={<TradingWindow />} />
             <Route path="admin" element={<AdminUserManagement />} />
           <Route path="investment" element={<InvestmentPage />} />
@@ -96,11 +104,12 @@ function App() {
 
           <Route path="performance-chart" element={<PerformanceChart />} />
           <Route path="investment-page" element={<InvestmentPage />} />
+          <Route path="profile" element={<Profile />} />
           <Route path="friends" element={<FriendsPage />} />
-
+          {/* Catch-all route for unmatched URLs */}
 
           {/* Private routes with login required */}
-          <Route path="/" element={<Login />} />
+
             <Route path={'settings'} element={<Settings/>} />
           <Route path="news" element={<News />} />
           <Route path="unauthorized" element={<Unauthorized />} />

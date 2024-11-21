@@ -23,7 +23,7 @@ const securityQuestions = [
 ];
 
 const Register = () => {
-    const userRef = useRef();
+    const userRef = useRef(null); // Ensure userRef is initialized to null
     const errRef = useRef();
     const navigate = useNavigate();
 
@@ -36,6 +36,9 @@ const Register = () => {
     const [validPwd, setValidPwd] = useState(false);
     const [matchPwd, setMatchPwd] = useState("");
     const [validMatch, setValidMatch] = useState(false);
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [middleName, setMiddleName] = useState("");
     const [birthdate, setBirthdate] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("");
     const [validPhone, setValidPhone] = useState(false);
@@ -56,7 +59,7 @@ const Register = () => {
 
     // Focus on username input on mount
     useEffect(() => {
-        userRef.current.focus();
+        userRef.current;
     }, []);
 
     // Validation logic
@@ -80,6 +83,9 @@ const Register = () => {
                 "/api/v3/auth/register",
                 JSON.stringify({
                     username: user,
+                    firstName,
+                    lastName,
+                    middleName,
                     email,
                     password,
                     birthdate,
@@ -93,12 +99,9 @@ const Register = () => {
                     profilePictureUrl,
                     bio,
                     securityQuestion,
-                    securityAnswer
+                    securityAnswer,
                 }),
-                { headers: { "Content-Type": "application/json" ,
-                        "Accept": "application/json",
-
-                } }
+                { headers: { "Content-Type": "application/json", Accept: "application/json" } }
             );
 
             if (response.status === 200 || response.status === 201) {
@@ -107,7 +110,6 @@ const Register = () => {
             }
         } catch (error) {
             if (error.response) {
-                // Server error
                 if (error.response.status === 400) {
                     setErrMsg("Invalid data provided. Please check your inputs.");
                 } else if (error.response.status === 403) {
@@ -135,87 +137,38 @@ const Register = () => {
             ) : (
                 <div>
                     <h1>Register</h1>
-                    <form onSubmit={handleSubmit}>
-                        {/* Username */}
-                        <input
-                            type="text"
-                            placeholder="Enter your username"
-                            ref={userRef}
-                            onChange={(e) => setUser(e.target.value)}
-                            value={user}
-                            required
-                        />
-                        <FontAwesomeIcon icon={faCheck} className={validName ? "valid" : "hide"} />
-                        <FontAwesomeIcon icon={faTimes} className={validName || !user ? "hide" : "invalid"} />
-
-                        {/* Email */}
-                        <input
-                            type="email"
-                            placeholder="Enter email address"
-                            onChange={(e) => setEmail(e.target.value)}
-                            value={email}
-                            required
-                        />
-                        <FontAwesomeIcon icon={faCheck} className={validEmail ? "valid" : "hide"} />
-                        <FontAwesomeIcon icon={faTimes} className={validEmail || !email ? "hide" : "invalid"} />
-
-                        {/* Password */}
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            onChange={(e) => setPassword(e.target.value)}
-                            value={password}
-                            required
-                        />
-                        <FontAwesomeIcon icon={faCheck} className={validPwd ? "valid" : "hide"} />
-                        <FontAwesomeIcon icon={faTimes} className={validPwd || !password ? "hide" : "invalid"} />
-
-                        {/* Confirm Password */}
-                        <input
-                            type="password"
-                            placeholder="Confirm Password"
-                            onChange={(e) => setMatchPwd(e.target.value)}
-                            value={matchPwd}
-                            required
-                        />
-                        <FontAwesomeIcon icon={faCheck} className={validMatch ? "valid" : "hide"} />
-                        <FontAwesomeIcon icon={faTimes} className={validMatch || !matchPwd ? "hide" : "invalid"} />
-
-                        {/* Other Fields */}
-                        <input type="date" placeholder="Birthdate" onChange={(e) => setBirthdate(e.target.value)} value={birthdate} required />
-                        <input type="text" placeholder="Phone Number" onChange={(e) => setPhoneNumber(e.target.value)} value={phoneNumber} />
-                        <FontAwesomeIcon icon={faCheck} className={validPhone ? "valid" : "hide"} />
-                        <FontAwesomeIcon icon={faTimes} className={validPhone || !phoneNumber ? "hide" : "invalid"} />
-
-                        <input type="text" placeholder="Address" onChange={(e) => setAddress(e.target.value)} value={address} />
-                        <input type="text" placeholder="City" onChange={(e) => setCity(e.target.value)} value={city} />
-                        <input type="text" placeholder="State" onChange={(e) => setState(e.target.value)} value={state} />
-                        <input type="text" placeholder="Zip Code" onChange={(e) => setZipCode(e.target.value)} value={zipCode} />
-                        <input type="text" placeholder="Country" onChange={(e) => setCountry(e.target.value)} value={country} />
-                        <select onChange={(e) => setGender(e.target.value)} value={gender}>
+                    <form onSubmit={handleSubmit} >
+                        <input id="username" type="text" placeholder="Username" value={user} onChange={(e) => setUser(e.target.value)} required />
+                        <input id="first-name" type="text" placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+                        <input id="middle-name" type="text" placeholder="Middle Name" value={middleName} onChange={(e) => setMiddleName(e.target.value)} />
+                        <input id="last-name" type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+                        <input id="email" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                        <input id="password" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                        <input id="confirm-password" type="password" placeholder="Confirm Password" value={matchPwd} onChange={(e) => setMatchPwd(e.target.value)} required />
+                        <input id="birthdate" type="date" value={birthdate} onChange={(e) => setBirthdate(e.target.value)} required />
+                        <input id="phone-number" type="tel" placeholder="Phone Number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+                        <input id="zip-code" type="text" placeholder="Zip Code" value={zipCode} onChange={(e) => setZipCode(e.target.value)} />
+                        <input id="address" type="text" placeholder="Address" value={address} onChange={(e) => setAddress(e.target.value)} />
+                        <input id="city" type="text" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} />
+                        <input id="state" type="text" placeholder="State" value={state} onChange={(e) => setState(e.target.value)} />
+                        <input id="country" type="text" placeholder="Country" value={country} onChange={(e) => setCountry(e.target.value)} />
+                        <select id="gender" name={'gender'} value={gender} onChange={(e) => setGender(e.target.value)} required>
                             {genderOptions.map((option, index) => (
                                 <option key={index} value={option}>
-                                    {option}
+                                    {  option?"Male":genderOptions[index]}
                                 </option>
                             ))}
                         </select>
-                        <textarea placeholder="Bio" onChange={(e) => setBio(e.target.value)} value={bio}></textarea>
-                        <select onChange={(e) => setSecurityQuestion(e.target.value)} value={securityQuestion}>
+                        <input id="profile-picture-url" type="text" placeholder="Profile Picture URL" value={profilePictureUrl} onChange={(e) => setProfilePictureUrl(e.target.value)} />
+                        <textarea id="bio" placeholder="Bio" value={bio} onChange={(e) => setBio(e.target.value)}></textarea>
+                        <select id="security-question" value={securityQuestion} onChange={(e) => setSecurityQuestion(e.target.value)}>
                             {securityQuestions.map((question, index) => (
                                 <option key={index} value={question}>
                                     {question}
                                 </option>
                             ))}
                         </select>
-                        <input
-                            type="text"
-                            placeholder="Answer"
-                            onChange={(e) => setSecurityAnswer(e.target.value)}
-                            value={securityAnswer}
-                            required
-                        />
-
-                        {/* Submit */}
+                        <input id="security-answer" type="text" placeholder="Answer to Security Question" value={securityAnswer} onChange={(e) => setSecurityAnswer(e.target.value)} required />
                         <button type="submit" disabled={!validName || !validEmail || !validPwd || !validMatch || isLoading}>
                             {isLoading ? "Registering..." : "Register"}
                         </button>

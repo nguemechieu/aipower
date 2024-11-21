@@ -4,7 +4,7 @@ import AuthContext from "../context/AuthProvider.js";
 
 const useAuth = () => {
   const { auth } = useContext(AuthContext);
-  useDebugValue(auth, (auth) => (auth?.username ? "Logged In" : "Logged Out"));
+  useDebugValue(auth, (auth) => (auth?.id ? "Logged In" : "Logged Out"));
   return useContext(AuthContext);
 };
 

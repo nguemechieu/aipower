@@ -51,7 +51,11 @@ const FriendsPage = () => {
     );
 
     return (
-        <div style={{ padding: "20px" }}>
+        <div style={{ padding: "20px" ,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center"
+        }}>
             <h2>Friends Page</h2>
             <SearchBar onSearch={handleSearch} />
             <FriendList friends={filteredFriends} />

@@ -2,22 +2,21 @@ package com.sopotek.aipower.service;
 
 import com.sopotek.aipower.model.User;
 import com.sopotek.aipower.repository.UserRepository;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 @Setter
@@ -54,8 +53,22 @@ private static final Log LOG = LogFactory.getLog(UserService.class);
 
 )
     public boolean authenticate(String username, String password) {
-        User user = userRepository.findByUsernameAndPassword(username, password).get();
-        return passwordEncoder.matches(password, user.getPassword());
+        // Validate input
+        if (username == null || password == null) {
+            throw new IllegalArgumentException("Username and password must not be null");
+        }
+
+        // Fetch user by username
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+
+        // Check if a user exists and validate password
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            return passwordEncoder.matches(password, user.getPassword());
+        }
+
+        // If user not found or password doesn't match
+        return false;
     }
 
 
@@ -100,16 +113,21 @@ private static final Log LOG = LogFactory.getLog(UserService.class);
 
 
 
+    public Optional<User> findByUsername(@NotBlank(message = "Username is required") String username) {
+        return userRepository.findByUsername(username);
+    }
 
-    @Transactional
-    @Cacheable(value = "users", key = "#id")
-    public String updateUser(Long id, String uname) {
-        User user = userRepository.findById(id).orElse(null);
-        if (user != null) {
-            user.setUsername(uname);
-            userRepository.save(user);
-            return "Username updated successfully";
-        }
-        return "No user found with id: " + id;
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    public boolean existsByUsernameOrEmail(String username, String email) {
+        return userRepository.existsByUsernameOrEmail(username, email);
+    }
+
+    public void saveUser(@Valid User user) {
+
+        userRepository.save(user);
+
     }
 }

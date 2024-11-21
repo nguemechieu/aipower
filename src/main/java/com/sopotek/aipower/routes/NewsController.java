@@ -1,5 +1,6 @@
 package com.sopotek.aipower.routes;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sopotek.aipower.model.News;
@@ -42,7 +43,7 @@ public class NewsController {
 
     public NewsController() {
         // Default constructor for Spring
-        objectMapper.findAndRegisterModules();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         logger.info(this.toString());
     }
 
@@ -93,7 +94,6 @@ public class NewsController {
     @GetMapping("/news")
     public ResponseEntity<?> getNews() {
         try {
-          String currentDate = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
 
                     // Fetch news for the previous day
                     String date = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date(new java.util.Date().getTime() - (1000 * 60 * 60 * 24)));
@@ -101,7 +101,8 @@ public class NewsController {
                    // Create the HTTP request to fetch news data from News API
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(
-                          "https://newsapi.org/v2/everything?q=forex&from="+currentDate+"&sortBy=publishedAt&apikey="+apiKey
+                          url+
+                                  "?q=bitcoin&from="+date+"&to="+date+"&sortBy=popularity&apiKey="+apiKey
 
                     ))
                     .GET()

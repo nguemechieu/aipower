@@ -1,39 +1,42 @@
 package com.sopotek.aipower.model;
 
-
-
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
 
-@Setter
 @Getter
+@Setter
 public class News {
-
-
-    String country;
-    String date;
-    String impact;
-    String forecast;
-    String previous;
-    String title;
-    // Getters and Setters
     private String status;
     private int totalResults;
     private List<Article> articles;
+    private String country;
+    private String date;
+    private String impact;
+    private String forecast;
+    private String previous;
+    private String title;
 
+    // Default Constructor
     public News() {
     }
 
+    // Constructor for general news fields
     public News(String country, String date, String impact, String title, String previous, String forecast) {
         this.country = country;
         this.date = date;
         this.impact = impact;
         this.title = title;
-
         this.previous = previous;
         this.forecast = forecast;
+    }
+
+    // Constructor for complete news object
+    public News(String status, int totalResults, List<Article> articles) {
+        this.status = status;
+        this.totalResults = totalResults;
+        this.articles = articles;
     }
 
     @Override
@@ -48,16 +51,12 @@ public class News {
                 ", forecast='" + forecast + '\'' +
                 ", previous='" + previous + '\'' +
                 ", title='" + title + '\'' +
-                ", previous='" + previous + '\'' +
                 '}';
     }
 
-
-    // Inner class Article
-    @Setter
     @Getter
+    @Setter
     public static class Article {
-        // Getters and Setters
         private Source source;
         private String author;
         private String title;
@@ -66,6 +65,8 @@ public class News {
         private String urlToImage;
         private String publishedAt;
         private String content;
+
+        // Default Constructor
         public Article() {
         }
 
@@ -81,55 +82,34 @@ public class News {
             this.content = content;
         }
 
-        // Inner class Source
-        @Setter
-        @Getter
-        public static class Source {
-            // Getters and Setters
-            private String id;
-            private String name;
-
-            public Source() {
-            }
-
-            // Constructor
-            public Source(String id, String name) {
-                this.id = id;
-                this.name = name;
-            }
-
+        @Override
+        public String toString() {
+            return "Article{" +
+                    "source=" + source +
+                    ", author='" + author + '\'' +
+                    ", title='" + title + '\'' +
+                    ", description='" + description + '\'' +
+                    ", url='" + url + '\'' +
+                    ", urlToImage='" + urlToImage + '\'' +
+                    ", publishedAt='" + publishedAt + '\'' +
+                    ", content='" + content + '\'' +
+                    '}';
         }
-    }
 
-
-
-    // Constructor
-    public News(String status, int totalResults, List<Article> articles) {
-        this.status = status;
-        this.totalResults = totalResults;
-        this.articles = articles;
-    }
-
-
-
-
-
-
-        // Inner Source Class
         @Getter
         @Setter
         public static class Source {
             private String id;
             private String name;
-
-            // Constructor
-            public Source(String id, String name) {
-                this.id = id;
-                this.name = name;
-            }
 
             // Default Constructor
             public Source() {
+            }
+
+            // Constructor
+            public Source(String id, String name) {
+                this.id = id;
+                this.name = name;
             }
 
             @Override
@@ -140,5 +120,5 @@ public class News {
                         '}';
             }
         }
-
+    }
 }

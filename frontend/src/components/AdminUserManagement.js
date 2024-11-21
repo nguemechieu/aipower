@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
+import {axiosPrivate} from "../api/axios";
 
 const API_URL = "/api/v3/users";
 
@@ -30,10 +31,12 @@ const AdminUserManagement = () => {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(API_URL);
-            setUsers(response.data);
+           await axiosPrivate.get(API_URL).then(
+               response => setUsers(response.data)
+           )
+
         } catch (err) {
-            setError("Error fetching users");
+            setError(err.message);
         } finally {
             setLoading(false);
         }
@@ -51,7 +54,7 @@ const AdminUserManagement = () => {
     const handleEnableDisableUser = async (user) => {
         try {
             const updatedUser = { ...user, enabled: !user.enabled };
-            await axios.patch(`${API_URL}/${user.id}`, updatedUser);
+            await axiosPrivate.patch(`${API_URL}/update/id:${user.id}`, updatedUser);
             setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
         } catch (err) {
             setError("Error updating user status");
@@ -74,7 +77,7 @@ const AdminUserManagement = () => {
 
     const handleSaveEdit = async () => {
         try {
-            await axios.patch(`${API_URL}/${editingUser.id}`, editingUser);
+            await axiosPrivate.patch(`${API_URL}/update:id${editingUser.id}`, editingUser);
             setUsers(users.map((user) => (user.id === editingUser.id ? editingUser : user)));
             setEditingUser(null);
         } catch (err) {
