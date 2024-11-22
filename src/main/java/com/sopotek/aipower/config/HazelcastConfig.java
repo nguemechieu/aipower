@@ -8,14 +8,11 @@ import com.hazelcast.core.HazelcastInstance;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
-import org.springframework.cache.jcache.JCacheCacheManager;
 import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.cache.Caching;
-import javax.cache.spi.CachingProvider;
-import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableCaching
@@ -52,13 +49,6 @@ public class HazelcastConfig {
         return Hazelcast.newHazelcastInstance(config);
     }
 
-//    @Bean
-//    public CacheManager cacheManager() {
-//        // Set up JCache CacheManager using Hazelcast
-//        CachingProvider cachingProvider = Caching.getCachingProvider();
-//        javax.cache.CacheManager jCacheManager = cachingProvider.getCacheManager();
-//        return new JCacheCacheManager(jCacheManager);
-//    }
 
 
         @Bean
@@ -67,7 +57,7 @@ public class HazelcastConfig {
 
 
             SimpleCacheManager cacheManager = new SimpleCacheManager();
-            cacheManager.setCaches(Arrays.asList(new ConcurrentMapCache("users")));
+            cacheManager.setCaches(List.of(new ConcurrentMapCache("users")));
             return cacheManager;
         }
 

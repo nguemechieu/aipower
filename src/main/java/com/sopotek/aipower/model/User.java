@@ -1,131 +1,147 @@
 package com.sopotek.aipower.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
+@Data
 @Entity
-@NamedQuery(name = "User.findByEmail", query = "SELECT u FROM User u WHERE u.email = :email")
 @Table(name = "users")
-public class User extends SecurityProperties.User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String username = "defaultUsername";
+    private Date lastLoginDate;
 
+    @Column(unique = true, nullable = false, length = 50)
+    private String username;
 
-    private String password = "defaultPassword";
+    @Column(nullable = false)
+    private String password;
 
     @Column(unique = true, nullable = false, length = 100)
-    private String email = "default@example.com";
-
-    @Column(length = 15)
-    private String phoneNumber = "000-000-0000";
-
-    private String firstName = "Default";
-
-
-    private String middleName = "Default";
-
-
-    private String lastName = "User";
-
-    private LocalDate birthdate = LocalDate.of(1985, 1, 1);
-
-
-    private String gender = "Male";
-
-
-    private String profilePictureUrl = "https://robohash.org/default-profile.png?size=200x200";
-
-    @Column(name = "biography", length = 500)
-    private String bio = "This is a default biography.";
-
-    @Column(name = "role")
-    private String role = "USER";
-
+    private String email;
 
     private boolean accountNonExpired = true;
-
+    private boolean credentialsNonExpired = true;
     private boolean accountNonLocked = true;
 
-    private boolean credentialsNonExpired = true;
+    private String firstName;
+    private String lastName;
+    private String middleName;
+    private String address;
+    private String phoneNumber;
+    private String country;
+    private String city;
+    private String state;
+    private String zipCode;
+
+    private String profilePictureUrl;
+    private String bio;
+    private String gender;
+    private Date birthdate;
+
+    private String ip;
+    private String hostname;
+    private String region;
 
 
-    private boolean enabled = true;
+    @ManyToOne
+    @JoinColumn(name = "loc_id")
+
+    private Loc location;
+
+    private String org;
+    private String postal;
 
 
-    private String securityQuestion = "What is your default security question?";
+    private String timezone;
 
-    private String securityAnswer = "DefaultAnswer";
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
 
-    private boolean twoFactorEnabled = false;
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    private Role role;
+
+    @Column(nullable = false)
+    private int failedLoginAttempts = 0;
 
 
-    private LocalDate accountCreationDate = LocalDate.now();
+    private String resetToken;
 
 
-    private LocalDate lastLoginDate = LocalDate.now();
+    private Date resetTokenExpiryTime;
 
-    private String address = "Default Address";
-
-    @Column(length = 50)
-    private String city = "Default City";
-
-    @Column(length = 50)
-    private String state = "Default State";
-
-    @Column(length = 50)
-    private String country = "Default Country";
-
-    @Column(length = 10)
-    private String zipCode = "00000";
-
-    private int friendCount = 0;
-    private int postCount = 0;
-    private int followerCount = 0;
-    private int followingCount = 0;
-
-    private String resetToken = "TYTUYIUOIPO";
-    private LocalDateTime resetTokenExpiryTime ;
-
-private     boolean disable;
-
-    @Column(name = "subscription_type", length = 20)
-    private String subscriptionType = "FREE";
-
-    public User() {
-        super();
+    /**
+     * Increment the number of failed login attempts for this user.
+     */
+    public void incrementFailedLoginAttempts() {
+        this.failedLoginAttempts++;
     }
 
-    public Instant getExpiryDate() {
-        // Assuming birthdate is an instance of Date or LocalDate
-        if (birthdate == null) {
-            throw new IllegalArgumentException("Birthdate cannot be null");
-        }
+    /**
+     * Reset the number of failed login attempts for this user.
+     */
+    public void resetFailedLoginAttempts() {
+        this.failedLoginAttempts = 0;
+    }
 
-        // Convert birthdate to Instant for comparison
-        Instant birthdateInstant = Instant.from(birthdate);
-        Instant currentInstant = Instant.now();
+    /**
+     * Returns a collection of granted authorities based on the user's roles.
+     *
+     * @return A collection of granted authorities.
+     */
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.getName()))
+                .collect(Collectors.toSet());
+    }
 
-        // Calculate age in the past years
-        long ageInYears = Duration.between(birthdateInstant, currentInstant).toDays() / 365;
+    /**
+     * Indicates whether the account is enabled and has valid roles.
+     *
+     * @return True if the account is enabled, false otherwise.
+     */
+    @Override
+    public boolean isEnabled() {
+        return accountNonExpired && accountNonLocked &&
+                roles.stream().anyMatch(role ->
+                        Arrays.stream(ROLES.values())
+                                .map(Enum::name)
+                                .anyMatch(role.getName()::equals));
+    }
 
-        // Check if the age plus the condition (120 years) is valid
-        if (ageInYears < 120) {
-            return currentInstant.plus(Duration.ofDays((120 - ageInYears) * 365));
-        } else {
-            throw new IllegalStateException("Age exceeds the allowed limit of 120 years.");
-        }
+    // Overridden methods for UserDetails interface
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return accountNonExpired;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return accountNonLocked;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return credentialsNonExpired;
     }
 }

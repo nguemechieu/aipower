@@ -12,8 +12,8 @@
 /* Sidebar */
 .chat-sidebar {
     width: 25%;
-    background-color: rgba(175, 195, 32, 0.7);
-    border-right: 1px solid #45d16f;
+    background-color: rgb(107, 208, 227);
+    border-right: 1px solid #76ac86;
     display: flex;
     flex-direction: column;
     padding: 10px;
@@ -133,7 +133,7 @@
     padding: 10px 20px;
     font-size: 16px;
     background-color: #007bff;
-    color: white;
+    color: #caefd5;
     border: none;
     border-radius: 20px;
     cursor: pointer;

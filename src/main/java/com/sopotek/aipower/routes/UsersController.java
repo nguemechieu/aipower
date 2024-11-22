@@ -100,14 +100,14 @@ public class UsersController {
 // Update a user by ID (PUT method)
     @PutMapping("/update/id:{id}")
     public ResponseEntity<String> updateItem(@PathVariable Long id, @RequestBody User updatedItem) {
-        User us = userService.update(id, updatedItem);
 
-        if (us != null) {
-            return ResponseEntity.status(200).body("Item updated successfully");
+  try{
+         userService.update(updatedItem);return ResponseEntity.status(200).body(id+" updated successfully");
+   }
+  catch(Exception e){
+           return ResponseEntity.status(500).body(e.getMessage());
         }
-        return ResponseEntity.status(500).body(
-                "No user found with id: %d".formatted(id)
-        );
+
 
     }
 

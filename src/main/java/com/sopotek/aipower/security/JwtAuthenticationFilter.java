@@ -1,36 +1,31 @@
 package com.sopotek.aipower.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import com.sopotek.aipower.service.AuthService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+
 import java.io.IOException;
-import java.security.Key;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+AuthService authService;
 
-    @Value("${aipower.jwt.secret.key}")
-    private String secretKey; // Ensure this is defined in your application.properties or .env
 
-    @Contract(" -> new")
-    private @NotNull Key getSigningKey() {
-        return Keys.hmacShaKeyFor(secretKey.getBytes());
+@Autowired
+    public JwtAuthenticationFilter(AuthService authService) {
+        this.authService = authService;
     }
 
     @Override
@@ -38,17 +33,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String token = extractToken(request);
-        if (token != null && validateToken(token)) {
-            String username = getUsernameFromToken(token);
-            List<String> roles = getRolesFromToken(token);
-
-            // Map roles to SimpleGrantedAuthority
-            List<SimpleGrantedAuthority> authorities = roles.stream()
-                    .map(SimpleGrantedAuthority::new)
-                    .collect(Collectors.toList());
-
+        if (token != null && authService.validateJwtToken(token)) {
+            String username = authService.getUserFromJwtToken(token);
+            List<SimpleGrantedAuthority>roles=authService.getRolesFromJwtToken(token);
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(username, null, authorities);
+                    new UsernamePasswordAuthenticationToken(username, token, roles);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
@@ -60,35 +49,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return (bearerToken != null && bearerToken.startsWith("Bearer ")) ? bearerToken.substring(7) : null;
     }
 
-    private boolean validateToken(String token) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
 
-    private String getUsernameFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-        return claims.getSubject();
-    }
-
-    private List getRolesFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-
-        // Assuming roles are stored as a list of strings in the JWT claim "roles"
-        return claims.get("roles", List.class);
-    }
 }

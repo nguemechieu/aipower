@@ -35,5 +35,5 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    // You can add more methods here for sending HTML emails, attachments, etc.
+
 }

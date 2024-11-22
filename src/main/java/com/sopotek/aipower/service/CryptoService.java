@@ -25,7 +25,7 @@ public class CryptoService {
 
     // Get market data for a cryptocurrency
     public List<Object> getCryptoMarketData(String coinId, String currency) {
-        String url = BASE_URL + "/coins/" + coinId + "?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false";
+        String url = BASE_URL +   coinId +currency+ "?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false";
         return Collections.singletonList(restTemplate.getForObject(url, Map.class));
     }
 

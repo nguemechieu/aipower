@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -88,15 +89,12 @@ private static final Log LOG = LogFactory.getLog(UserService.class);
         return userRepository.findAll();
     }
     @Transactional
-    public User update(Long id, User updatedItem) {
-        User user = userRepository.findById(id).orElse(null);
-        if (user != null) {
-            user.setUsername(updatedItem.getUsername());
-            user.setPassword(passwordEncoder.encode(updatedItem.getPassword()));
-            userRepository.save(user);
-            return user;
-        }
-        return null;
+    public  void update( User updatedItem) {
+
+
+
+            userRepository.save(updatedItem);
+
     }
 
     @Transactional
@@ -122,7 +120,8 @@ private static final Log LOG = LogFactory.getLog(UserService.class);
     }
 
     public boolean existsByUsernameOrEmail(String username, String email) {
-        return userRepository.existsByUsernameOrEmail(username, email);
+
+      return (  userRepository.findByUsername(username).isPresent()||userRepository.findByEmail(email).isPresent());
     }
 
     public void saveUser(@Valid User user) {
@@ -130,4 +129,6 @@ private static final Log LOG = LogFactory.getLog(UserService.class);
         userRepository.save(user);
 
     }
+
+
 }

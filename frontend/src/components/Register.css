@@ -5,10 +5,10 @@ section.register {
     max-width: 600px;
     margin: 50px auto;
     padding: 20px;
-    background-color: #caefd5;
-    color: #1d70cc;
+    background-color: #ffffff;
+    color: #072333;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgb(187, 200, 202);
+
     position: relative;
     z-index: 1;
 }
@@ -39,7 +39,7 @@ form select:focus,
 form textarea:focus {
     border-color: #ffffff;
     outline: none;
-    box-shadow: 0 0 3px rgba(0, 123, 255, 0.5);
+
 }
 
 /* Button Styles */
@@ -106,7 +106,7 @@ section.register div p {
 
 /* Link Styles */
 a {
-    color: #007bff;
+    color: #ffffff;
     text-decoration: none;
     transition: color 0.2s ease-in-out;
 }

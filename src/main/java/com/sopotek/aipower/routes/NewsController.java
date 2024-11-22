@@ -57,12 +57,12 @@ public class NewsController {
     @GetMapping("/forex-factory")
     public ResponseEntity<?> getForexFactoryCalendar() {
         try {
-            HttpRequest request = HttpRequest.newBuilder()
+
+
+            HttpResponse<String> response = client.send( HttpRequest.newBuilder()
                     .uri(URI.create("https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=a603b210ca0358c2414daec0c5a1247b"))
                     .GET()
-                    .build();
-
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                    .build(), HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
                 logger.error("Failed to fetch Forex Factory calendar: {}", response.body());
@@ -70,9 +70,9 @@ public class NewsController {
             }
 
             // Parse the JSON data into a List of ForexFactoryCalendar
-            List<ForexFactoryCalendar> forexEvents = objectMapper.readValue(
+            List<News> forexEvents = objectMapper.readValue(
                     response.body(),
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, ForexFactoryCalendar.class)
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, News.class)
             );
 
             return ResponseEntity.ok(forexEvents);

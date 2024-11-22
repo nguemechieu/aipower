@@ -24,6 +24,9 @@ public class WebConfig implements WebMvcConfigurer {
         dispatcherServlet.setDetectAllHandlerExceptionResolvers(true);
         dispatcherServlet.setDetectAllViewResolvers(true);
         dispatcherServlet.setDispatchOptionsRequest(true);
+
+
+
         return dispatcherServlet;
     }
     @Override
@@ -32,7 +35,7 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Value("${spring.datasource.url}")
-String db_url ;
+    private String db_url ;
     CorsConfig corsConfig;
     @Value("${spring.datasource.password}")
     private String db_password;
@@ -59,8 +62,8 @@ String db_url ;
     public void addCorsMappings(@NotNull CorsRegistry registry) {
 
 
-        registry.addMapping("/api/**") // Adjust the mapping to match your API endpoints
-                .allowedOrigins("http://localhost:3000","localhost:9092","localhost:8081","localhost:8080") // Allow only your React app’s origin
+        registry.addMapping("/**") // Adjust the mapping to match your API endpoints
+                .allowedOrigins("http://localhost:3000","http://localhost:9092","http://localhost:8081","http://localhost:8080") // Allow only your React app’s origin
 
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")

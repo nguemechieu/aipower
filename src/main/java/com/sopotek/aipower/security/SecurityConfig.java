@@ -29,9 +29,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(
-                        AbstractHttpConfigurer::disable
-                )
+        http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v3/employee/**").hasRole("EMPLOYEE")
                         .requestMatchers("/api/v3/manager/**").hasRole("MANAGER")
@@ -60,12 +58,13 @@ public class SecurityConfig {
     public UserDetailsService userDetailsService() {
         return username -> {
             User user = userRepository.findByEmail(username)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
 
+            // Convert roles from the user to GrantedAuthority
             return org.springframework.security.core.userdetails.User.builder()
                     .username(user.getUsername())
-                    .password(user.getPassword()) // Password is already encoded in DB
-                    .roles(user.getRole() != null ? user.getRole().split(",") : new String[]{"USER"}) // Split roles if comma-separated
+                    .password(user.getPassword()) // Password is already encoded in the DB
+                    .authorities(user.getAuthorities())
                     .accountExpired(!user.isAccountNonExpired())
                     .accountLocked(!user.isAccountNonLocked())
                     .credentialsExpired(!user.isCredentialsNonExpired())

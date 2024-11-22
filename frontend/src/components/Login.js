@@ -18,61 +18,53 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
 
-
-
+    // Clear error message on input change
     useEffect(() => {
-        setErrMsg(""); // Clear error message on input change
-    }, [username, password,rememberMe]);
-useEffect(() => {
-    setUsername(username);
-    setPassword(password);
-},[username, password]);
+        setErrMsg("");
+    }, [username, password]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-
         try {
-            const response = await axios.post(
-                LOGIN_URL,
-              {username,password,
-                  rememberMe
-
-                }
-            );
+            const response = await axios.post(LOGIN_URL, JSON.stringify({ username, password }), {
+                headers: { "Content-Type": "application/json" },
+            });
 
             if (response.status === 200) {
-                const { accessToken,id, refreshToken, role } = response.data;
-                setAuth({ id,role, rememberMe, accessToken, refreshToken });
+                const { accessToken, id, refreshToken, roles } = response.data;
 
+                // Update authentication context
+                setAuth({ id, roles, rememberMe, accessToken, refreshToken });
+
+                // Store token based on "Remember Me" option
                 if (rememberMe) {
                     localStorage.setItem("accessToken", accessToken);
                 } else {
                     sessionStorage.setItem("accessToken", accessToken);
                 }
 
+                // Reset form fields
                 setUsername("");
                 setPassword("");
+
+                // Navigate to the intended page
                 navigate(from, { replace: true });
             } else {
-                setErrMsg(response.data.message || "Login failed.");
+                setErrMsg(response.data);
             }
         } catch (err) {
-           if(err.status ===404){
-               setErrMsg("User not found. Please check your credentials.");
-           }
-           else if(err.status ===400){
-               setErrMsg("Missing username or password");
-           }
-           else if(err.status ===401){
-               setErrMsg("Invalid username or password");
-           }
-           else if(err.status ===500){
-               setErrMsg("Server Error, please try again later");
-           }
+            console.log(err.response); // Debug the error response structure
+            if (err.response && err.response.data) {
+                setErrMsg(err.response.data );
+            } else {
+                setErrMsg("Login failed. No response from server.");
+            }
         } finally {
             setLoading(false);
         }
     };
+
 
     return (
         <div className="login-container">
@@ -81,11 +73,11 @@ useEffect(() => {
                 <p className="subtitle">Log in to access your account</p>
                 <form className="login-form" onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label htmlFor="username">Username</label>
+                        <label htmlFor="username">Username or Email</label>
                         <input
                             id="username"
                             type="text"
-                            placeholder="Enter username Or Email Address"
+                            placeholder="Enter username or email"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
@@ -105,9 +97,7 @@ useEffect(() => {
                     <div className="form-group remember-me">
                         <input
                             id="rememberMe"
-                         name="rememberMe"
-                         value={rememberMe}
-
+                            name="rememberMe"
                             type="checkbox"
                             checked={rememberMe}
                             onChange={(e) => setRememberMe(e.target.checked)}
@@ -120,11 +110,11 @@ useEffect(() => {
                     </button>
                 </form>
                 <div className="links">
+
                     <Link to="/forgot-password">Forgot Password?</Link>
                     <p>
                         Don’t have an account? <Link to="/register">Register</Link>
                     </p>
-
                 </div>
             </div>
             <p>

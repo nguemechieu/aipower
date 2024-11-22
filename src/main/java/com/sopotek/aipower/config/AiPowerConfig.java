@@ -19,19 +19,6 @@ public class AiPowerConfig {
 
     }
 
-    @Configuration
-    public static class LoggingConfig {
-
-        @Bean
-        public CommonsRequestLoggingFilter requestLoggingFilter() {
-            CommonsRequestLoggingFilter loggingFilter = new CommonsRequestLoggingFilter();
-            loggingFilter.setIncludeClientInfo(true);
-            loggingFilter.setIncludeQueryString(true);
-            loggingFilter.setIncludeHeaders(true);
-            loggingFilter.setIncludePayload(true);
-            loggingFilter.setMaxPayloadLength(10000); // Increase if needed
-            return loggingFilter;
-        }
-    }
+    
 
 }

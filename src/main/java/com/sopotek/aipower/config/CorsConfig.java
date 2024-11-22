@@ -12,21 +12,21 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 @Value("${aipower.jwt.token-expiration-time}")
-    private  long maxAge ; // 1 hour in seconds
+    private  long maxAge=3600 ; // 1 hour in seconds
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Allow requests from frontend origin
-        configuration.setAllowedOrigins(List.of("http://localhost:8080",
+        configuration.setAllowedOrigins(List.of(
                 "https://tradeadviser.org",
-                "http://localhost:8081",
-                "http://localhost:3000",
-                "localhost:9092"
+                "http://localhost:9092",
+                "http://localhost:8080",
+                "http://localhost:3000"
         ));
 
         // Set allowed methods
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE","OPTIONS"));
 
         // Set allowed headers (Authorization for tokens, Content-Type for JSON, etc.)
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
@@ -34,7 +34,7 @@ public class CorsConfig {
         configuration.setAllowCredentials(true);
 
         // Enable caching for preflight requests (OPTIONS requests)
-        configuration.setExposedHeaders(List.of("Authorization"));
+       // configuration.setExposedHeaders(List.of("Authorization"));
 
         // Cache preflight request for 1 hour
         configuration.setMaxAge(maxAge);
