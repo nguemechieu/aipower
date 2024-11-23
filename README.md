@@ -1,5 +1,9 @@
 # AiPower
 
+[![Aipower Docker Image CI](https://github.com/nguemechieu/aipower/actions/workflows/docker-image.yml/badge.svg)](https://github.com/nguemechieu/aipower/actions/workflows/docker-image.yml)
+
+
+
 Welcome to **AiPower**, a powerful application designed to revolutionize trading and analysis using modern technologies. This project combines a Spring Boot backend and a React frontend to deliver an efficient and intuitive user experience. With Docker support, deployment has never been easier!
 
 ---
