@@ -1,20 +1,28 @@
 {
+
   "env": {
     "browser": true,
     "es2021": true,
-    "node": true
+    "jest": true
   },
-  "extends": [
-    "eslint:recommended",
-    "plugin:react/recommended"
-  ],
+  "extends": ["eslint:recommended", "plugin:react/recommended"],
   "parserOptions": {
-    "ecmaVersion": "latest",
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": 12,
     "sourceType": "module"
   },
-  "plugins": [
-    "react"
-  ],
+  "plugins": ["react"]
+,
+
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
+
+
   "rules": {
     "no-unused-vars": "warn",
     "react/prop-types": "off"

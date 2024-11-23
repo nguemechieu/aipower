@@ -21,6 +21,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import SaveIcon from "@mui/icons-material/Save";
 
+
 const Settings = () => {
     // State for profile
     const [username, setUsername] = useState("JohnDoe123");
@@ -79,6 +80,7 @@ const Settings = () => {
 
     return (
         <Box sx={{ padding: 4 }}>
+            <Settings/>
             <Typography variant="h4" gutterBottom>
                 Settings
             </Typography>
@@ -212,6 +214,7 @@ const Settings = () => {
                     <MenuItem value="light">Light</MenuItem>
                     <MenuItem value="dark">Dark</MenuItem>
                     <MenuItem value="custom">Custom</MenuItem>
+                    <MenuItem value="system">System</MenuItem>
                 </Select>
                 <Button
                     variant="contained"

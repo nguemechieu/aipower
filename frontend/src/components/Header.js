@@ -38,6 +38,22 @@ const Header = () => {
     const navigate = useNavigate();
 
     // Fetch user data on mount
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const id = localStorage.getItem("id");
+                const response = await axiosPrivate.get("/api/v3/users/id:"+id);
+                setUser(response.data.user);
+            } catch (error) {
+                console.error("Failed to fetch user data:", error.message);
+            }
+        };
+        fetchUserData().catch(error =>
+            console.error("Failed to fetch user data:", error.message)
+        );
+    }, []);
+
+
 
 
     // Handle logout

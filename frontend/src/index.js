@@ -24,9 +24,6 @@ class ErrorBoundary extends Component {
         console.error("Error caught in ErrorBoundary:", error, errorInfo);
     }
 
-    resetError = () => {
-        this.setState({ hasError: false, error: '' });
-    };
 
     render() {
         if (this.state.hasError) {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import InvestmentList from "./InvestmentList";
 import PerformanceChart from "./PerformanceChart";
 import AddInvestmentForm from "./AddInvestmentForm";
@@ -20,6 +20,23 @@ const InvestmentPage = () => {
         setInvestments([...investments, newInvestment]);
     };
 
+    // Generate random monthly performance data for the past year
+    const investmentData={
+        month: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+        value: [1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300, 2400, 2500, 2600]
+    };
+    const monthlyPerformance = investmentData.map((data) => ({
+        month: data.month,
+        value: Math.floor(Math.random() * 1000) + 1000,
+    }));
+useEffect(
+    () => {
+
+        setPerformanceData(monthlyPerformance);
+    },
+    [] // Empty array ensures that the effect runs only once on component mounting
+
+)
     return (
         <div style={{ padding: "20px" }}>
             <h2>Investment Dashboard</h2>

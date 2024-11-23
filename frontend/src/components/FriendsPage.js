@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+
 import FriendList from "./FriendList";
 import FriendRequestList from "./FriendRequestList";
 import SearchBar from "./SearchBar";

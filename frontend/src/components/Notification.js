@@ -5,6 +5,7 @@ const Notification = ({ message, severity, open, handleClose }) => {
 
 
     const handleSnackbarClose = (event, reason) => {
+        event.preventDefault();
         if (reason === "clickaway") {
             return;
         }
@@ -19,10 +20,9 @@ const Notification = ({ message, severity, open, handleClose }) => {
         <Snackbar
             open={open}
             autoHideDuration={5000} // Notification will close automatically after 5 seconds
-            onClose={handleClose}
-            anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        >
-            <Alert onClose={handleClose} severity={severity} sx={{ width: "100%" }}>
+            onClose={handleSnackbarClose}
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}>
+            <Alert onClose={event => handleSnackbarClose(event)} severity={severity} sx={{ width: "100%" }}>
                 {message}
             </Alert>
         </Snackbar>
