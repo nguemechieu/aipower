@@ -33,7 +33,7 @@ const PersistLogin = () => {
       setLoading(false);
     };
 
-    verifyToken().then(r =>
+    verifyToken().then(() =>
     console.log("Request completed successfully"  ))
   }, [auth, setAuth]);
 

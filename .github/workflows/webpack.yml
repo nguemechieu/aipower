@@ -1,4 +1,4 @@
-name: Build and Test
+name: Aipower Build and Test
 
 on:
   push:
@@ -18,11 +18,18 @@ jobs:
       with:
         node-version: 20
 
-    - name: Install dependencies
+    - name: Navigate to Frontend Directory and Install Dependencies
+      working-directory: ./frontend
       run: npm install --no-audit --no-fund
 
     - name: Install Webpack CLI
+      working-directory: ./frontend
       run: npm install -D webpack-cli
 
-    - name: Run the Build
+    - name: Build the Frontend
+      working-directory: ./frontend
       run: npm run build
+
+    - name: Test the Frontend
+      working-directory: ./frontend
+      run: npm test
