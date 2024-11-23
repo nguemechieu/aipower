@@ -75,7 +75,7 @@ useEffect(
             if (err?.response ) {
                 setErrMsg( JSON.stringify(err?.response?.data?.message));
             } else {
-                setErrMsg("Server unreachable!Please try again later.");
+                setErrMsg("Server unreachable! Please try again later.");
             }
         } finally {
             setLoading(false);

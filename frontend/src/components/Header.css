@@ -1,11 +1,9 @@
 /* General Header Styling */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 30px;
-    background-color: #ffffff; /* Professional dark tone */
-    color: rgb(69, 209, 111);
+header {
+
+
+    background-color: #45d16f; /* Professional dark tone */
+    color: rgb(202, 239, 213);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s;
 }

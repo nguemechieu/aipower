@@ -1,0 +1,2 @@
+[console_scripts]
+assb_bot = bot:assb_bot

@@ -1,0 +1,9 @@
+LICENCE.md
+README.md
+setup.py
+assb.egg-info/PKG-INFO
+assb.egg-info/SOURCES.txt
+assb.egg-info/dependency_links.txt
+assb.egg-info/entry_points.txt
+assb.egg-info/requires.txt
+assb.egg-info/top_level.txt
