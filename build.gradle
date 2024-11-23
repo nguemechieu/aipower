@@ -1,8 +1,9 @@
 plugins {
+    id 'java'
     id 'org.springframework.boot' version '3.3.5'
     id 'io.spring.dependency-management' version '1.1.6'
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
-    id 'java'
+
 }
 
 group = 'com.sopotek'
@@ -20,13 +21,12 @@ repositories {
 }
 
 ext {
-    snippetsDir = file("build/generated-snippets")
+    snippetsDir = file("build/generated-snippets") as File
     springAiVersion = "1.0.0-M3"
-    springBootAdminVersion = "3.3.4"
+    springBootAdminVersion = "3.3.6"
 }
 
 dependencies {
-    // Spring Boot Starters
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
@@ -35,48 +35,49 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'io.netty:netty-all:4.1.115.Final'
 
-    // Spring Boot Admin
-    implementation "de.codecentric:spring-boot-admin-starter-client:${springBootAdminVersion}"
-    implementation "de.codecentric:spring-boot-admin-starter-server:${springBootAdminVersion}"
-    implementation 'org.apache.kafka:kafka-clients:3.4.0'
+    implementation 'de.codecentric:spring-boot-admin-starter-client:3.3.6'
+    implementation 'de.codecentric:spring-boot-admin-starter-server:3.3.6'
+    implementation "org.apache.kafka:kafka-clients:3.9.0"
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.15.2'
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'ch.qos.logback:logback-classic:1.4.12'
 
-
-    // Hazelcast and Caching
     implementation 'com.hazelcast:hazelcast:5.3.5'
-    implementation 'javax.cache:cache-api:1.1.1'
-
-    // OpenAPI/Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
 
-    // Utility Libraries
-    implementation 'org.jetbrains:annotations:24.0.1'
+    implementation 'com.github.ua-parser:uap-java:1.6.1'
     implementation 'io.github.cdimascio:dotenv-java:2.2.2'
     implementation 'org.apache.commons:commons-email:1.5'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
-    // Jakarta Mail and Activation
+    implementation 'io.micrometer:micrometer-registry-jmx:1.11.4'
+
     implementation 'com.sun.mail:jakarta.mail:2.0.1'
     implementation 'com.sun.activation:jakarta.activation:2.0.1'
 
-    // JSON Web Token (JWT)
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
-    // Database Drivers
     runtimeOnly 'com.mysql:mysql-connector-j'
     runtimeOnly 'com.h2database:h2'
 
-    // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     annotationProcessor 'org.projectlombok:lombok'
+// https://mvnrepository.com/artifact/org.realityforge.org.jetbrains.annotations/org.jetbrains.annotations
+    implementation group: 'org.realityforge.org.jetbrains.annotations', name: 'org.jetbrains.annotations', version: '1.7.0'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux' // Spring WebFlux enables Netty
+    implementation 'io.netty:netty-all:4.1.115.Final' // Netty library
 
-    // Development Tools
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
-    // Testing
+    testImplementation 'org.junit.jupiter:junit-jupiter-api'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.batch:spring-batch-test'
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
@@ -101,4 +102,9 @@ tasks.named('test') {
 tasks.named('asciidoctor') {
     inputs.dir snippetsDir
     dependsOn 'test'
+}
+configurations.configureEach {
+    resolutionStrategy {
+        force 'io.netty:netty-all:4.1.115.Final'
+    }
 }

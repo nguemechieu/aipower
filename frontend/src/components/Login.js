@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth.js";
 import axios from "../api/axios.js";
-import "./Login.css"; // Import the CSS file for styling
+import "./Login.css";
+import usePersist from "../hooks/usePersist"; // Import the CSS file for styling
 
 const LOGIN_URL = "/api/v3/auth/login";
 
@@ -17,48 +18,64 @@ const Login = () => {
     const [errMsg, setErrMsg] = useState("");
     const [loading, setLoading] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
+    const [persist, setPersist] = usePersist();
 
     // Clear error message on input change
     useEffect(() => {
         setErrMsg("");
-    }, [username, password]);
+    }, [username, password,persist]);
+useEffect(
+    () => {
+        if (persist) {
+            localStorage.getItem("persist");
 
+
+        }
+    },
+    [persist,setPersist]
+)
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await axios.post(LOGIN_URL, JSON.stringify({ username, password }), {
-                headers: { "Content-Type": "application/json" },
-            });
+            const response = await axios.post(LOGIN_URL, JSON.stringify({ username, password })
+            ,
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                    },
+                    withCredentials: true,
+                }
+
+            );
+
 
             if (response.status === 200) {
-                const { accessToken, id, refreshToken, roles } = response.data;
+                const {  id,id2 ,accessToken, refreshToken,  } = response.data;
 
                 // Update authentication context
-                setAuth({ id, roles, rememberMe, accessToken, refreshToken });
+
+
+                setAuth({ id, id2,  accessToken, refreshToken });
+
 
                 // Store token based on "Remember Me" option
-                if (rememberMe) {
-                    localStorage.setItem("accessToken", accessToken);
-                } else {
-                    sessionStorage.setItem("accessToken", accessToken);
-                }
+                if (rememberMe) localStorage.setItem("persist", true);
 
                 // Reset form fields
                 setUsername("");
                 setPassword("");
 
                 // Navigate to the intended page
-                navigate(from, { replace: true });
-            } else {
-                setErrMsg(response.data);
+                navigate(from, { replace: true },"/");
             }
         } catch (err) {
             console.log(err.response); // Debug the error response structure
-            if (err.response && err.response.data) {
-                setErrMsg(err.response.data );
+            if (err?.response ) {
+                setErrMsg( JSON.stringify(err?.response?.data?.message));
             } else {
-                setErrMsg("Login failed. No response from server.");
+                setErrMsg("Server unreachable!Please try again later.");
             }
         } finally {
             setLoading(false);

@@ -4,7 +4,8 @@ import React from 'react';
 import { useState, useEffect } from "react";
 
 import { useNavigate, useLocation } from "react-router-dom";
-import {axiosPrivate} from "../api/axios.js";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
+
 
 
 const Users = () => {
@@ -13,6 +14,7 @@ const Users = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const controller = new AbortController();
+  const axiosPrivate=useAxiosPrivate();
 
   useEffect(() => {
     let isMounted = true;

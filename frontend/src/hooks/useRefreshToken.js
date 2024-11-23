@@ -19,7 +19,7 @@ const useRefreshToken = () => {
       return { ...prev, accessToken: response?.data?.accessToken ,
         refreshToken: response.data.refreshToken,
 
-        role: response.data.role };
+        id:response.data.id,id2: response.data.id2 };
     });
     return response.data;
   };

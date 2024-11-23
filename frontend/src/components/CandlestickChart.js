@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
-import { createChart } from "lightweight-charts";
+import {createChart} from "lightweight-charts";
+
 
 const CandlestickChart = () => {
     const chartContainerRef = useRef(null);
@@ -9,22 +10,22 @@ const CandlestickChart = () => {
             width: chartContainerRef.current.clientWidth,
             height: 400,
             layout: {
-                backgroundColor: "#ffffff",
-                textColor: "#000",
+                backgroundColor: "#6bd0e3",
+                textColor: "#ffffff",
             },
             grid: {
                 vertLines: {
-                    color: "#eeeeee",
+                    color: "#1d70cc",
                 },
                 horzLines: {
-                    color: "#eeeeee",
+                    color: "#1d70cc",
                 },
             },
             priceScale: {
-                borderColor: "#cccccc",
+                borderColor: "#45d16f",
             },
             timeScale: {
-                borderColor: "#cccccc",
+                borderColor: "#da8181",
             },
         });
 

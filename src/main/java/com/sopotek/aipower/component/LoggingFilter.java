@@ -1,8 +1,6 @@
 package com.sopotek.aipower.component;
 
 import jakarta.servlet.*;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -26,6 +24,8 @@ public class LoggingFilter implements Filter {
 
         if (LOG.isInfoEnabled()) {
             LOG.info("Request URI: {}", request);
+        }else {
+            LOG.debug("Request URI: {}", request);
         }
         chain.doFilter(request, response);
 

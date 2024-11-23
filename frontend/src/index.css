@@ -1,27 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito&display=swap');
-.offscreen{
-    position: absolute;
-    left: -9999px;
-    top: -9999px;
-    overflow: hidden;
-}
-.terms-text{
-    font-size: 16px;
-    line-height: 24px;
-    margin-bottom: 20px;
-}
-*{
+* {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
     font-family: "Nunito", sans-serif;
-    ;
-    background-color: #072333;
-    color: #6bd0e3;
+    background-color: #1a202c; /* Updated background color */
+    color: #e2e8f0; /* Updated text color */
     font-weight: 400;
     line-height: 1.6;
-
-
     transition: all 0.3s ease-in-out;
     text-decoration: none;
     text-align: left;
@@ -31,162 +16,65 @@
     border: none;
 }
 
-
 .terms-container {
     max-width: 700px;
     margin: 20px auto;
     padding: 20px;
-    background-color: #6bd0e3;
+    background-color: #2d3748; /* Updated background color */
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    font-family: "Arial", sans-serif;
-    color: #45d16f;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    color: #e2e8f0; /* Light text */
 }
 
 .terms-title {
     font-size: 32px;
     font-weight: 700;
     margin-bottom: 10px;
-    background-color: white;
-    color: #072333;
-}
-
-.terms-intro {
-    font-size: 16px;
-    margin-bottom: 20px;
-    line-height: 1.6;
+    background-color: #4299e1; /* Sky blue */
+    color: #1a202c; /* Dark text for contrast */
+    padding: 10px;
+    border-radius: 5px;
 }
 
 .terms-section-title {
     font-size: 20px;
     font-weight: 600;
     margin-top: 20px;
-    color: #45d16f;
-}
-
-.terms-text {
-    font-size: 16px;
-    margin-bottom: 16px;
-    line-height: 1.6;
+    color: #48bb78; /* Lighter green */
 }
 
 button {
-    background-color: #4267b2;
-    color: #45d16f;
+    background-color: #4299e1; /* Primary button color */
+    color: #edf2f7; /* White text */
     border: none;
-    padding: 8px 16px;
+    padding: 10px 16px;
     border-radius: 4px;
     cursor: pointer;
     margin-top: 20px;
 }
 
 button:hover {
-    background-color: #145f6e;
-}
-
-
-.line{
-    height: 1px;
-    background-color: #1d70cc;
-    margin: 20px 0;
-}
-
-.section {
-    width: 100%;
-    max-width: 420px;
-    min-height: 400px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    padding: 1rem;
-    background-color: rgb(107, 190, 237);
-    align-items: center;
-
-}
-
-form {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    flex-grow: 1;
-    padding-bottom: 1rem;
-}
-
-a,
-a:visited {
-    color: rgba(77, 200, 112, 0.7);
-}
-
-input[type="text"],
-input[type="password"],
-button,
-textarea {
-    font-family: 'Nunito', sans-serif;
-    font-size: 22px;
-    padding: 0.25rem;
-    border-radius: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-label,
-button {
-    margin-top: 1rem;
-    margin-bottom: 0.5rem;
-}
-
-button {
-    padding: 0.5rem;
-    margin-right: 0.5rem;
-}
-
-li {
-    list-style-type: none;
-    margin-bottom: 0.5rem;
+    background-color: #3182ce; /* Darker blue on hover */
 }
 
 .instructions {
     font-size: 0.75rem;
     border-radius: 0.5rem;
-    background: #45d16f;
-    color: rgb(255, 255, 255);
+    background: #48bb78; /* Green background for instructions */
+    color: #1a202c; /* Dark text for contrast */
     padding: 0.25rem;
-    position: relative;
-    bottom: -10px;
-}
-
-.instructions > svg {
-    margin-right: 0.25rem;
-}
-
-.offscreen {
-    position: absolute;
-    left: -9999px;
-}
-
-.hide {
-    display: none;
-}
-
-.valid {
-    color: limegreen;
-    margin-left: 0.25rem;
-}
-
-.invalid {
-    color: red;
-    margin-left: 0.25rem;
 }
 
 .errmsg {
-    background-color: lightpink;
-    color: firebrick;
+    background-color: #e53e3e; /* Red background for errors */
+    color: #fff; /* White text */
     font-weight: bold;
     padding: 0.5rem;
     margin-bottom: 0.5rem;
 }
 
 .line {
-    display: inline-block;
+    height: 1px;
+    background-color: #3182ce; /* Line matches button hover */
+    margin: 20px 0;
 }
-
-

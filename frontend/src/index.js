@@ -5,6 +5,7 @@ import { createRoot } from "react-dom/client";
 
 import { AuthProvider } from "./context/AuthProvider.js";
 import LoadingSpinner from "./components/LoadingSpinner.js";
+import {Button} from "@mui/material";
 
 // Lazy-load main application component
 const LazyApp = lazy(() => import("./App.js"));
@@ -30,10 +31,10 @@ class ErrorBoundary extends Component {
     render() {
         if (this.state.hasError) {
             return (
-                <div role="alert">
+                <div className="info">
                     <p>Oops! Something went wrong.</p>
                     <pre>{this.state.error && this.state.error.toString()}</pre>
-                    <button onClick={this.resetError}>Try again</button>
+                    <Button onClick={this.resetError}>Try again</Button>
                 </div>
             );
         }

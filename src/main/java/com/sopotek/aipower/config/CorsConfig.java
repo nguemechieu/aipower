@@ -21,7 +21,7 @@ public class CorsConfig {
         configuration.setAllowedOrigins(List.of(
                 "https://tradeadviser.org",
                 "http://localhost:9092",
-                "http://localhost:8080",
+
                 "http://localhost:3000"
         ));
 

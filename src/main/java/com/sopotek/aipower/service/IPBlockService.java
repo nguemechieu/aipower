@@ -1,17 +1,22 @@
 package com.sopotek.aipower.service;
 
+import com.sopotek.aipower.model.Loc;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-
+@Getter
+@Setter
 @Service
 public class IPBlockService {
-
+ private LocalizationService localizationService;
     private static final int MAX_ATTEMPTS = 3;
     private static final int BLOCK_DURATION_MINUTES = 15;
 
@@ -20,6 +25,11 @@ public class IPBlockService {
 
     // Store blocked IP addresses with block expiry time
     private final Map<String, LocalDateTime> blockedIPs = new HashMap<>();
+@Autowired
+    public IPBlockService(LocalizationService localizationService) {
+        this.localizationService = localizationService;
+
+    }
 
     /**
      * Check if the IP address is blocked.
@@ -31,6 +41,7 @@ public class IPBlockService {
         blockedIPs.entrySet().removeIf(entry -> LocalDateTime.now().isAfter(entry.getValue()));
 
         // Check if IP is in the blocked list
+        ip=ipAddress;
         return blockedIPs.containsKey(ipAddress);
     }
 
@@ -67,5 +78,11 @@ public class IPBlockService {
             return request.getRemoteAddr();
         }
         return xfHeader.split(",")[0]; // Handle multiple proxies
+    }
+private String ip;
+
+    public LocalizationService  getLocation() {
+
+      return   localizationService;
     }
 }

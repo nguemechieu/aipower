@@ -28,22 +28,10 @@ public class LocalizationController {
      */
     @GetMapping("/api/v3/localization")
     public ResponseEntity<?> getUserLocalization(HttpServletRequest request) {
-        String clientIP = getClientIP(request);
-        Map localization = localizationService.getLocalization(clientIP);
+
+        Map localization = localizationService.getLocalization(request);
         return ResponseEntity.ok(localization);
     }
 
-    /**
-     * Extracts the client IP address from the HTTP request.
-     *
-     * @param request The HTTP request.
-     * @return The client IP address.
-     */
-    private String getClientIP(@NotNull HttpServletRequest request) {
-        String xfHeader = request.getHeader("X-Forwarded-For");
-        if (xfHeader == null) {
-            return request.getRemoteAddr();
-        }
-        return xfHeader.split(",")[0]; // Handle multiple proxies
-    }
+
 }

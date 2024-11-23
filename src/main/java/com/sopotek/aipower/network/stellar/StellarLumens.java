@@ -1,4 +1,4 @@
-package com.sopotek.aipower.stellar;
+package com.sopotek.aipower.network.stellar;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -13,5 +13,6 @@ public class StellarLumens {
     private String account;
     private String balance;
     private String currency;
+
 
 }

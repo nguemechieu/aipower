@@ -9,7 +9,7 @@ public class ServletInitializer extends SpringBootServletInitializer {
 
     @Override
     protected SpringApplicationBuilder configure(@NotNull SpringApplicationBuilder application) {
-        return application.sources(AipowerApplication.class);
+        return application.sources(AipowerServer.class);
     }
 
 }
