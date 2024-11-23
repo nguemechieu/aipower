@@ -44,7 +44,7 @@ dependencies {
     implementation 'de.codecentric:spring-boot-admin-starter-server:3.3.6'
     implementation "org.apache.kafka:kafka-clients:3.9.0"
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.15.2'
-    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'org.slf4j:slf4j-api:2.0.16'
     implementation 'ch.qos.logback:logback-classic:1.4.12'
 
     implementation 'com.hazelcast:hazelcast:5.3.5'
