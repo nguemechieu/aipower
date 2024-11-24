@@ -1,12 +1,8 @@
-import React from "react";
-import { render, screen } from "@testing-library/react";
-import App from "./App";
-import * as test from "node:test";
+import { render, screen } from '@testing-library/react';
+import App from './App';
 
-test("renders app with async content", async () => {
-  render(<App />);
-
-  // Wait for async content to appear
-  const asyncElement = await screen.findByText(/async-content/i); // Replace "async-content" with expected text
-  expect(asyncElement).toBeInTheDocument();
+test('renders the home page', () => {
+    render(<App />);
+    const linkElement = screen.getByText(/welcome to the home page/i);
+    expect(linkElement).toBeInTheDocument();
 });

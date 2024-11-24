@@ -1,8 +1,16 @@
 /* General Styles for the Footer */
-footer {
-    background-color: rgba(77, 200, 196, 0.7); /* Primary blue color */
-    background-image: url("../../public/aipower2.png");
-    color: #caefd5; /* Text color */
+
+.text{
+    background-color: white;
+
+}
+.text-center{
+    text-align: center;
+}
+.footer {
+    background-color: rgb(29, 112, 204); /* Primary blue color */
+    background-image: url("../aipower.ico");
+    color: #26ac4e; /* Text color */
     padding: 20px 0; /* Vertical padding */
     text-align: center; /* Center align text */
     border-top: 1px solid #111e20; /* Optional border at the top */

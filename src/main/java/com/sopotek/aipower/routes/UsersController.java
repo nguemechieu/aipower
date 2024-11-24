@@ -42,17 +42,6 @@ public class UsersController {
     private final UserService userService;
 
 
-//User logout
-    @Operation(summary = "Logout a user")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully logged out"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized")
-    })
-    @PostMapping("/logout")
-    public ResponseEntity<String> logout() {
-        return ResponseEntity.ok("Successfully logged out");
-    }
-
     @Operation(summary = "Get all users from the database")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved all users"),
@@ -119,7 +108,7 @@ public class UsersController {
     })
     @DeleteMapping("/delete/id:{id}")
     public ResponseEntity<String> deleteItem(@PathVariable Long id) {
-        if (userService.existsById(id)) {
+        if (userService.getUserRepository().existsById(id)) {
             userService.deleteById(id);
 
             return ResponseEntity.status(200).body("User deleted successfully");

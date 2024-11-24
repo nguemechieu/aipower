@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect, useRef} from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth.js";
 import axios from "../api/axios.js";
@@ -8,11 +8,11 @@ import usePersist from "../hooks/usePersist"; // Import the CSS file for styling
 const LOGIN_URL = "/api/v3/auth/login";
 
 const Login = () => {
-    const { setAuth } = useAuth();
+    const { setAuth } = useAuth({});
     const navigate = useNavigate();
     const location = useLocation();
     const from = location.state?.from?.pathname || "/";
-
+    const  errRef=useRef()
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [errMsg, setErrMsg] = useState("");
@@ -71,21 +71,26 @@ useEffect(
                 navigate(from, { replace: true },"/");
             }
         } catch (err) {
-            console.log(err.response); // Debug the error response structure
+
             if (err?.response ) {
                 setErrMsg( JSON.stringify(err?.response?.data?.message));
             } else {
                 setErrMsg("Server unreachable! Please try again later.");
             }
+            errRef.current?.focus();
+            console.log(err.response); // Debug the error response structure
         } finally {
             setLoading(false);
         }
+
     };
 
 
     return (
         <div className="login-container">
-            <div className="login-box">
+
+
+            <div className="login-box" >
                 <h2>Welcome Back</h2>
                 <p className="subtitle">Log in to access your account</p>
                 <form className="login-form" onSubmit={handleSubmit}>

@@ -6,8 +6,9 @@ import {
     IconButton,
     Box,
     Avatar,
-    Menu,
     MenuItem,
+    Menu,
+    Button,
 } from "@mui/material";
 import {
     Home as HomeIcon,
@@ -19,59 +20,52 @@ import {
     Settings as SettingsIcon,
     Inbox,
 } from "@mui/icons-material";
-import { axiosPrivate } from "../api/axios";
 import { useNavigate } from "react-router-dom";
-import "./Header.css";
+import useAuth from "../hooks/useAuth";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 
 const Header = () => {
-    const [user, setUser] = useState({
-        id: 0,
-        username: "",
-        email: "",
-        firstName: "",
-        lastName: "",
-        role: "",
-        profilePicture: "",
-    });
-
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [anchorEl, setAnchorEl] = useState(null);
     const navigate = useNavigate();
+    const {auth }= useAuth();
+    const axiosPrivate = useAxiosPrivate();
 
-    // Fetch user data on mount
+    // Check user authentication status
     useEffect(() => {
-        const fetchUserData = async () => {
+        const checkAuth = async () => {
             try {
-                const id = localStorage.getItem("id");
-                const response = await axiosPrivate.get("/api/v3/users/id:"+id);
-                setUser(response.data.user);
+                setIsLoggedIn(!!auth?.id && auth.id > 1 &&auth.accessToken
+                    &&auth.refreshToken
+
+                ); // Ensure proper auth state
             } catch (error) {
-                console.error("Failed to fetch user data:", error.message);
+                console.error("Error checking auth status:", error);
+                setIsLoggedIn(false);
             }
         };
-        fetchUserData().catch(error =>
-            console.error("Failed to fetch user data:", error.message)
+        checkAuth().catch((error) =>
+            console.error("Error checking auth status:", error)
         );
-    }, []);
-
-
-
-
-    // Handle logout
-    async function handleLogout(e) {
-        e.preventDefault();
-        try {
-            await axiosPrivate.post("/api/v3/auth/logout");
-            console.log("Logged out successfully");
-            localStorage.removeItem("accessToken");
-            window.location.href = "/login";
-        } catch (error) {
-            console.error("Failed to log out:", error.message);
-        }
-    }
+    }, [auth]);
 
     // Handle profile menu open/close
     const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
+
+    // Logout handler
+    const handleLogout = async () => {
+        try {
+            // Clear tokens or call logout endpoint
+            await axiosPrivate.post("/api/v3/users/logout");
+            console.log("Logged out successfully");
+            localStorage.removeItem("accessToken"); // Clear token (if stored locally)
+            setIsLoggedIn(false); // Update login state
+            navigate("/login"); // Redirect to login page
+        } catch (error) {
+            console.error("Error during logout:", error);
+        }
+    };
 
     return (
         <AppBar position="static">
@@ -80,8 +74,8 @@ const Header = () => {
                 <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                     <img
                         id="logo"
-                        src="../../aipower.png"
-                        alt="AIPower Logo"
+                        src="../assets/images/logo512.png"
+                        alt="AIPower"
                         style={{ height: "40px", cursor: "pointer" }}
                         onClick={() => navigate("/")}
                     />
@@ -89,51 +83,62 @@ const Header = () => {
 
                 {/* Navigation Links */}
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <IconButton href="/" color="inherit" aria-label="Home">
+                    <IconButton onClick={() => navigate("/")} color="inherit" aria-label="Home">
                         <HomeIcon />
                     </IconButton>
-                    <IconButton href="/friends" color="inherit" aria-label="Friends">
+                    <IconButton onClick={() => navigate("/friends")} color="inherit" aria-label="Friends">
                         <FriendsIcon />
                     </IconButton>
-                    <IconButton href="/notifications" color="inherit" aria-label="Notifications">
+                    <IconButton onClick={() => navigate("/notifications")} color="inherit" aria-label="Notifications">
                         <NotificationsIcon />
                     </IconButton>
-                    <IconButton href="/chat" color="inherit" aria-label="Inbox">
+                    <IconButton onClick={() => navigate("/chat")} color="inherit" aria-label="Inbox">
                         <Inbox />
                     </IconButton>
-                    <IconButton href="/trade" color="inherit" aria-label="Trade">
+                    <IconButton onClick={() => navigate("/trade")} color="inherit" aria-label="Trade">
                         <TradeIcon />
                     </IconButton>
-                    <IconButton href="/investment" color="inherit" aria-label="Investment">
+                    <IconButton onClick={() => navigate("/investment")} color="inherit" aria-label="Investment">
                         <InvestmentIcon />
                     </IconButton>
-                    <IconButton href="/market" color="inherit" aria-label="Market">
+                    <IconButton onClick={() => navigate("/market")} color="inherit" aria-label="Market">
                         <MarketIcon />
                     </IconButton>
-                    <IconButton href="/settings" color="inherit" aria-label="Settings">
+                    <IconButton onClick={() => navigate("/settings")} color="inherit" aria-label="Settings">
                         <SettingsIcon />
                     </IconButton>
                 </Box>
 
                 {/* User Profile */}
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <Avatar
-                        src={user.profilePicture || "https://via.placeholder.com/32"}
-                        alt={user.username || "User"}
-                        sx={{ cursor: "pointer" }}
-                        onClick={handleMenuOpen}
-                    />
-                    <Menu
-                        anchorEl={anchorEl}
-                        open={Boolean(anchorEl)}
-                        onClose={handleMenuClose}
-                    >
-                        <MenuItem onClick={() => navigate("/profile")}>Profile</MenuItem>
-                        <MenuItem onClick={() => navigate("/settings")}>Settings</MenuItem>
-                        <MenuItem onClick={() => navigate("/help")}>Help</MenuItem>
-                        <MenuItem onClick={() => navigate("/about")}>About</MenuItem>
-                        <MenuItem onClick={handleLogout}>Logout</MenuItem>
-                    </Menu>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    {isLoggedIn ? (
+                        <>
+                            <Avatar
+                                src="/assets/images/profile.png"
+                                alt="User"
+                                sx={{ cursor: "pointer" }}
+                                onClick={handleMenuOpen}
+                            />
+                            <Menu
+                                anchorEl={anchorEl}
+                                open={Boolean(anchorEl)}
+                                onClose={handleMenuClose}
+                            >
+                                <MenuItem onClick={() => navigate("/profile")}>Profile</MenuItem>
+                                <MenuItem onClick={() => navigate("/settings")}>Settings</MenuItem>
+                                <MenuItem onClick={() => navigate("/help")}>Help</MenuItem>
+                                <MenuItem onClick={() => navigate("/about")}>About</MenuItem>
+                            </Menu>
+                            {/* Logout Button */}
+                            <Button color="inherit" onClick={handleLogout}>
+                                Logout
+                            </Button>
+                        </>
+                    ) : (
+                        <Button color="inherit" onClick={() => navigate("/login")}>
+                            Login
+                        </Button>
+                    )}
                 </Box>
             </Toolbar>
         </AppBar>

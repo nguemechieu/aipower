@@ -10,12 +10,11 @@ import {
     Select,
     MenuItem,
     Paper,
-
     List,
     ListItem,
     ListItemText,
     IconButton,
-    Tooltip,  Grid2,
+    Tooltip, Grid2,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
@@ -23,36 +22,29 @@ import SaveIcon from "@mui/icons-material/Save";
 
 
 const Settings = () => {
-    // State for profile
+    // State declarations
     const [username, setUsername] = useState("JohnDoe123");
     const [email, setEmail] = useState("johndoe@example.com");
     const [password, setPassword] = useState("");
-
-    // State for preferences
     const [theme, setTheme] = useState("light");
-
-    // State for security
     const [twoFactor, setTwoFactor] = useState(false);
-
-    // State for notifications
     const [emailNotifications, setEmailNotifications] = useState(true);
     const [smsNotifications, setSmsNotifications] = useState(false);
     const [pushNotifications, setPushNotifications] = useState(true);
-
-    // State for subscriptions
     const [subscriptions, setSubscriptions] = useState([
         { id: 1, name: "Premium Membership" },
         { id: 2, name: "Newsletter" },
     ]);
-
     const [newSubscription, setNewSubscription] = useState("");
 
-    // Handlers for saving settings
-    const handleSaveProfile = () => {
+    // Handlers
+    const handleSaveProfile = (e) => {
+        e.preventDefault();
         alert("Profile updated successfully!");
     };
 
-    const handleSaveSecurity = () => {
+    const handleSaveSecurity = (e) => {
+        e.preventDefault();
         alert("Security settings updated successfully!");
     };
 
@@ -60,11 +52,13 @@ const Settings = () => {
         alert("Preferences updated successfully!");
     };
 
-    const handleSaveNotifications = () => {
+    const handleSaveNotifications = (e) => {
+        e.preventDefault();
         alert("Notification preferences updated successfully!");
     };
 
-    const handleAddSubscription = () => {
+    const handleAddSubscription = (e) => {
+        e.preventDefault();
         if (newSubscription.trim()) {
             setSubscriptions([
                 ...subscriptions,
@@ -80,7 +74,6 @@ const Settings = () => {
 
     return (
         <Box sx={{ padding: 4 }}>
-            <Settings/>
             <Typography variant="h4" gutterBottom>
                 Settings
             </Typography>
@@ -91,7 +84,7 @@ const Settings = () => {
                     Profile
                 </Typography>
                 <Grid2 container spacing={3}>
-                    <Grid2 item xs={12} sm={6}>
+                    <Grid2 xs={12} sm={6}>
                         <TextField
                             label="Username"
                             fullWidth
@@ -99,7 +92,7 @@ const Settings = () => {
                             onChange={(e) => setUsername(e.target.value)}
                         />
                     </Grid2>
-                    <Grid2 item xs={12} sm={6}>
+                    <Grid2 xs={12} sm={6}>
                         <TextField
                             label="Email"
                             fullWidth
@@ -208,9 +201,7 @@ const Settings = () => {
                     onChange={(e) => setTheme(e.target.value)}
                     fullWidth
                     sx={{ marginBottom: 2 }}
-                 variant={
-                   "outlined"
-                 }>
+                 variant={"filled"}>
                     <MenuItem value="light">Light</MenuItem>
                     <MenuItem value="dark">Dark</MenuItem>
                     <MenuItem value="custom">Custom</MenuItem>

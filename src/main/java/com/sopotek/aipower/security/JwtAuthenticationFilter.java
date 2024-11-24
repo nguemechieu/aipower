@@ -9,8 +9,8 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -35,7 +35,7 @@ AuthService authService;
         String token = extractToken(request);
         if (token != null && authService.validateJwtToken(token)) {
             String username = authService.getUserFromJwtToken(token);
-            List<SimpleGrantedAuthority>roles=authService.getRolesFromJwtToken(token);
+            List<GrantedAuthority>roles=authService.getRolesFromJwtToken(token);
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(username, token, roles);
             SecurityContextHolder.getContext().setAuthentication(authentication);

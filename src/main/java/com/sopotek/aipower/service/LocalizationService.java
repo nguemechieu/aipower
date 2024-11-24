@@ -15,9 +15,9 @@ import java.util.Map;
 @Setter
 @Service
 public class LocalizationService {
-@Value("${aipower.geo.api.url}")
+@Value("${geo.api.url}")
     private  String GEO_API_URL = "https://ipinfo.io/{ip}?token={token}";
-   @Value("${aipower.geo.api.secret.key}")
+   @Value("${geo.api.key}")
     private  String API_TOKEN ;
 
     private final RestTemplate restTemplate;

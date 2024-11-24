@@ -1,9 +1,10 @@
 package com.sopotek.aipower.routes.auth;
 
-import com.sopotek.aipower.model.Loc;
 import com.sopotek.aipower.model.Role;
 import com.sopotek.aipower.model.User;
 import com.sopotek.aipower.service.*;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -14,15 +15,16 @@ import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,6 +51,8 @@ public class AuthController {
     private final IPBlockService ipBlockService;
 
     private String ipAddress; // Stores the client's IP address
+    private String refreshToken;
+
 
     /**
      * Constructor for dependency injection.
@@ -69,6 +73,7 @@ public class AuthController {
         this.authService = authService;
         this.ipBlockService = ipBlockService;
         this.localizationService = localizationService;
+
         logger.info("AuthController initialized successfully");
     }
 
@@ -85,9 +90,14 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "404", description = "Account does not exist"),
             @ApiResponse(responseCode = "403", description = "Account locked or expired")
+            ,
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
+    public ResponseEntity<?> login(@RequestParam LoginRequest loginRequest, HttpServletRequest request) {
+
+       try{
+
         String clientIP = ipBlockService.getClientIP(request); // Extract client IP address
 
         // Check if the client's IP is blocked
@@ -117,17 +127,24 @@ public class AuthController {
                     // Reset failed login attempts upon successful login
                     user.resetFailedLoginAttempts();
                     userService.update(user);
-
                     // Generate authentication tokens
                     return ResponseEntity.ok(Map.of(
                             "id", user.getId(),
-                            "role", user.getRole().getName(),
-                            "access_token", authService.generateJwtAccessToken(user),
-                            "refresh_token", authService.generateJwtRefreshToken(user)
+                            "id2", user.getRole().getName(),
+                            "accessToken", authService.generateJwtAccessToken(user.getUsername(),
+                                    user.getAuthorities()
+                                    ),
+                            "refreshToken", authService.generateJwtRefreshToken(user)
                     ));
                 })
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Map.of("error", "USER_NOT_FOUND", "message", "Account does not exist.")));
+    }
+        catch(Exception e){
+            logger.log(Level.SEVERE, "Error during login process", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error."+ e);
+        }
+
     }
 
 
@@ -165,13 +182,10 @@ public class AuthController {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             user.setRole(new Role("USER"));
             user.setResetToken(UUID.randomUUID().toString());
-            user.setResetTokenExpiryTime(
-                    Date.from(LocalDateTime.now().plusHours(2).atZone(ZoneId.systemDefault()).toInstant())
-            );
+            user.setResetTokenExpiryTime(Date.from(LocalDateTime.now().plusHours(2).atZone(ZoneId.systemDefault()).toInstant()));
 
             // Enrich user with location data
             enrichUserWithLocation(user);
-
             userService.saveUser(user); // Save user to the database
 
             return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully.");
@@ -217,4 +231,94 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
         }
     }
+
+    @Operation(summary = "Logout a user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully logged out"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout() {
+        try{
+        // Retrieve the current authentication
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        // Extract the user details (e.g., username or userId)
+        String username = authentication.getName(); // Adjust based on your implementation
+
+        // Invalidate tokens for the user
+        boolean tokensInvalidated = authService.validateJwtToken(username);
+
+        // Clear the security context
+        SecurityContextHolder.clearContext();
+
+        // Check if tokens were invalidated
+        if (tokensInvalidated) {
+            return ResponseEntity.ok("Successfully logged out");
+        } else {
+            return ResponseEntity.status(500).body("Failed to log out");
+        }
+    }catch (Exception e) {
+            logger.log(Level.SEVERE, "Error during logout process", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error." + e);
+        }
+
+    }
+
+
+    //Refresh the security context
+
+    @PostMapping("/refresh")
+    @Operation(
+            summary = "Refresh security context",
+            description = "Refresh the security context with a valid refresh token."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully refreshed security context"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Invalid or expired refresh token"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<?> refresh(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
+        try {
+            // Validate and extract the username and roles from the refresh token
+            String username = authService.validateJwtRefreshToken(refreshTokenRequest.getRefreshToken());
+
+            // Optionally retrieve user details (e.g., roles) from your user service or repository
+            List<GrantedAuthority> authorities = userService.getAuthoritiesByUsername(username);
+
+            // Create a new authentication object
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, null, authorities);
+
+            // Set the new authentication object in the security context
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+            // Optionally, generate a new access token
+            String newAccessToken = authService.generateJwtAccessToken(username, authorities);
+            String newRefreshToken = authService.generateJwtRefreshToken(username, authorities);
+
+            // Return a response with the new access token
+            return ResponseEntity.ok(Map.of(
+                    "message", "Successfully refreshed security context",
+                    "accessToken", newAccessToken,
+                    "refreshToken", refreshToken));
+
+        } catch (ExpiredJwtException ex) {
+            logger.log(Level.WARNING, "Refresh token expired", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid or expired refresh token");
+        } catch (JwtException ex) {
+            logger.log(Level.WARNING, "Invalid refresh token", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid or expired refresh token");
+        } catch (Exception ex) {
+            logger.log(Level.SEVERE, "Error during refreshing security context", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred "+ex.getMessage());
+        }
+    }
+
+
+
 }

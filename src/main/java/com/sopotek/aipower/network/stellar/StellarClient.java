@@ -1,6 +1,7 @@
 package com.sopotek.aipower.network.stellar;
 
 import lombok.*;
+import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -26,7 +27,6 @@ public class StellarClient {
     private String account;   // Stellar account ID
     private String balance;   // Account balance
     private String currency;  // Currency type (e.g., XLM)
-
     private static final String HORIZON_URL = "https://horizon.stellar.org"; // Public Stellar network URL
     private static final Server server = new Server(HORIZON_URL);
     private @NonNull Asset selling;
@@ -37,9 +37,12 @@ public class StellarClient {
     private KeyPair sourceKeyPair;
     private Transaction transaction;
     private Page<TradeAggregationResponse> tradeAggregations;
-
+    okhttp3.OkHttpClient HttpClient=new OkHttpClient();
+    okhttp3.OkHttpClient SubmitHttpClient=new OkHttpClient();
     public StellarClient(String account) throws IOException {
         this.account = account;
+        server.setHttpClient(HttpClient);
+        server.setSubmitHttpClient(SubmitHttpClient);
         fetchAccountDetails(account);
     }
 

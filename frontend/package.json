@@ -53,6 +53,7 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@babel/preset-env": "^7.26.0",
     "@babel/preset-react": "^7.25.9",
+    "@types/jest": "^29.5.14",
     "babel-jest": "^29.7.0",
     "cross-env": "^7.0.3",
     "eslint": "^9.15.0",
@@ -69,8 +70,9 @@
     "build": "cross-env NODE_ENV=production react-scripts build",
     "production": "cross-env NODE_ENV=production npm run build && serve -s build",
     "lint": "eslint src --ext .js,.jsx",
-    "lint:fix": "eslint src --ext .js,.jsx --fix",
-    "test": "react-scripts test"
+    "lint:fix": "eslint src --ext .js,.jsx --fix"
+
+
   },
   "browserslist": {
     "production": [
@@ -88,4 +90,5 @@
     "node": ">=16.0.0",
     "npm": ">=8.0.0"
   }
+
 }

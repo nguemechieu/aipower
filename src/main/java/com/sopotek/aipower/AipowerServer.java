@@ -19,6 +19,9 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
+import java.security.SecureRandom;
+import java.util.Base64;
+
 @EntityScan(basePackages = "com.sopotek.aipower.model")
 @EnableAdminServer
 @EnableCaching
@@ -31,11 +34,44 @@ public class AipowerServer {
 
     private static final Log LOG = LogFactory.getLog(AipowerServer.class);
 
-    public static void main(String[] args) {
 
+    private static final int KEY_SIZE_BITS = 256; // Size in bits
+    private static final int KEY_SIZE_BYTES = KEY_SIZE_BITS / 8; // Size in bytes
+
+    /**
+     * Generates a 256-bit secret key and encodes it as a Base64 string.
+     *
+     * @return A 256-bit secret key as a Base64 encoded string.
+     */
+    public static String generateSecretKey() {
+        // SecureRandom for cryptographically strong random number generation
+        SecureRandom secureRandom = new SecureRandom();
+
+        // Generate a byte array to hold the key
+        byte[] keyBytes = new byte[KEY_SIZE_BYTES];
+
+        // Fill the byte array with random bytes
+        secureRandom.nextBytes(keyBytes);
+
+        // Encode the byte array as Base64 string for easy storage
+        return Base64.getEncoder().encodeToString(keyBytes);
+    }
+
+    public static void main(String[] args) {
+        // Example usage
+        String secretKey = generateSecretKey();
+       LOG.info(
+               "Generated Secret Key (256-bit): " + secretKey);
 
         // Load environment variables using Dotenv
         Dotenv dotenv = Dotenv.load();
+
+        //Set secret key to .env variable
+//       se dotenv.get("secretKey").replace(
+//                "your-secret-key",
+//                secretKey
+//        );
+//
         dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
         LOG.info("Environment variables loaded successfully.");
 

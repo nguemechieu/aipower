@@ -21,10 +21,10 @@ const InvestmentPage = () => {
     };
 
     // Generate random monthly performance data for the past year
-    const investmentData={
+    const investmentData=[{
         month: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
         value: [1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300, 2400, 2500, 2600]
-    };
+    }];
     const monthlyPerformance = investmentData.map((data) => ({
         month: data.month,
         value: Math.floor(Math.random() * 1000) + 1000,

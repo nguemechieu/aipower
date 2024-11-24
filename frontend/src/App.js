@@ -1,8 +1,5 @@
 // Importing the necessary parts and styles
 import React from 'react';
-import { Route, Routes } from 'react-router-dom';
-import './App.css';
-
 // Component Imports
 import Layout from './components/Layout.js';
 import Register from './components/Register.js';
@@ -34,7 +31,10 @@ import Profile from "./components/Profile";
 import HelpPage from "./components/HelpPage";
 import ParentComponent from "./components/NotExample";
 import SwaggerUIComponent from "./components/SwaggerUIComponent";
-
+import './App.css';
+import {Route, Routes} from "react-router-dom";
+import Market from "./components/Market";
+import ForexMarket from "./components/ForexMarket";
 // Define roles for clarity and reusability
 const ROLES = {
   USER: 'USER',
@@ -82,6 +82,9 @@ function App() {
           <Route path={'/'} element={<Login />}/>
 
           {/* Public routes */}
+
+          <Route path={'forex'} element={<ForexMarket />}/>
+          <Route path={'market'} element={<Market />}/>
             <Route path={'help'} element={<HelpPage/>}/>
           <Route path="about" element={<About />} />
           <Route path="nguemechieu/aipower" element={<Aipower />} />
