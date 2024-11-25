@@ -45,7 +45,7 @@
     "recharts": "^2.13.3",
     "serve": "^14.2.4",
     "swagger-ui-react": "^5.18.2",
-    "web-vitals": "^3.0.2",
+    "web-vitals": "^4.2.4",
     "webpack": "^5.96.1"
   },
   "devDependencies": {
