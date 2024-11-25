@@ -50,7 +50,7 @@ dependencies {
 
     implementation 'com.github.ua-parser:uap-java:1.6.1'
     implementation 'io.github.cdimascio:dotenv-java:3.0.2'
-    implementation 'org.apache.commons:commons-email:1.5'
+    implementation 'org.apache.commons:commons-email:1.6.0'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
     implementation 'io.micrometer:micrometer-registry-jmx:1.11.4'
