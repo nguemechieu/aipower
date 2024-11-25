@@ -30,7 +30,7 @@
     "@mui/material": "^6.1.8",
     "@testing-library/jest-dom": "^6.6.3",
     "autolinker": "^4.0.0",
-    "axios": "1.7.4",
+    "axios": "1.7.7",
     "dotenv": "^16.4.5",
     "lightweight-charts": "^4.2.1",
     "nth-check": "^2.1.1",
