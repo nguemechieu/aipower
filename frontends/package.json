@@ -68,12 +68,11 @@
     "start": "react-scripts start",
     "development": "cross-env NODE_ENV=development npm run start",
     "build": "cross-env NODE_ENV=production react-scripts build",
-    "production": "cross-env NODE_ENV=production npm run build && serve -s build",
+    "production": "npx serve -s build -l 3000",
     "lint": "eslint src --ext .js,.jsx",
     "lint:fix": "eslint src --ext .js,.jsx --fix"
-
-
   },
+
   "browserslist": {
     "production": [
       ">0.2%",
