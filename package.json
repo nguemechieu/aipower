@@ -28,25 +28,9 @@
 
   "dependencies": {
 
-    "@emotion/react": "^11.13.5",
 
-    "@emotion/styled": "^11.13.5",
+    "child_process": "^1.0.2"
 
-    "@mui/material": "^6.1.8",
-
-    "@testing-library/react": "^16.0.1",
-
-    "child_process": "^1.0.2",
-
-    "react-chartjs-2": "^5.2.0"
-
-  },
-
-  "devDependencies": {
-
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-
-    "babel-jest": "^29.7.0"
 
   }
 

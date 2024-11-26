@@ -1,27 +1,17 @@
-# Base stage: Install required tools
-FROM ubuntu:latest AS base
-WORKDIR /app
-RUN apt-get update && apt-get install -y curl findutils && rm -rf /var/lib/apt/lists/*
-RUN  apt-get install -y xargs
+# Base stage: Use Node.js image for building the application
+FROM node:latest AS builder
 
-# Stage 1: Build the frontend
-FROM node:latest AS frontend-builder
-WORKDIR /app/frontend
-COPY frontend/package*.json  ./
-RUN npm install
-COPY ./frontend  ./
-RUN npm run build
-
-# Stage 2: Build the backend
-FROM openjdk:23  AS backend-builder
+# Set working directory inside the container
 WORKDIR /app
-COPY  ./ ./app/.
-COPY --from=frontend-builder /app/frontend/build ./src/main/resources/static
-RUN chmod +x gradlew && ./gradlew build
 
-# Stage 3: Production runner
-FROM openjdk:23 AS production
-WORKDIR /app
-COPY --from=backend-builder /app/build/libs/aipower.jar ./app.jar
-EXPOSE 8080
-CMD ["java", "-jar", "app.jar"]
+# Copy package.json and package-lock.json (if available) to leverage Docker caching
+COPY package.json package-lock.json ./
+
+# Install dependencies
+RUN npm install  --yes
+# Copy the rest of the application files
+COPY . .
+# Build the application for development
+RUN npm run development
+# Define the default command to run the application
+CMD ["npm", "development"]

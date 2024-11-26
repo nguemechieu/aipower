@@ -21,6 +21,8 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - kafka-network
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -28,10 +30,12 @@ services:
     depends_on:
       - kafka
     ports:
-      - "8080:8080"
+      - "8081:8080" # Changed to avoid port conflict with `aipower`
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    networks:
+      - kafka-network
 
   db:
     image: mysql:8.0
@@ -43,6 +47,8 @@ services:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
+    networks:
+      - db-network
 
   aipower:
     build:
@@ -52,7 +58,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: pro
       DB_URL: jdbc:mysql://db:3306/tradeadviser
       DB_USERNAME: root
       DB_PASSWORD: password
@@ -63,6 +69,9 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    networks:
+      - db-network
+      - aipower-network
 
   frontend:
     build:
@@ -73,6 +82,13 @@ services:
       - "3000:3000"
     stdin_open: true # Optional: Enables interactive debugging if needed
     tty: true         # Optional: Ensures proper interactive mode for development
+    networks:
+      - aipower-network
 
 volumes:
   db_data:
+
+networks:
+  kafka-network:
+  db-network:
+  aipower-network:

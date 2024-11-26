@@ -27,8 +27,8 @@ ext {
 }
 
 dependencies {
-    implementation 'com.squareup.okhttp3:okhttp:4.11.0'
-    implementation 'network.lightsail:stellar-sdk:0.44.1'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'network.lightsail:stellar-sdk:1.0.0'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
@@ -50,7 +50,7 @@ dependencies {
 
     implementation 'com.github.ua-parser:uap-java:1.6.1'
     implementation 'io.github.cdimascio:dotenv-java:3.0.2'
-    implementation 'org.apache.commons:commons-email:1.5'
+    implementation 'org.apache.commons:commons-email:1.6.0'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
     implementation 'io.micrometer:micrometer-registry-jmx:1.11.4'
@@ -58,9 +58,9 @@ dependencies {
     implementation 'com.sun.mail:jakarta.mail:2.0.1'
     implementation 'com.sun.activation:jakarta.activation:2.0.1'
 
-    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5' // For JSON serialization
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6' // For JSON serialization
 
     runtimeOnly 'com.mysql:mysql-connector-j'
     runtimeOnly 'com.h2database:h2'
