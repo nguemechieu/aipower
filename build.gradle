@@ -28,7 +28,7 @@ ext {
 
 dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.11.0'
-    implementation 'network.lightsail:stellar-sdk:0.44.1'
+    implementation 'network.lightsail:stellar-sdk:1.0.0'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
