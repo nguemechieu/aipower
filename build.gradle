@@ -23,7 +23,7 @@ repositories {
 ext {
     snippetsDir = file("build/generated-snippets") as File
     springAiVersion = "1.0.0.M2"
-    springBootAdminVersion = "3.3.6"
+    springBootAdminVersion = "3.4.0"
 }
 
 dependencies {
