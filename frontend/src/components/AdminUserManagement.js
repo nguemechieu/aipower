@@ -81,7 +81,7 @@ const AdminUserManagement = () => {
             setUsers(users.map((user) => (user.id === editingUser.id ? editingUser : user)));
             setEditingUser(null);
         } catch (err) {
-            setError("Error saving user details");
+            setError("Error saving user details"+err.message);
         }
     };
 

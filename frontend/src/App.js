@@ -1,7 +1,8 @@
 // Importing the necessary parts and styles
 import React from 'react';
+import {Route, Routes} from "react-router-dom";
 // Component Imports
-import Layout from './components/Layout.js';
+import Layout from './components/Layout.jsx';
 import Register from './components/Register.js';
 import TermsOfService from './components/terms-of-service.js';
 import TradeAdviser from './components/TradeAdviser.js';
@@ -30,11 +31,11 @@ import FriendsPage from "./components/FriendsPage";
 import Profile from "./components/Profile";
 import HelpPage from "./components/HelpPage";
 import ParentComponent from "./components/NotExample";
-import SwaggerUIComponent from "./components/SwaggerUIComponent";
-import './App.css';
-import {Route, Routes} from "react-router-dom";
+//import SwaggerUIComponent from "./components/SwaggerUIComponent";
+
 import Market from "./components/Market";
 import ForexMarket from "./components/ForexMarket";
+import './App.css';
 // Define roles for clarity and reusability
 const ROLES = {
   USER: 'USER',
@@ -96,7 +97,7 @@ function App() {
           <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="linkpage" element={<LinkPage />} />
             <Route path="login" element={<Login />} />
-          <Route path="/docs" element={<SwaggerUIComponent />} />
+          {/*<Route path="/docs" element={<SwaggerUIComponent />} />*/}
             <Route path="chat" element={<Chat />} />
           <Route path="notifications" element={<ParentComponent />} />
             <Route path="trade" element={<TradingWindow />} />
