@@ -14,6 +14,7 @@ public class LoggingFilter implements Filter {
 
 
 
+
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         Filter.super.init(filterConfig);
@@ -24,15 +25,18 @@ public class LoggingFilter implements Filter {
 
         if (LOG.isInfoEnabled()) {
             LOG.info("Request URI: {}", request);
-        }else {
+        } else {
             LOG.debug("Request URI: {}", request);
         }
         chain.doFilter(request, response);
+
+
 
     }
 
     @Override
     public void destroy() {
+
         Filter.super.destroy();
     }
 }

@@ -9,10 +9,12 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,8 @@ public class UserService {
     @Autowired
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService) {
         this.userRepository = userRepository;
+
+
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
     }
@@ -86,7 +90,7 @@ public class UserService {
                 userRepository.findByEmail(email).isPresent();
     }
 
-    public void saveUser(@Valid User user) {
+    public void saveUser(@Valid @NotNull User user) {
         if (existsByUsernameOrEmail(user.getUsername(), user.getEmail())) {
             throw new IllegalArgumentException("User with the same username or email already exists");
         }
@@ -106,5 +110,10 @@ public class UserService {
                 .stream()
                 .map(role -> (GrantedAuthority) role)
                 .toList();
+    }
+
+    public User getCurrentUser() {
+        return SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof User?
+                (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal() : null;
     }
 }

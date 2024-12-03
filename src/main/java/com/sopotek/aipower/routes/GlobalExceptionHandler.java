@@ -99,7 +99,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGenericException(@NotNull Exception ex) {
-        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.", ex);
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred."+ ex.getMessage(), ex);
     }
 
     /**
@@ -162,6 +162,12 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Invalid token: " + ex.getMessage(), ex);
     }
 
+
+
+     @ExceptionHandler(TokenExpiredException.class)
+     public ResponseEntity<?> handleTokenExpiredException(@NotNull TokenExpiredException ex) {
+         return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Token expired: " + ex.getMessage(), ex);
+     }
     /**
      * Standardized error response format for all exceptions.
      * Contains details such as HTTP status, error type, custom message, and timestamp.

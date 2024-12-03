@@ -33,6 +33,13 @@ UserService userService;
     }
 
     @Bean
+    public Runtime getRuntimeShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("Shutting down application...");
+        }));
+        return Runtime.getRuntime();
+    }
+    @Bean
     public InfoUpdateTrigger infoUpdateTrigger(AdminServerProperties adminServerProperties, TaskScheduler taskScheduler) {
         // Define a Flux Publisher for demonstration
         Publisher<InstanceEvent> instanceEventPublisher = Flux.empty();
@@ -66,7 +73,7 @@ UserService userService;
             }
 
             @Override
-            public @NotNull Mono<Instance> compute(@NotNull InstanceId id, BiFunction<InstanceId, Instance, Mono<Instance>> remappingFunction) {
+            public @NotNull Mono<Instance> compute(@NotNull InstanceId id, @NotNull BiFunction<InstanceId, Instance, Mono<Instance>> remappingFunction) {
                 return Mono.empty(); // Replace with your actual implementation
             }
 

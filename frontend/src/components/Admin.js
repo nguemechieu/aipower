@@ -11,7 +11,7 @@ const Admin = () => {
       <br />
       <Users />
       <br />
-      <div className="flexGrow">
+      <div className="flex-grow">
         <Link to="/">Home</Link>
       </div>
     </section>

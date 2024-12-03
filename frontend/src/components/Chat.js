@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "./Chat.css";
 
 const Chat = () => {
     const [messages, setMessages] = useState([
@@ -10,7 +9,8 @@ const Chat = () => {
     const [contacts] = useState([
         { id: 1, name: "Alice Smith", profilePicture: "https://via.placeholder.com/40" },
         { id: 2, name: "Bob Johnson", profilePicture: "https://via.placeholder.com/40" },
-        { id: 3, name: "Charlie Brown", profilePicture: "https://via.placeholder.com/40" },
+        { id: 3, name: "Charlie Brown", profilePicture: "https://via.placeholder.com/40" }
+
     ]);
 
     const [newMessage, setNewMessage] = useState("");
@@ -64,7 +64,7 @@ const Chat = () => {
                         placeholder="Type a message..."
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
-                        onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+
                     />
                     <button onClick={handleSendMessage}>Send</button>
                 </div>

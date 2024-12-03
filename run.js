@@ -4,6 +4,65 @@ const mode = process.argv[2] || 'development';
 
 console.log(`Starting application in ${mode} mode...\n`);
 
+const { exec } = require("child_process");
+
+const ports = [8080, 3000];
+let killPromises = [];
+
+// Function to kill processes on a port
+function killProcess(port) {
+    return new Promise((resolve) => {
+        exec(`lsof -i :${port} | grep LISTEN`, (err, stdout) => {
+            if (err || !stdout.trim()) {
+                console.log(`Port ${port} is free.`);
+                resolve();
+                return;
+            }
+
+            // Extract PIDs from the output
+            const pids = stdout
+                .split("\n") // Split by lines
+                .map((line) => line.split(/\s+/)[1]) // Extract the PID column
+                .filter((pid) => pid); // Filter out empty entries
+
+            if (pids.length > 0) {
+                console.log(`Processes running on port ${port}: ${pids.join(", ")}`);
+                const killPromises = pids.map(
+                    (pid) =>
+                        new Promise((killResolve) => {
+                            exec(`kill -9 ${pid}`, (killErr) => {
+                                if (killErr) {
+                                    console.error(`Failed to kill process ${pid} on port ${port}:`, killErr);
+                                } else {
+                                    console.log(`Successfully killed process ${pid} on port ${port}`);
+                                }
+                                killResolve();
+                            });
+                        })
+                );
+
+                Promise.all(killPromises).then(resolve);
+            } else {
+                resolve();
+            }
+        });
+    });
+}
+
+// Kill processes on all ports
+ports.forEach((port) => {
+    killPromises.push(killProcess(port));
+});
+
+// Add a delay to ensure ports are released
+Promise.all(killPromises).then(() => {
+    console.log("Waiting for ports to be released...");
+    setTimeout(() => {
+        console.log("Ports released. Ready to start the application.");
+        process.exit(0); // Exit the script
+    }, 10000); // 3-second delay
+});
+
 let backendProcess, frontendProcess;
 
 function checkInstallation(command, args, onSuccess, onFailure) {

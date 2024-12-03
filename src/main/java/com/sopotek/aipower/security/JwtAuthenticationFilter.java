@@ -37,7 +37,7 @@ AuthService authService;
             String username = authService.getUserFromJwtToken(token);
             List<GrantedAuthority>roles=authService.getRolesFromJwtToken(token);
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(username, token, roles);
+                    new UsernamePasswordAuthenticationToken(username, token, roles.stream().toList());
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 

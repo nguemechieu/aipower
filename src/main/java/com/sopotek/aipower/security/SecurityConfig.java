@@ -2,6 +2,7 @@ package com.sopotek.aipower.security;
 
 import com.sopotek.aipower.model.User;
 import com.sopotek.aipower.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,10 +16,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.rememberme.InMemoryTokenRepositoryImpl;
 
 @Configuration
 public class SecurityConfig {
 
+    @Value("${aipower.jwt.secret.key}")
+    String SecretKey;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserRepository userRepository;
 
@@ -29,15 +33,49 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+
+
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v3/employee/**").hasRole("EMPLOYEE")
-                        .requestMatchers("/api/v3/manager/**").hasRole("MANAGER")
-                        .requestMatchers("/api/v3/moderator/**").hasRole("MODERATOR")
-                        .requestMatchers("/api/v3/users/**").hasAnyRole("USER", "ADMIN", "OWNER", "GROUP", "MANAGER")
-                        .requestMatchers("/api/v3/users/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/users/employee/**").hasRole("EMPLOYEE")
+                        .requestMatchers("users/manager/**").hasRole("MANAGER")
+                        .requestMatchers("users/moderator/**").hasRole("MODERATOR")
+                        .requestMatchers("/users/me**").hasAnyRole("USER", "ADMIN", "OWNER", "GROUP", "MANAGER")
+                        .requestMatchers("/users/admin/**").hasRole("ADMIN")
+
                         .anyRequest().permitAll()
                 )
+                .rememberMe(
+                      remember->{
+                          remember.tokenValiditySeconds(1209600); // 14 days
+
+
+
+                          remember.key(SecretKey); // Replace with your secret key
+
+                          remember.tokenRepository(new InMemoryTokenRepositoryImpl()); // In-memory implementation, you can replace it with a persistent storage if needed
+
+                      }
+                ).formLogin(
+                        login -> login.loginPage("/login")
+                               .permitAll()
+
+                               .successForwardUrl("/users/me")
+
+                               .usernameParameter("username")
+                               .passwordParameter("password")
+
+
+                )
+
+                .logout(logout -> logout.permitAll()
+                                                .logoutSuccessUrl("/logout")
+                                                .clearAuthentication(true)
+                                                .invalidateHttpSession(true)
+
+                )
+
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -63,7 +101,7 @@ public class SecurityConfig {
             // Convert roles from the user to GrantedAuthority
             return org.springframework.security.core.userdetails.User.builder()
                     .username(user.getUsername())
-                    .password(user.getPassword()) // Password is already encoded in the DB
+                    .password(user.getPassword()) // The Password is already encoded in the DB
                     .authorities(user.getAuthorities())
                     .accountExpired(!user.isAccountNonExpired())
                     .accountLocked(!user.isAccountNonLocked())

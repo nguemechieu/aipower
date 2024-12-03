@@ -18,7 +18,7 @@ const CandlestickChart = () => {
                     color: "#1d70cc",
                 },
                 horzLines: {
-                    color: "#1d70cc",
+                    color: "#1f917c",
                 },
             },
             priceScale: {

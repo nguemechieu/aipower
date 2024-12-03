@@ -8,11 +8,11 @@ import Footer from "./Footer.js";
 
 import {Outlet} from "react-router-dom";
 const Layout = () => {
-  return (<>
+  return (<div className={'flex'}>
               <Header />
-              <main><div className={'container'}> <Outlet/></div>
+              <main> <Outlet/>
               </main><Footer />
-      </>)
+      </div>)
 };
 
 export default Layout;

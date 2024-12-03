@@ -22,7 +22,7 @@ public class ChatGPTService {
 
     private static final Logger logger = LoggerFactory.getLogger(ChatGPTService.class);
 
-    private final RestTemplate restTemplate;
+    private final RestTemplate restTemplate=new RestTemplate();
 
     @Value("${openai.api.url}")
     private String apiUrl;
@@ -33,8 +33,8 @@ public class ChatGPTService {
     @Value("${openai.api.model:gpt-3.5-turbo}")
     private String model;
 
-    public ChatGPTService(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+    public ChatGPTService() {
+
     }
 
     public String getChatGPTResponse(String prompt) {
@@ -72,14 +72,14 @@ public class ChatGPTService {
 
         try {
             logger.info("Sending request to ChatGPT with messages: {}", messages);
-            ResponseEntity<Map> response = restTemplate.exchange(apiUrl, HttpMethod.POST, entity, Map.class);
-            Map<String, Object> responseBody = response.getBody();
+            ResponseEntity<?> response = restTemplate.exchange(apiUrl, HttpMethod.POST, entity, Map.class);
+            Map<String,Object> responseBody = (Map<String, Object>) response.getBody();
             logger.info("Received response: {}", responseBody);
 
             if (responseBody != null && responseBody.containsKey("choices")) {
                 List<?> choices = (List<?>) responseBody.get("choices");
                 if (!choices.isEmpty()) {
-                    Map<String, Object> firstChoice = (Map<String, Object>) choices.get(0);
+                    Map<String, Object> firstChoice = (Map<String, Object>) choices.getFirst();
                     if (firstChoice.containsKey("message")) {
                         Map<String, Object> message = (Map<String, Object>) firstChoice.get("message");
                         return (String) message.get("content");

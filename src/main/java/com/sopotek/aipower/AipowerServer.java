@@ -2,7 +2,6 @@ package com.sopotek.aipower;
 
 import de.codecentric.boot.admin.server.config.EnableAdminServer;
 import io.github.cdimascio.dotenv.Dotenv;
-
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +18,9 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.Base64;
 
@@ -34,7 +36,6 @@ public class AipowerServer {
 
     private static final Log LOG = LogFactory.getLog(AipowerServer.class);
 
-
     private static final int KEY_SIZE_BITS = 256; // Size in bits
     private static final int KEY_SIZE_BYTES = KEY_SIZE_BITS / 8; // Size in bytes
 
@@ -44,43 +45,43 @@ public class AipowerServer {
      * @return A 256-bit secret key as a Base64 encoded string.
      */
     public static String generateSecretKey() {
-        // SecureRandom for cryptographically strong random number generation
         SecureRandom secureRandom = new SecureRandom();
-
-        // Generate a byte array to hold the key
         byte[] keyBytes = new byte[KEY_SIZE_BYTES];
-
-        // Fill the byte array with random bytes
         secureRandom.nextBytes(keyBytes);
-
-        // Encode the byte array as Base64 string for easy storage
         return Base64.getEncoder().encodeToString(keyBytes);
     }
 
     public static void main(String[] args) {
-        // Example usage
-        String secretKey = generateSecretKey();
-       LOG.info(
-               "Generated Secret Key (256-bit): " + secretKey);
 
-        // Load environment variables using Dotenv
+
+       // Load and set environment variables using Dotenv
         Dotenv dotenv = Dotenv.load();
-
-        //Set secret key to .env variable
-//       se dotenv.get("secretKey").replace(
-//                "your-secret-key",
-//                secretKey
-//        );
-//
         dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
         LOG.info("Environment variables loaded successfully.");
+
+
 
 
         // Start Spring Boot Application
         SpringApplication.run(AipowerServer.class, args);
         // Start Netty Client
-        startNettyClient();//Faster than Jakarta servlet with higher performance and scalability
+        startNettyClient(); // High-performance communication
+    }
 
+    /**
+     * Writes the secret key to the .env file.
+     *
+     * @param secretKey The generated secret key.
+     */
+    private static void writeSecretKeyToEnvFile(String secretKey) {
+        try {
+            String envPath = ".env";
+            String content = "AIPOWER_SECRET_KEY=" + secretKey + System.lineSeparator();
+            Files.write(Paths.get(envPath), content.getBytes());
+            LOG.info("Secret key written to .env file successfully.");
+        } catch (IOException e) {
+            LOG.error("Failed to write secret key to .env file: " + e.getMessage(), e);
+        }
     }
 
     /**

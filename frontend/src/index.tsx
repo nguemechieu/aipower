@@ -1,11 +1,11 @@
 import React, { StrictMode, Suspense, lazy, Component } from "react";
-
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { createRoot } from "react-dom/client";
 
 import { AuthProvider } from "./context/AuthProvider.js";
 import LoadingSpinner from "./components/LoadingSpinner.js";
 import {Button} from "@mui/material";
+import "./index.css"
 
 // Lazy-load main application component
 const LazyApp = lazy(() => import("./App.js"));

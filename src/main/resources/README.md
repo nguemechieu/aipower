@@ -71,7 +71,7 @@ The script will:
 ## Docker Configuration
 
 ### Dockerfile (Backend)
-Located in the `backend/` directory:
+Located in the `.` directory:
 
 ```dockerfile
 # Use a lightweight Java image
@@ -81,7 +81,7 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 
 # Copy backend build files
-COPY build/libs/backend-0.0.1-SNAPSHOT.jar app.jar
+COPY build/libs/aipower-0.0.1-SNAPSHOT.jar app.jar
 
 # Expose the application port
 EXPOSE 8080
@@ -95,7 +95,7 @@ Located in the `frontend/` directory:
 
 ```dockerfile
 # Use Node.js image for React build
-FROM node:16 AS build
+FROM node:latest AS build
 
 # Set working directory
 WORKDIR /app
@@ -104,7 +104,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install --production -- omit=dev
 
 # Copy the app files
 COPY . .
@@ -128,7 +128,7 @@ version: '3.8'
 services:
   backend:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
@@ -190,7 +190,7 @@ To build and run the application for production:
 
 ```
 aipower/
-├── backend/           # Spring Boot backend code
+├── ./           # Spring Boot backend code
 │   ├── Dockerfile     # Docker configuration for the backend
 ├── frontend/          # React frontend code
 │   ├── Dockerfile     # Docker configuration for the frontend
@@ -211,7 +211,7 @@ docker-compose up --build
 
 ### Start the Application Locally
 ```bash
-node start.js
+node run.js production
 ```
 
 ### Backend Only
@@ -222,7 +222,7 @@ node start.js
 ### Frontend Only
 ```bash
 cd frontend
-npm start
+npm run  start
 ```
 
 ### Build Frontend for Production
@@ -251,7 +251,7 @@ If you encounter missing dependencies, you can manually install them:
 
 ### Port Conflicts
 Ensure no other applications are using the default ports:
-- **Backend**: `8080`
+- **.**: `8080`
 - **Frontend**: `3000`
 
 ---

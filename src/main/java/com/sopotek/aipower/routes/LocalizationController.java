@@ -27,7 +27,7 @@ public class LocalizationController {
     @GetMapping("/api/v3/localization")
     public ResponseEntity<?> getUserLocalization(HttpServletRequest request) {
 
-        Map localization = localizationService.getLocalization(request);
+        Map<String, String> localization = localizationService.getLocalization(request);
         return ResponseEntity.ok(localization);
     }
 

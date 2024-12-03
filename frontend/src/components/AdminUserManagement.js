@@ -13,7 +13,7 @@ const AdminUserManagement = () => {
     const [users, setUsers] = useState([]);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
-    const [editingUser, setEditingUser] = useState(null);
+    const [editingUser, setEditingUser] = useState(false);
 
     useEffect(() => {
         fetchUsers().then(r =>
@@ -47,7 +47,7 @@ const AdminUserManagement = () => {
             await axios.delete(`${API_URL}/${userId}`);
             setUsers(users.filter((user) => user.id !== userId));
         } catch (err) {
-            setError("Error deleting user");
+            setError("Error deleting user"+err.message);
         }
     };
 
@@ -57,17 +57,17 @@ const AdminUserManagement = () => {
             await axiosPrivate.patch(`${API_URL}/update/id:${user.id}`, updatedUser);
             setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
         } catch (err) {
-            setError("Error updating user status");
+            setError("Error updating user status"+err.message);
         }
     };
 
     const handleRoleUpdate = async (user, newRole) => {
         try {
-            const updatedUser = { ...user, role: newRole };
+            const updatedUser = { ...user, id2: newRole };
             await axios.patch(`${API_URL}/${user.id}`, updatedUser);
             setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
         } catch (err) {
-            setError("Error updating user role");
+            setError("Error updating user role"+err.message);
         }
     };
 
@@ -142,11 +142,12 @@ const AdminUserManagement = () => {
                             <td>{user.email}</td>
                             <td>
                                 <select
-                                    value={user.role}
+                                    value={user.id2}
                                     onChange={(e) => handleRoleUpdate(user, e.target.value)}
                                 >
                                     <option value="USER">User</option>
                                     <option value="ADMIN">Admin</option>
+
                                 </select>
                             </td>
                             <td>

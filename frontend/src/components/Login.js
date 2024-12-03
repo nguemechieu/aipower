@@ -2,13 +2,13 @@ import React, {useState, useEffect, useRef} from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth.js";
 import axios from "../api/axios.js";
-import "./Login.css";
+
 import usePersist from "../hooks/usePersist"; // Import the CSS file for styling
 
-const LOGIN_URL = "/api/v3/auth/login";
-
+const LOGIN_URL = "/login";
+import "../components/Login.css"
 const Login = () => {
-    const { setAuth } = useAuth({});
+    const  auth  = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const from = location.state?.from?.pathname || "/";
@@ -38,15 +38,9 @@ useEffect(
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await axios.post(LOGIN_URL, JSON.stringify({ username, password })
-            ,
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Accept": "application/json",
-                    },
-                    withCredentials: true,
-                }
+            const timestamp = Date.now();
+            const response = await axios.post(LOGIN_URL, JSON.stringify({ username, password ,timestamp })
+
 
             );
 
@@ -57,7 +51,7 @@ useEffect(
                 // Update authentication context
 
 
-                setAuth({ id, id2,  accessToken, refreshToken });
+                auth({ id, id2,  accessToken, refreshToken });
 
 
                 // Store token based on "Remember Me" option
@@ -67,13 +61,28 @@ useEffect(
                 setUsername("");
                 setPassword("");
 
-                // Navigate to the intended page
-                navigate(from, { replace: true },"/");
+                console.log(
+                   auth+ "Logged in successfully! Redirecting to: ", from
+                )
+
+                // Navigate to the intended page;
+                navigate(from,
+                    { replace: true },
+                    "/"
+                    );
+            }else{
+
+                setErrMsg(response?.data|| "Login failed!");
+                errRef.current?.focus();
+                setTimeout(
+                    () => {
+
+                        setErrMsg("");},5000);
             }
         } catch (err) {
 
             if (err?.response ) {
-                setErrMsg( JSON.stringify(err?.response?.data?.message));
+                setErrMsg( JSON.stringify(err?.response?.data));
             } else {
                 setErrMsg("Server unreachable! Please try again later.");
             }

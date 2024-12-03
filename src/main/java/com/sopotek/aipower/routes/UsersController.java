@@ -16,11 +16,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
+
+import static com.sopotek.aipower.routes.NewsController.logger;
 
 
 @RestController
-@RequestMapping("/api/v3/users")
+@RequestMapping("/users")
 public class UsersController {
 
     private final CacheManager cacheManager;
@@ -69,17 +70,38 @@ public class UsersController {
     })
     // Get a single user by ID
     @GetMapping("/id:{id}")
-    public ResponseEntity<Optional<User>> getUserById(@PathVariable Long id) {
-        Optional<User> user = Optional.ofNullable(userService.getUserById(id));
-        if (user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
-        return ResponseEntity.status(200).body(user);
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+
+         try {
+             User user = userService.getUserById(id);
+             if (user == null) {
+                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+             }
+             return ResponseEntity.ok(user);
+         }
+         catch(Exception e){
+             logger.error(
+                     e.getMessage(), e);
+             return ResponseEntity.status(500).body(null);
+         }
 
 
     }
 
-
+//Get Me
+    @Operation(summary = "Get the current logged-in user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved the current user"),
+            @ApiResponse(responseCode = "401", description = "User not authenticated")
+    })
+    @GetMapping("/me")
+    public ResponseEntity<User> getMe() {
+        User user = userService.getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+        return ResponseEntity.ok(user);
+    }
     // PUT: Update an existing users by ID
     @Operation(summary = "Update a user in the database")
     @ApiResponses(value = {

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "../api/axios.js";
-import "./ForgotPassword.css"; // Include your CSS file for styling
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -16,7 +15,6 @@ const ForgotPassword = () => {
   useEffect(() => {
     emailRef.current?.focus();
 
-    setEmail(email)
   }, [email]);
 
   const handleSubmit = async (e) => {
@@ -26,7 +24,8 @@ const ForgotPassword = () => {
     setErrMsg("");
 
 
-       await axios.post("/api/v3/auth/forgot-password", {email},).then(res=>{
+       await axios.post("/forgot-password", {email},)
+           .then(res=>{
         setLoading(false);
         setSuccess(true);
         localStorage.removeItem('accessToken');
@@ -39,21 +38,24 @@ const ForgotPassword = () => {
 
 
 
-      }).catch(err => {
+      }
 
-       if(err.status===(404)){
-          setErrMsg("Email address not found");
+      ).catch(err => {
 
+
+       if (err.status===404){
+            setErrMsg("This email address doesn't exist.");
        }
-       else if(err.status===(400)){
-          setErrMsg("Missing email address");
+       else if(err.status===400){
+            setErrMsg("Missing email address.");
        }
-       else if(err.status===(403)){
-          setErrMsg("Access Denied: Not authorized");
+       else if(err.status===403){
+            setErrMsg("Access Denied: Not authorized.");
        }
        else{
-          setErrMsg("An error occurred while sending the request");
+            setErrMsg("An error occurred while sending the request.  "+err?.statusText);
        }
+
 
        })
 
@@ -79,12 +81,13 @@ const ForgotPassword = () => {
                 id="email"
                 name="email"
                 ref={emailRef}
+
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {e.preventDefault();setEmail(e.target.value)}}
                 required
                 aria-invalid={!isValidEmail}
                 placeholder="Enter your email address"
-                autoComplete="off"
+                autoComplete="true"
                 pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
                 title="Please enter a valid email address."
             />

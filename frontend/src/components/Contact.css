@@ -10,7 +10,7 @@
 
 .contact-section h1,
 .contact-section h2 {
-    color: #333;
+    color: rgba(175, 195, 32, 0.7);
 }
 
 .contact-details {
@@ -29,7 +29,7 @@
     width: 100%;
     padding: 10px;
     margin: 5px 0 15px;
-    border: 1px solid #ddd;
+    border: 1px solid #caefd5;
     border-radius: 4px;
 }
 
@@ -44,4 +44,5 @@
 
 .contact-form button:hover {
     background-color: #365899;
+    transition: background-color 0.3s ease-in-out;
 }

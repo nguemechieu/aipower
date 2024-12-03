@@ -1,6 +1,6 @@
 package com.sopotek.aipower.model;
 
 public enum ROLES {
-    USER, EMPLOYEE,EMPLOYER, DEVELOPER,
-    ADMIN
+    USER, EMPLOYEE,OWNER, DEVELOPER,GROUP,MANAGER,
+    ADMIN,INVESTOR
 }

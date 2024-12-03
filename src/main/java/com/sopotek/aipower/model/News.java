@@ -3,6 +3,9 @@ package com.sopotek.aipower.model;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -30,6 +33,7 @@ public class News {
         this.title = title;
         this.previous = previous;
         this.forecast = forecast;
+
     }
 
     // Constructor for complete news object
@@ -52,6 +56,16 @@ public class News {
                 ", previous='" + previous + '\'' +
                 ", title='" + title + '\'' +
                 '}';
+    }
+
+    public Date getStartDate() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(Date.from(Instant.parse(date)));
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
     }
 
     @Getter

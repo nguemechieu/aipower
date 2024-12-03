@@ -1,5 +1,6 @@
 package com.sopotek.aipower.routes;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,15 +23,17 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
 @RestController
-@RequestMapping("/api/v3")
+
 public class NewsController {
 
-    private static final Logger logger = LoggerFactory.getLogger(NewsController.class);
+    public static final Logger logger = LoggerFactory.getLogger(NewsController.class);
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient client = HttpClient.newHttpClient();
@@ -38,8 +41,8 @@ public class NewsController {
     @Value("${news.api.key}")
     private String apiKey;
 
-    @Value("${news.api.url}")
-    private String url;
+   @Value("${news.api.url}")
+   private String url;
 
     public NewsController() {
         // Default constructor for Spring
@@ -75,7 +78,25 @@ public class NewsController {
                     objectMapper.getTypeFactory().constructCollectionType(List.class, News.class)
             );
 
-            return ResponseEntity.ok(forexEvents);
+            //Filter upcoming events
+            forexEvents = forexEvents.stream()
+                    .filter(event -> event.getStartDate().after(new java.util.Date()))
+                    .limit(5)
+                    .collect(Collectors.toList());
+
+            // Sort events by start date
+            forexEvents.sort(Comparator.comparing(News::getStartDate));
+
+            // Map events to a JSON object
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            String json = mapper.writeValueAsString(forexEvents);
+            mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
+
+            // Return the JSON object
+            return ResponseEntity.ok(json);
+
+
 
         } catch (IOException | InterruptedException e) {
             logger.error("Error fetching Forex Factory calendar", e);
@@ -101,8 +122,11 @@ public class NewsController {
                    // Create the HTTP request to fetch news data from News API
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(
-                          url+
-                                  "?q=bitcoin&from="+date+"&to="+date+"&sortBy=popularity&apiKey="+apiKey
+                            "https://newsapi.org/v2/everything?" +
+                                    "q=bitcoin&" +
+                                    "from=" + date + "&" +
+                                    "sortBy=publishedAt&" +
+                                    "apiKey=" + apiKey
 
                     ))
                     .GET()

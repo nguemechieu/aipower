@@ -50,7 +50,7 @@ public class User implements UserDetails {
     private String profilePictureUrl;
     private String bio;
     private String gender;
-    private Date birthdate;
+    private String birthdate;
 
     private String ip;
     private String hostname;
@@ -85,6 +85,10 @@ public class User implements UserDetails {
 
     private String resetToken;
 
+    private String securityQuestion;
+    private String securityAnswer;
+
+
 
     private Date resetTokenExpiryTime;
 
@@ -113,6 +117,8 @@ public class User implements UserDetails {
                 .map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toSet());
     }
+
+   private boolean enabled;
 
     /**
      * Indicates whether the account is enabled and has valid roles.

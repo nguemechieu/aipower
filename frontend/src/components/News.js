@@ -1,6 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import axios from "../api/axios.js";
+
 
 const NewsDisplay = () => {
     const [newsList, setNewsList] = useState([
@@ -27,7 +27,7 @@ const NewsDisplay = () => {
             setNewsList(currentNews); // Set data for past/current events
             setUpcomingNews(futureNews); // Set data for upcoming events
         } catch (error) {
-            console.error('Error fetching news ');
+            console.error('Error fetching news '+error.message);
         }
     };
 

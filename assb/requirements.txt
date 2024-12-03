@@ -7,9 +7,14 @@ requests>=2.25.0,<3.0
 # Optional dependencies
 vaderSentiment>=3.3.2  # For sentiment analysis
 ccxt>=2.2.2 # exchange binding
-python-dotenv
+python-dotenv~=1.0.1
 tweepy
 transformers
+tensorflow
 
 
-
+setuptools~=74.1.2
+Flask~=3.0.3
+keras~=3.7.0
+assb~=1.0.0
+Flask-Cors~=5.0.0

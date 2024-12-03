@@ -1,9 +1,19 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "../api/axios.js";
+import {
+    Button,
+    TextField,
+    MenuItem,
+    Select,
+    InputLabel,
+    FormControl,
+    CircularProgress,
+    Typography,
+    Box,
+    Alert,
+} from "@mui/material";
 import "./Register.css";
-import useAuth from "../hooks/useAuth";
-import {Button} from "@mui/material"; // Add custom CSS for better styling
 
 // Validation patterns
 const USER_REGEX = /^[A-z][A-z0-9-_]{3,23}$/;
@@ -11,7 +21,6 @@ const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ZIP_REGEX = /^[0-9]{5}(?:-[0-9]{4})?$/;
 const PHONE_REGEX = /^\d{10,15}$/;
-
 const genderOptions = ["Male", "Female", "Others"];
 const securityQuestions = [
     "What was the name of your first pet?",
@@ -23,333 +32,239 @@ const securityQuestions = [
 ];
 
 const Register = () => {
-    const userRef = useRef(null);
+    useRef(null);
     const errRef = useRef();
     const navigate = useNavigate();
 
     // State variables
-    const [username, setUsername] = useState("");
-    const [validName, setValidName] = useState(false);
-    const [email, setEmail] = useState("");
-    const [validEmail, setValidEmail] = useState(false);
-    const [password, setPassword] = useState("");
-    const [validPwd, setValidPwd] = useState(false);
-    const [matchPwd, setMatchPwd] = useState("");
-    const [validMatch, setValidMatch] = useState(false);
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [middleName, setMiddleName] = useState("");
-    const [birthdate, setBirthdate] = useState("");
-    const [phoneNumber, setPhoneNumber] = useState("");
-    const [validPhone, setValidPhone] = useState(false);
-    const [zipCode, setZipCode] = useState("");
-    const [validZip, setValidZip] = useState(false);
-    const [address, setAddress] = useState("");
-    const [city, setCity] = useState("");
-    const [state, setState] = useState("");
-    const [country, setCountry] = useState("");
-    const [gender, setGender] = useState(genderOptions[0]);
-    const [profilePictureUrl, setProfilePictureUrl] = useState("");
-    const [bio, setBio] = useState("");
-    const [securityQuestion, setSecurityQuestion] = useState(securityQuestions[0]);
-    const [securityAnswer, setSecurityAnswer] = useState("");
+    const [formData, setFormData] = useState({
+        username: "",
+        email: "",
+        password: "",
+        matchPwd: "",
+        firstName: "",
+        middleName: "",
+        lastName: "",
+        birthdate: "",
+        phoneNumber: "",
+        zipCode: "",
+        address: "",
+        city: "",
+        state: "",
+        country: "",
+        gender: genderOptions[0],
+        profilePictureUrl: "",
+        bio: "",
+        securityQuestion: securityQuestions[0],
+        securityAnswer: "",
+    });
+
+    const [validation, setValidation] = useState({
+        validName: false,
+        validEmail: false,
+        validPwd: false,
+        validMatch: false,
+        validPhone: false,
+        validZip: false,
+    });
+
     const [errMsg, setErrMsg] = useState("");
     const [success, setSuccess] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const setAuth=useAuth()
-    useEffect(() => {
-        userRef.current?.focus();
-    }, []);
 
+    // Validation hooks
     useEffect(() => {
-        setValidName(USER_REGEX.test(username));
-        setValidEmail(EMAIL_REGEX.test(email));
-        setValidPwd(PWD_REGEX.test(password));
-        setValidMatch(password === matchPwd);
-        setValidPhone(PHONE_REGEX.test(phoneNumber));
-        setValidZip(ZIP_REGEX.test(zipCode));
-
-    }, [username, email, password, matchPwd, phoneNumber, zipCode]);
+        setValidation({
+            validName: USER_REGEX.test(formData.username),
+            validEmail: EMAIL_REGEX.test(formData.email),
+            validPwd: PWD_REGEX.test(formData.password),
+            validMatch: formData.password === formData.matchPwd,
+            validPhone: PHONE_REGEX.test(formData.phoneNumber),
+            validZip: ZIP_REGEX.test(formData.zipCode),
+        });
+    }, [formData]);
 
     useEffect(() => {
         setErrMsg("");
-    }, [username, email, password, matchPwd]);
+    }, [formData]);
 
+    // Input change handler
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    // Form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         setErrMsg("");
 
         try {
-            const response = await axios.post(
-                "/api/v3/auth/register",
-            {
-                    username,
-                    firstName,
-                    lastName,
-                    middleName,
-                    email,
-                    password,
-                    birthdate,
-                    phoneNumber,
-                    address,
-                    city,
-                    state,
-                    zipCode,
-                    country,
-                    gender,
-                    profilePictureUrl,
-                    bio,
-                    securityQuestion,
-                    securityAnswer
-                },
+            const response = await axios.post("/register", JSON.stringify(formData));
 
-                {
-                    headers: { "Content-Type": "application/json" },
-                }
-            );
-            console.log(response.data);
             if (response.status === 200 || response.status === 201) {
-
-                setAuth({
-                    id: response.data.id,
-                    role: response.data.role,
-                    rememberMe: true,
-                    accessToken: response.data.accessToken,
-                    refreshToken: response.data.refreshToken}
-                )
                 setSuccess(true);
                 navigate("/", { replace: true });
-            }else{
-                setSuccess(false);
-                setErrMsg(response.data|| "Registration failed!");
-                errRef.current?.focus();
-                setTimeout(
-                    () => {
-                        setSuccess(false);
-                        setErrMsg("");
-                    },
-                    10000
-                )
+            } else {
+                setErrMsg("Registration failed!");
             }
         } catch (error) {
-            setSuccess(false);
-            setErrMsg(error.message || "Registration failed!");
-
-            errRef.current?.focus();
-            setTimeout(
-                () => {
-                    setSuccess(false);
-                    setErrMsg("");
-                    navigate("/", { replace: true });
-                },
-                10000
-            )
+            setErrMsg(JSON.stringify(error?.response?.data) || "Registration failed!");
         } finally {
             setIsLoading(false);
         }
     };
 
-    return (<div className="flex-grow">
-        <section className="register">
+    return (
+        <section className="register" >
             {success ? (
-                <div>
-                    <h1>Registration Successful!</h1>
-                    <p>
-                        <Link to="/">Sign In</Link>
-                    </p>
-                </div>
-            ) : (
-                <div>
-                    <h1>Register</h1>
-                    <div className={'instructions'}>
-                        <p>
-                            {(validName) ?  "Please Enter a valid name" : ""}
-
-                            {(validEmail) ? "Please Enter a valid email" : ""}
-
-                            {(validPwd) ? "Please Enter a valid password" : ""}
-
-
-                            {(validPhone) ? "Please Enter a valid phone number" : ""}
-
-                        </p>
-                    </div>
-                    <form onSubmit={handleSubmit}>
-                        <input
-                            id="username"
-                            type="text"
-                            placeholder="Username"
-                            ref={userRef}
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            required
-                            aria-invalid={!validName}
-                        />
-                        <input
-                            id="firstName"
-                            type="text"
-                            placeholder="First Name"
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                            required
-                        />
-
-                        <input
-                            id="middleName"
-                            type="text"
-                            placeholder="Middle Name"
-                            value={middleName}
-                            onChange={(e) => setMiddleName(e.target.value)}
-                        />
-                        <input
-                            id="lastName"
-                            type="text"
-                            placeholder="Last Name"
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                            required
-                        />
-                        <input
-                            id="email"
-                            type="email"
-                            placeholder="Email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            aria-invalid={!validEmail}
-                        />
-                        <input
-                            id="password"
-                            type="password"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            aria-invalid={!validPwd}
-                        />
-                        <input
-                            id="confirm-password"
-                            type="password"
-                            placeholder="Confirm Password"
-                            value={matchPwd}
-                            onChange={(e) => setMatchPwd(e.target.value)}
-                            required
-                            aria-invalid={!validMatch}
-                        />
-                        <input
-                            id="birthdate"
-                            type="date"
-                            value={birthdate}
-                            onChange={(e) => setBirthdate(e.target.value)}
-                            required
-                        />
-                        <input
-                            id="phoneNumber"
-                            type="tel"
-                            placeholder="Phone Number"
-                            value={phoneNumber}
-                            onChange={(e) => setPhoneNumber(e.target.value)}
-                            aria-invalid={!validPhone}
-                        />
-                        <input
-                            id="zipCode"
-                            type="text"
-                            placeholder="Zip Code"
-                            value={zipCode}
-                            onChange={(e) => setZipCode(e.target.value)}
-                            aria-invalid={!validZip}
-                        />
-                        <input
-                            id="address"
-                            type="text"
-                            placeholder="Address"
-                            value={address}
-                            onChange={(e) => setAddress(e.target.value)}
-                        />
-                        <input
-                            id="city"
-                            type="text"
-                            placeholder="City"
-                            value={city}
-                            onChange={(e) => setCity(e.target.value)}
-                        />
-                        <input
-                            id="state"
-                            type="text"
-                            placeholder="State"
-                            value={state}
-                            onChange={(e) => setState(e.target.value)}
-                        />
-                        <input
-                            id="country"
-                            type="text"
-                            placeholder="Country"
-                            value={country}
-                            onChange={(e) => setCountry(e.target.value)}
-                        />
-                        <select
-                            id="gender"
-                            value={gender}
-                            onChange={(e) => setGender(e.target.value)}
-                            required
-                        >
-                            {genderOptions.map((option, index) => (
-                                <option key={index} value={option}>
-                                    {option}
-                                </option>
-                            ))}
-                        </select>
-                        <input
-                            id="profilePictureUrl"
-                            type="text"
-                            placeholder="Profile Picture URL"
-                            value={profilePictureUrl}
-                            onChange={(e) => setProfilePictureUrl(e.target.value)}
-                        />
-                        <textarea
-                            id="bio"
-                            placeholder="Bio"
-                            value={bio}
-                            onChange={(e) => setBio(e.target.value)}
-                        ></textarea>
-                        <select
-                            id="securityQuestion"
-                            value={securityQuestion}
-                            onChange={(e) => setSecurityQuestion(e.target.value)}
-                        >
-                            {securityQuestions.map((question, index) => (
-                                <option key={index} value={question}>
-                                    {question}
-                                </option>
-                            ))}
-                        </select>
-                        <input
-                            id="securityAnswer"
-                            type="text"
-                            placeholder="Answer to Security Question"
-                            value={securityAnswer}
-                            onChange={(e) => setSecurityAnswer(e.target.value)}
-                            required
-                        />
-
-                        <Button
-                            type="submit"
-                            disabled={!validName || !validEmail || !validPwd || !validMatch || isLoading}
-                        >
-
-                            {isLoading ? "Registering..." : "Register"}
+                <Box textAlign="center">
+                    <Typography variant="h4" gutterBottom>
+                        Registration Successful!
+                    </Typography>
+                    <Link to="/" style={{ textDecoration: "none" }}>
+                        <Button variant="contained" color="primary">
+                            Sign In
                         </Button>
-                    </form>
-                    <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"} aria-live="assertive">
-                        {errMsg}
-                    </p>
-                    <p>
+                    </Link>
+                </Box>
+            ) : (
+                <form onSubmit={handleSubmit}>
+                    <Typography variant="h4" gutterBottom>
+                        Register
+                    </Typography>
+
+                    {errMsg && (
+                        <Alert severity="error" ref={errRef}>
+                            {errMsg}
+                        </Alert>
+                    )}
+
+                    {/* Dynamic Input Fields */}
+                    {[
+                        { label: "Username", name: "username", errorKey: "validName", type: "text" },
+                        { label: "Email", name: "email", errorKey: "validEmail", type: "email" },
+                        { label: "Password", name: "password", errorKey: "validPwd", type: "password" },
+                        { label: "Confirm Password", name: "matchPwd", errorKey: "validMatch", type: "password" },
+                        { label: "First Name", name: "firstName", type: "text" },
+                        { label: "Middle Name", name: "middleName", type: "text" },
+                        { label: "Last Name", name: "lastName", type: "text" },
+                        { label: "Phone Number", name: "phoneNumber", errorKey: "validPhone", type: "tel" },
+                        { label: "Zip Code", name: "zipCode", errorKey: "validZip", type: "text" },
+                        { label: "Address", name: "address", type: "text" },
+                        { label: "City", name: "city", type: "text" },
+                        { label: "State", name: "state", type: "text" },
+                        { label: "Country", name: "country", type: "text" },
+                        { label: "Profile Picture URL", name: "profilePictureUrl", type: "text" },
+                    ].map(({ label, name, type, errorKey }) => (
+                        <TextField
+                            key={name}
+                            fullWidth
+                            margin="normal"
+                            label={label}
+                            name={name}
+                            type={type}
+                            value={formData[name]}
+                            onChange={handleInputChange}
+                            error={errorKey && !validation[errorKey]}
+                            helperText={errorKey && !validation[errorKey] ? `Invalid ${label.toLowerCase()}` : ""}
+                            required={!["middleName", "address", "city", "state", "country", "profilePictureUrl"].includes(name)}
+                        />
+                    ))}
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="Birthdate"
+                        name="birthdate"
+                        type="date"
+                        InputLabel={{ shrink: true }}
+                        value={formData.birthdate}
+                        onChange={handleInputChange}
+                        required
+                    />
+
+                    <FormControl fullWidth margin="normal">
+                        <InputLabel id="gender-label">Gender</InputLabel>
+                        <Select
+                            labelId="gender-label"
+                            name="gender"
+                            value={formData.gender}
+                            onChange={handleInputChange}
+                            required
+                          variant={"filled"}>
+                            {genderOptions.map((option) => (
+                                <MenuItem key={option} value={option}>
+                                    {option}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <FormControl fullWidth margin="normal">
+                        <InputLabel id="security-question-label">Security Question</InputLabel>
+                        <Select
+                            labelId="security-question-label"
+                            name="securityQuestion"
+                            value={formData.securityQuestion}
+                            onChange={handleInputChange}
+                            required
+                         variant={"filled"}>
+                            {securityQuestions.map((question) => (
+                                <MenuItem key={question} value={question}>
+                                    {question}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="Security Answer"
+                        name="securityAnswer"
+                        type="text"
+                        value={formData.securityAnswer}
+                        onChange={handleInputChange}
+                        required
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="Bio"
+                        name="bio"
+                        type="text"
+                        value={formData.bio}
+                        onChange={handleInputChange}
+                        multiline
+                        rows={4}
+                    />
+
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        fullWidth
+                        disabled={
+                            !validation.validName ||
+                            !validation.validEmail ||
+                            !validation.validPwd ||
+                            !validation.validMatch ||
+                            isLoading
+                        }
+                        sx={{ marginTop: 2 }}
+                    >
+                        {isLoading ? <CircularProgress size={24} /> : "Register"}
+                    </Button>
+
+                    <Typography variant="body2" align="center" sx={{ marginTop: 2 }}>
                         Already registered? <Link to="/">Sign In</Link>
-                    </p>
-                </div>
+                    </Typography>
+                </form>
             )}
-        </section></div>
+        </section>
     );
 };
 
