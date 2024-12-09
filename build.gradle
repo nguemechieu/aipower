@@ -80,7 +80,7 @@ dependencies {
 
     implementation 'org.tensorflow:tensorflow-core-platform:0.5.0'//tensorflow
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5' // Required for JSON parsing
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6' // Required for JSON parsing
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
