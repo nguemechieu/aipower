@@ -19,7 +19,7 @@
     "autolinker": "^4.0.0",
     "axios": "^1.7.8",
     "cross-env": "^7.0.3",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.4.7",
     "lightweight-charts": "^4.2.1",
     "node-polyfill-webpack-plugin": "^4.0.0",
     "nth-check": "^2.1.1",
