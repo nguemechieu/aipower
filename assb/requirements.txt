@@ -13,7 +13,7 @@ transformers
 tensorflow
 
 
-setuptools~=74.1.2
+setuptools~=75.6.0
 Flask~=3.0.3
 keras~=3.7.0
 assb~=1.0.0
