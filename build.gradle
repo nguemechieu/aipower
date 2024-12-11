@@ -54,7 +54,7 @@ dependencies {
     implementation 'org.apache.commons:commons-email:1.6.0'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
-    implementation 'io.micrometer:micrometer-registry-jmx:1.14.1'
+    implementation 'io.micrometer:micrometer-registry-jmx:1.14.2'
 
     implementation 'com.sun.mail:jakarta.mail:2.0.1'
     implementation 'com.sun.activation:jakarta.activation:2.0.1'
