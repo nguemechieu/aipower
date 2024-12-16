@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import axios from "../api/axios.js";
 
 const ForgotPassword = () => {
@@ -8,7 +8,7 @@ const ForgotPassword = () => {
   const [errMsg, setErrMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const emailRef = useRef(null);
-  const navigate = useNavigate();
+
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
 
@@ -23,47 +23,43 @@ const ForgotPassword = () => {
     setSuccess(false);
     setErrMsg("");
 
+try {
 
-       await axios.post("/forgot-password", {email},)
-           .then(res=>{
-        setLoading(false);
+
+    const res = await axios.post("/auth/forgot-password", {email})
+    if (res.status === 200) {
         setSuccess(true);
-        localStorage.removeItem('accessToken');
-        window.location.href = '/login';
-        const  resetExpires=res.data.resetExpires;
-        const  resetToken=res.data.resetToken;
-        localStorage.setItem('resetToken',resetToken);
-        localStorage.setItem('resetExpires',resetExpires);
-        navigate(from, { replace: true }); // Redirect to the previous page after successful password reset
 
+    } else {
+        setErrMsg(res.data)
+    }
 
-
+}
+    catch (error) {
+      if(error.status===404){
+          setErrMsg("Email not found");
       }
-
-      ).catch(err => {
-
-
-       if (err.status===404){
-            setErrMsg("This email address doesn't exist.");
-       }
-       else if(err.status===400){
-            setErrMsg("Missing email address.");
-       }
-       else if(err.status===403){
-            setErrMsg("Access Denied: Not authorized.");
-       }
-       else{
-            setErrMsg("An error occurred while sending the request.  "+err?.statusText);
-       }
+      else{
+          setErrMsg(error.message|| error);
+      }
+    } finally {
+        setLoading(false);
+    }
 
 
-       })
+
+
 
   };
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  return (
+  return (success?(<>
+          <p className="success-message">Check your email for further instructions.</p>
+          <Link to={from} className="back-link">
+            Go Back
+          </Link>
+      </>):(
       <section className="forgot-password">
         <h2>Forgot Password</h2>
         <p className="instruction">
@@ -102,7 +98,7 @@ const ForgotPassword = () => {
         <Link to={from} className="back-link">
           Go Back
         </Link>
-      </section>
+      </section>)
   );
 };
 

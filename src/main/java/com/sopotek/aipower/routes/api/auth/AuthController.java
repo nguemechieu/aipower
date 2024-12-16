@@ -5,9 +5,8 @@ import com.sopotek.aipower.model.User;
 import com.sopotek.aipower.service.*;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.Getter;
@@ -29,6 +28,7 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 
 /**
  * REST controller for authentication and user account management.
@@ -81,15 +81,7 @@ public class AuthController {
         logger.info("AuthController initialized successfully");
     }
 
-    @Operation(summary = "User login")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User authenticated successfully"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "404", description = "Account does not exist"),
-            @ApiResponse(responseCode = "403", description = "Account locked or expired")
-            ,
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
+
     @PostMapping(value = "/login", consumes = {"application/json"})
     public ResponseEntity<?> login(@RequestBody     LoginRequest loginRequest, HttpServletRequest httpServletRequest) {
 
@@ -161,13 +153,7 @@ public class AuthController {
      * @param user The user details for registration.
      * @return ResponseEntity indicating success or failure.
      */
-    @Operation(summary = "Register new user",description = "The user details for registration")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "User created successfully"),
-            @ApiResponse(responseCode = "409", description = "Username or email already exists"),
-            @ApiResponse(responseCode = "400", description = "Invalid input data"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
+
     @PostMapping(value = "/register" ,consumes = {"application/json"})
 
     public ResponseEntity<?> registerUser(@Valid @RequestBody User user) {
@@ -237,11 +223,6 @@ public class AuthController {
         }
     }
 
-    @Operation(summary = "Logout a user")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully logged out"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized")
-    })
     @PostMapping("/logout")
     public ResponseEntity<String> logout() {
         try{
@@ -278,16 +259,7 @@ public class AuthController {
     //Refresh the security context
 
     @PostMapping("/refresh")
-    @Operation(
-            summary = "Refresh security context",
-            description = "Refresh the security context with a valid refresh token."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully refreshed security context"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Invalid or expired refresh token"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
+
     public ResponseEntity<?> refresh(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
         try {
             // Validate and extract the username and roles from the refresh token

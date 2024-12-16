@@ -1,21 +1,18 @@
-import React from 'react';
-
 import { Link } from "react-router-dom";
-import Users from "./Users.js";
-
+import Users from './Users';
 
 const Admin = () => {
-  return (
-    <section>
-      <h1>Admins Page</h1>
-      <br />
-      <Users />
-      <br />
-      <div className="flex-grow">
-        <Link to="/">Home</Link>
-      </div>
-    </section>
-  );
-};
+    return (
+        <section>
+            <h1>Admins Page</h1>
+            <br />
+            <Users />
+            <br />
+            <div className="flexGrow">
+                <Link to="/">Home</Link>
+            </div>
+        </section>
+    )
+}
 
-export default Admin;
+export default Admin

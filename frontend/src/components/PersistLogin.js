@@ -1,47 +1,46 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import AuthContext from "../context/AuthProvider.js";
-import axios from "../api/axios.js";
+import { axiosPrivate } from "../api/axios.js";
+import LoadingSpinner from "./LoadingSpinner";
 
 const PersistLogin = () => {
-  const { auth, setAuth } = useContext(AuthContext);  // Add setAuth to update context
-  const [loading, setLoading] = useState(true);
+  const { auth, setAuth } = useContext(AuthContext); // Use context for authentication
+  const [loading, setLoading] = useState(true); // Track loading state
 
   useEffect(() => {
     const verifyToken = async () => {
-      if (auth?.token) {  // Check if token exists before making the request
-        try {
-          const response = await axios.post("/api/v3/auth/refresh", {
-            headers: {
-              Authorization: `Bearer ${auth.token}`
-            },
-            withCredentials: true,
-          });
+      try {
+        if (auth?.accessToken) { // Check for an existing access token
+          const response = await axiosPrivate.post("/auth/refresh");
 
           if (response.status === 200) {
             console.log("Token verified successfully");
             setAuth((prevAuth) => ({
               ...prevAuth,
-              token: response.data.token, // Update the token in context
+              accessToken: response.data.accessToken,
+
+              id: response.data.id,
+              roles: response.data.roles,
             }));
           }
-        } catch (error) {
-          console.log("Token verification failed ", error);
-          setAuth(null); // Clear auth context if verification fails
         }
+      } catch (error) {
+        console.error("Token verification failed:", error);
+        setAuth(null); // Clear auth context on failure
+      } finally {
+        setLoading(false); // Stop loading whether success or failure
       }
-      setLoading(false);
     };
 
-    verifyToken().then(() =>
-    console.log("Request completed successfully"  ))
-  }, [auth, setAuth]);
+    verifyToken()
+  }, [auth?.accessToken, setAuth]); // Add only relevant dependencies
 
   if (loading) {
-    return <p>Loading...</p>; // Loading screen while token is verified
+    return <LoadingSpinner />; // Show loading spinner while verifying
   }
 
-  return auth ? <Outlet /> : <Navigate to="/login" replace />;
+  return auth?.id ? <Outlet /> : <Navigate to="/login" replace />; // Redirect if not authenticated
 };
 
 export default PersistLogin;

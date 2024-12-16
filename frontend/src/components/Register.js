@@ -1,271 +1,183 @@
-import React, { useRef, useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import axios from "../api/axios.js";
-import {
-    Button,
-    TextField,
-    MenuItem,
-    Select,
-    InputLabel,
-    FormControl,
-    CircularProgress,
-    Typography,
-    Box,
-    Alert,
-} from "@mui/material";
-import "./Register.css";
+import { useRef, useState, useEffect } from "react";
+import { faCheck, faTimes, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import axios from '../api/axios';
+import { Link } from "react-router-dom";
 
-// Validation patterns
 const USER_REGEX = /^[A-z][A-z0-9-_]{3,23}$/;
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const ZIP_REGEX = /^[0-9]{5}(?:-[0-9]{4})?$/;
-const PHONE_REGEX = /^\d{10,15}$/;
-const genderOptions = ["Male", "Female", "Others"];
-const securityQuestions = [
-    "What was the name of your first pet?",
-    "What is your mother's maiden name?",
-    "What is your favorite book?",
-    "What was the make and model of your first car?",
-    "What is the name of the street you grew up on?",
-    "In what city were you born?",
-];
+const REGISTER_URL = '/register';
 
 const Register = () => {
-    useRef(null);
+    const userRef = useRef();
     const errRef = useRef();
-    const navigate = useNavigate();
 
-    // State variables
-    const [formData, setFormData] = useState({
-        username: "",
-        email: "",
-        password: "",
-        matchPwd: "",
-        firstName: "",
-        middleName: "",
-        lastName: "",
-        birthdate: "",
-        phoneNumber: "",
-        zipCode: "",
-        address: "",
-        city: "",
-        state: "",
-        country: "",
-        gender: genderOptions[0],
-        profilePictureUrl: "",
-        bio: "",
-        securityQuestion: securityQuestions[0],
-        securityAnswer: "",
-    });
+    const [user, setUser] = useState('');
+    const [validName, setValidName] = useState(false);
+    const [userFocus, setUserFocus] = useState(false);
 
-    const [validation, setValidation] = useState({
-        validName: false,
-        validEmail: false,
-        validPwd: false,
-        validMatch: false,
-        validPhone: false,
-        validZip: false,
-    });
+    const [pwd, setPwd] = useState('');
+    const [validPwd, setValidPwd] = useState(false);
+    const [pwdFocus, setPwdFocus] = useState(false);
 
-    const [errMsg, setErrMsg] = useState("");
+    const [matchPwd, setMatchPwd] = useState('');
+    const [validMatch, setValidMatch] = useState(false);
+    const [matchFocus, setMatchFocus] = useState(false);
+
+    const [errMsg, setErrMsg] = useState('');
     const [success, setSuccess] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-
-    // Validation hooks
-    useEffect(() => {
-        setValidation({
-            validName: USER_REGEX.test(formData.username),
-            validEmail: EMAIL_REGEX.test(formData.email),
-            validPwd: PWD_REGEX.test(formData.password),
-            validMatch: formData.password === formData.matchPwd,
-            validPhone: PHONE_REGEX.test(formData.phoneNumber),
-            validZip: ZIP_REGEX.test(formData.zipCode),
-        });
-    }, [formData]);
 
     useEffect(() => {
-        setErrMsg("");
-    }, [formData]);
+        userRef.current.focus();
+    }, [])
 
-    // Input change handler
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-    };
+    useEffect(() => {
+        setValidName(USER_REGEX.test(user));
+    }, [user])
 
-    // Form submission
+    useEffect(() => {
+        setValidPwd(PWD_REGEX.test(pwd));
+        setValidMatch(pwd === matchPwd);
+    }, [pwd, matchPwd])
+
+    useEffect(() => {
+        setErrMsg('');
+    }, [user, pwd, matchPwd])
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setIsLoading(true);
-        setErrMsg("");
-
-        try {
-            const response = await axios.post("/register", JSON.stringify(formData));
-
-            if (response.status === 200 || response.status === 201) {
-                setSuccess(true);
-                navigate("/", { replace: true });
-            } else {
-                setErrMsg("Registration failed!");
-            }
-        } catch (error) {
-            setErrMsg(JSON.stringify(error?.response?.data) || "Registration failed!");
-        } finally {
-            setIsLoading(false);
+        // if button enabled with JS hack
+        const v1 = USER_REGEX.test(user);
+        const v2 = PWD_REGEX.test(pwd);
+        if (!v1 || !v2) {
+            setErrMsg("Invalid Entry");
+            return;
         }
-    };
+        try {
+            const response = await axios.post(REGISTER_URL,
+                JSON.stringify({ user, pwd }),
+                {
+                    headers: { 'Content-Type': 'application/json' },
+                    withCredentials: true
+                }
+            );
+            // TODO: remove console.logs before deployment
+            console.log(JSON.stringify(response?.data));
+            //console.log(JSON.stringify(response))
+            setSuccess(true);
+            //clear state and controlled inputs
+            setUser('');
+            setPwd('');
+            setMatchPwd('');
+        } catch (err) {
+            if (!err?.response) {
+                setErrMsg('No Server Response');
+            } else if (err.response?.status === 409) {
+                setErrMsg('Username Taken');
+            } else {
+                setErrMsg('Registration Failed')
+            }
+            errRef.current.focus();
+        }
+    }
 
     return (
-        <section className="register" >
+        <>
             {success ? (
-                <Box textAlign="center">
-                    <Typography variant="h4" gutterBottom>
-                        Registration Successful!
-                    </Typography>
-                    <Link to="/" style={{ textDecoration: "none" }}>
-                        <Button variant="contained" color="primary">
-                            Sign In
-                        </Button>
-                    </Link>
-                </Box>
+                <section>
+                    <h1>Success!</h1>
+                    <p>
+                        <a href="#">Sign In</a>
+                    </p>
+                </section>
             ) : (
-                <form onSubmit={handleSubmit}>
-                    <Typography variant="h4" gutterBottom>
-                        Register
-                    </Typography>
-
-                    {errMsg && (
-                        <Alert severity="error" ref={errRef}>
-                            {errMsg}
-                        </Alert>
-                    )}
-
-                    {/* Dynamic Input Fields */}
-                    {[
-                        { label: "Username", name: "username", errorKey: "validName", type: "text" },
-                        { label: "Email", name: "email", errorKey: "validEmail", type: "email" },
-                        { label: "Password", name: "password", errorKey: "validPwd", type: "password" },
-                        { label: "Confirm Password", name: "matchPwd", errorKey: "validMatch", type: "password" },
-                        { label: "First Name", name: "firstName", type: "text" },
-                        { label: "Middle Name", name: "middleName", type: "text" },
-                        { label: "Last Name", name: "lastName", type: "text" },
-                        { label: "Phone Number", name: "phoneNumber", errorKey: "validPhone", type: "tel" },
-                        { label: "Zip Code", name: "zipCode", errorKey: "validZip", type: "text" },
-                        { label: "Address", name: "address", type: "text" },
-                        { label: "City", name: "city", type: "text" },
-                        { label: "State", name: "state", type: "text" },
-                        { label: "Country", name: "country", type: "text" },
-                        { label: "Profile Picture URL", name: "profilePictureUrl", type: "text" },
-                    ].map(({ label, name, type, errorKey }) => (
-                        <TextField
-                            key={name}
-                            fullWidth
-                            margin="normal"
-                            label={label}
-                            name={name}
-                            type={type}
-                            value={formData[name]}
-                            onChange={handleInputChange}
-                            error={errorKey && !validation[errorKey]}
-                            helperText={errorKey && !validation[errorKey] ? `Invalid ${label.toLowerCase()}` : ""}
-                            required={!["middleName", "address", "city", "state", "country", "profilePictureUrl"].includes(name)}
+                <section>
+                    <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"} aria-live="assertive">{errMsg}</p>
+                    <h1>Register</h1>
+                    <form onSubmit={handleSubmit}>
+                        <label htmlFor="username">
+                            Username:
+                            <FontAwesomeIcon icon={faCheck} className={validName ? "valid" : "hide"} />
+                            <FontAwesomeIcon icon={faTimes} className={validName || !user ? "hide" : "invalid"} />
+                        </label>
+                        <input
+                            type="text"
+                            id="username"
+                            ref={userRef}
+                            autoComplete="off"
+                            onChange={(e) => setUser(e.target.value)}
+                            value={user}
+                            required
+                            aria-invalid={validName ? "false" : "true"}
+                            aria-describedby="uidnote"
+                            onFocus={() => setUserFocus(true)}
+                            onBlur={() => setUserFocus(false)}
                         />
-                    ))}
+                        <p id="uidnote" className={userFocus && user && !validName ? "instructions" : "offscreen"}>
+                            <FontAwesomeIcon icon={faInfoCircle} />
+                            4 to 24 characters.<br />
+                            Must begin with a letter.<br />
+                            Letters, numbers, underscores, hyphens allowed.
+                        </p>
 
-                    <TextField
-                        fullWidth
-                        margin="normal"
-                        label="Birthdate"
-                        name="birthdate"
-                        type="date"
-                        InputLabel={{ shrink: true }}
-                        value={formData.birthdate}
-                        onChange={handleInputChange}
-                        required
-                    />
 
-                    <FormControl fullWidth margin="normal">
-                        <InputLabel id="gender-label">Gender</InputLabel>
-                        <Select
-                            labelId="gender-label"
-                            name="gender"
-                            value={formData.gender}
-                            onChange={handleInputChange}
+                        <label htmlFor="password">
+                            Password:
+                            <FontAwesomeIcon icon={faCheck} className={validPwd ? "valid" : "hide"} />
+                            <FontAwesomeIcon icon={faTimes} className={validPwd || !pwd ? "hide" : "invalid"} />
+                        </label>
+                        <input
+                            type="password"
+                            id="password"
+                            onChange={(e) => setPwd(e.target.value)}
+                            value={pwd}
                             required
-                          variant={"filled"}>
-                            {genderOptions.map((option) => (
-                                <MenuItem key={option} value={option}>
-                                    {option}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                            aria-invalid={validPwd ? "false" : "true"}
+                            aria-describedby="pwdnote"
+                            onFocus={() => setPwdFocus(true)}
+                            onBlur={() => setPwdFocus(false)}
+                        />
+                        <p id="pwdnote" className={pwdFocus && !validPwd ? "instructions" : "offscreen"}>
+                            <FontAwesomeIcon icon={faInfoCircle} />
+                            8 to 24 characters.<br />
+                            Must include uppercase and lowercase letters, a number and a special character.<br />
+                            Allowed special characters: <span aria-label="exclamation mark">!</span> <span aria-label="at symbol">@</span> <span aria-label="hashtag">#</span> <span aria-label="dollar sign">$</span> <span aria-label="percent">%</span>
+                        </p>
 
-                    <FormControl fullWidth margin="normal">
-                        <InputLabel id="security-question-label">Security Question</InputLabel>
-                        <Select
-                            labelId="security-question-label"
-                            name="securityQuestion"
-                            value={formData.securityQuestion}
-                            onChange={handleInputChange}
+
+                        <label htmlFor="confirm_pwd">
+                            Confirm Password:
+                            <FontAwesomeIcon icon={faCheck} className={validMatch && matchPwd ? "valid" : "hide"} />
+                            <FontAwesomeIcon icon={faTimes} className={validMatch || !matchPwd ? "hide" : "invalid"} />
+                        </label>
+                        <input
+                            type="password"
+                            id="confirm_pwd"
+                            onChange={(e) => setMatchPwd(e.target.value)}
+                            value={matchPwd}
                             required
-                         variant={"filled"}>
-                            {securityQuestions.map((question) => (
-                                <MenuItem key={question} value={question}>
-                                    {question}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                            aria-invalid={validMatch ? "false" : "true"}
+                            aria-describedby="confirmnote"
+                            onFocus={() => setMatchFocus(true)}
+                            onBlur={() => setMatchFocus(false)}
+                        />
+                        <p id="confirmnote" className={matchFocus && !validMatch ? "instructions" : "offscreen"}>
+                            <FontAwesomeIcon icon={faInfoCircle} />
+                            Must match the first password input field.
+                        </p>
 
-                    <TextField
-                        fullWidth
-                        margin="normal"
-                        label="Security Answer"
-                        name="securityAnswer"
-                        type="text"
-                        value={formData.securityAnswer}
-                        onChange={handleInputChange}
-                        required
-                    />
-
-                    <TextField
-                        fullWidth
-                        margin="normal"
-                        label="Bio"
-                        name="bio"
-                        type="text"
-                        value={formData.bio}
-                        onChange={handleInputChange}
-                        multiline
-                        rows={4}
-                    />
-
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        disabled={
-                            !validation.validName ||
-                            !validation.validEmail ||
-                            !validation.validPwd ||
-                            !validation.validMatch ||
-                            isLoading
-                        }
-                        sx={{ marginTop: 2 }}
-                    >
-                        {isLoading ? <CircularProgress size={24} /> : "Register"}
-                    </Button>
-
-                    <Typography variant="body2" align="center" sx={{ marginTop: 2 }}>
-                        Already registered? <Link to="/">Sign In</Link>
-                    </Typography>
-                </form>
+                        <button disabled={!validName || !validPwd || !validMatch ? true : false}>Sign Up</button>
+                    </form>
+                    <p>
+                        Already registered?<br />
+                        <span className="line">
+                            <Link to="/">Sign In</Link>
+                        </span>
+                    </p>
+                </section>
             )}
-        </section>
-    );
-};
+        </>
+    )
+}
 
-export default Register;
+export default Register

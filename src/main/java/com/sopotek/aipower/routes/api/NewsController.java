@@ -5,9 +5,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sopotek.aipower.model.News;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -15,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
@@ -51,12 +47,7 @@ public class NewsController {
     }
 
     // Fetch Forex Factory calendar data
-    @Operation(summary = "Fetches Forex Factory calendar data")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Fetched Forex Factory calendar successfully"),
-            @ApiResponse(responseCode = "500", description = "Internal server error"),
-            @ApiResponse(responseCode = "404", description = "Not Found")
-    })
+
     @GetMapping("/forex-factory")
     public ResponseEntity<?> getForexFactoryCalendar() {
         try {
@@ -105,13 +96,6 @@ public class NewsController {
     }
 
 
-
-
-    @Operation(summary = "Fetches news data")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Fetched news successfully"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
     @GetMapping("/news")
     public ResponseEntity<?> getNews() {
         try {

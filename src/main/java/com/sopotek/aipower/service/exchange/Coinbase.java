@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,7 +61,7 @@ public class Coinbase {
      * @param body     Request body (can be empty for GET).
      * @return A map containing the headers.
      */
-    private @NotNull @Unmodifiable Map<String, String> generateAuthHeaders(String method, String endpoint, String body) {
+    private Map<String, String> generateAuthHeaders(String method, String endpoint, String body) {
         try {
             String timestamp = String.valueOf(Instant.now().getEpochSecond());
             String prehash = timestamp + method.toUpperCase() + endpoint + body;
