@@ -1,5 +1,6 @@
 package com.sopotek.aipower.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -11,7 +12,7 @@ import java.util.Map;
 public class CryptoService {
 
     private final RestTemplate restTemplate;
-    private final String BASE_URL = "https://api.coingecko.com/api/v3";
+    private final String BASE_URL = "https://api.coingecko.com/api/v3/";
 
     public CryptoService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
@@ -31,21 +32,30 @@ public class CryptoService {
 
     // Get historical price data for the past number of days
     public List <Object>getCryptoHistoricalData(String coinId, String currency, int days) {
-        String url = BASE_URL + "/coins/" + coinId + "/market_chart?vs_currency=" + currency + "&days=" + days;
+        String url = BASE_URL + "coins/" + coinId + "/market_chart?vs_currency=" + currency + "&days=" + days;
         return Collections.singletonList(restTemplate.getForObject(url, Map.class));
     }
 
     // List all available cryptocurrencies
-    public List<Object> listAvailableCryptos() {
-        String url = BASE_URL + "/coins/list";
-        Map res = restTemplate.getForObject(url, Map.class);
+    public List<?> listAvailableCryptos() {
+        String url = BASE_URL + "coins/list";
+        JsonNode res = restTemplate.getForObject(url, JsonNode.class);
+        if (res == null) {
+            throw new RuntimeException("Error fetching cryptocurrency data");
+        }
+        if (res.get("data") == null) {
+            throw new RuntimeException("Error fetching cryptocurrency data");
+        }
+        if (!res.get("data").isArray()) {
+            throw new RuntimeException("Error fetching cryptocurrency data");
+        }
+        return Collections.<Object>singletonList(res.get("data"));
 
-        return (List<Object>) res.get("data");
     }
 
     // Get global cryptocurrency market data summary
     public List<Object> getGlobalMarketSummary() {
-        String url = BASE_URL + "/global";
+        String url = BASE_URL + "global";
         return Collections.singletonList(restTemplate.getForObject(url, Map.class));
     }
 }

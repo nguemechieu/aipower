@@ -1,4 +1,4 @@
-package com.sopotek.aipower.routes.trades.exchange;
+package com.sopotek.aipower.routes.api.stellar;
 import com.sopotek.aipower.service.StellarClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -6,6 +6,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.sdk.Asset;
 import org.stellar.sdk.AssetTypeCreditAlphaNum4;
+
+import java.math.BigDecimal;
+
 import static com.sopotek.aipower.model.ENUM_SIGNAL.SELL;
 @RestController
 @RequestMapping("/stellar")
@@ -24,12 +27,26 @@ public class StellarController {
 
     }
 
+    //Get balances
+    @GetMapping("/balances")
+    public ResponseEntity<?> getBalances() {
+        return ResponseEntity.ok(stellarClient.getBalances());
+    }
 
+    //GET OHCLV
+    @GetMapping("/ohlcv")
+    public ResponseEntity<?> getOHLCV() {
+        return ResponseEntity.ok(stellarClient.getOHCLV());
+    }
 
-
+   //Get orderbook
+    @GetMapping("/orderbook")
+    public ResponseEntity<?> getOrderbook() {
+        return ResponseEntity.ok(stellarClient.getOrderbook());
+    }
 
     @PostMapping("/trade")
-    public ResponseEntity<String> placeTrade(
+    public ResponseEntity<?> placeTrade(
                                              @RequestParam String sellingAssetCode,
                                              @RequestParam String buyingAssetCode,
                                              @RequestParam String amount,
@@ -37,7 +54,7 @@ public class StellarController {
         try {
             Asset selling = new AssetTypeCreditAlphaNum4(sellingAssetCode, "Issuer");
             Asset buying = new AssetTypeCreditAlphaNum4(buyingAssetCode, "Issuer");
-            stellarClient.placeTrade(SELL, selling, buying, amount, price);
+            stellarClient.placeTrade(SELL, selling, buying, BigDecimal.valueOf(Long.parseLong(amount)), price);
             return ResponseEntity.ok("Trade placed successfully.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -51,8 +68,8 @@ public class StellarController {
 
            return ResponseEntity.ok(stellarClient.getTransactionDetails());
     }
-    
-    
+
+
     //Get All Assets
     @GetMapping("/assets")
     public ResponseEntity<?> getAssets() {
@@ -90,8 +107,17 @@ public class StellarController {
 
 
     }
+    //Get All  payments
+    @GetMapping("/payments")
+    public ResponseEntity<?> getPayments() {
+         return  ResponseEntity.ok(stellarClient.getPayments());
+    }
 
-
+//GET ALL EXCHANGES
+    @GetMapping("/exchanges")
+    public ResponseEntity<?> getExchanges() {
+         return  ResponseEntity.ok(stellarClient.getExchangesFromStellarExpert());
+    }
 
 
 

@@ -1,6 +1,5 @@
 package com.sopotek.aipower.service;
 
-import com.sopotek.aipower.model.User;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.Setter;

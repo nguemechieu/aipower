@@ -28,13 +28,13 @@ public class AuthService {
 
     private static final Logger LOG = LoggerFactory.getLogger(AuthService.class);
 
-    private static final String ROLES_CLAIM = "roles";
+    private static final String ROLES_CLAIM = "role";
 
     private SecretKey key;
-    private final int accessTokenExpirationMinutes;
-    private final int refreshTokenExpirationMinutes;
+    private int accessTokenExpirationMinutes;
+    private  int refreshTokenExpirationMinutes;
     private final ConcurrentHashMap<String, Long> tokenBlacklist = new ConcurrentHashMap<>();
-    private final JwtParser jwtParser;
+    private  JwtParser jwtParser;
 
 
     @Autowired
@@ -47,7 +47,7 @@ public class AuthService {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
         this.accessTokenExpirationMinutes = accessTokenExpirationMinutes;
         this.refreshTokenExpirationMinutes = refreshTokenExpirationMinutes;
-        this.jwtParser = Jwts.parserBuilder().build()
+        this.jwtParser = Jwts.parser().build()
                 ;
     }
 
@@ -60,10 +60,10 @@ public class AuthService {
      * @return The signed JWT access token.
      */
     public String generateJwtAccessToken(String username, @NotNull Collection<? extends GrantedAuthority> authorities) {
-        return Jwts.builder().setSubject(username)
+        return Jwts.builder().subject(username)
                 .claim(ROLES_CLAIM, authorities.stream()
                         .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.toList())).setIssuedAt(new Date()).setExpiration(calculateExpirationDate(accessTokenExpirationMinutes))
+                        .collect(Collectors.toList())).issuedAt(new Date()).expiration(calculateExpirationDate(accessTokenExpirationMinutes))
                 .signWith(key)
                 .compact();
     }
@@ -76,12 +76,12 @@ public class AuthService {
      * @return The signed JWT refresh token.
      */
     public String generateJwtRefreshToken(String username, @NotNull Collection<? extends GrantedAuthority> authorities) {
-        return Jwts.builder().setSubject(username)
+        return Jwts.builder().subject(username)
                 .claim(ROLES_CLAIM, authorities.stream()
                         .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.toList())).setIssuedAt(new Date()).setExpiration(
+                        .collect(Collectors.toList())).issuedAt(new Date()).expiration(
 
-               calculateExpirationDate(refreshTokenExpirationMinutes))
+                        calculateExpirationDate(refreshTokenExpirationMinutes))
                 .signWith(key)
                 .compact();
     }
@@ -169,7 +169,7 @@ public class AuthService {
      * @return The Claims object.
      */
     private Claims parseClaims(String token) {
-        return jwtParser.parseClaimsJws(token).getBody();
+        return jwtParser.parseSignedClaims(token).getPayload();
     }
 
     /**
@@ -184,7 +184,7 @@ public class AuthService {
 
     public String validateJwtRefreshToken(String refreshToken) {
         try {
-            Claims claims = jwtParser.parseClaimsJws(refreshToken).getBody();
+            Claims claims = jwtParser.parseSignedClaims(refreshToken).getPayload();
             String username = claims.getSubject();
             if (username == null || !validateJwtToken(generateJwtAccessToken(username, getRolesFromJwtToken(refreshToken)))) {
                 return null;

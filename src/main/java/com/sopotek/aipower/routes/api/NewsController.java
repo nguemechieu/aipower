@@ -1,4 +1,4 @@
-package com.sopotek.aipower.routes;
+package com.sopotek.aipower.routes.api;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;

@@ -63,7 +63,7 @@ UserService userService;
 
             @Contract(pure = true)
             @Override
-            public @NotNull Mono<Instance> find(InstanceId id) {
+            public @NotNull Mono<Instance> find(@NotNull InstanceId id) {
                 return Mono.empty(); // Replace with your actual implementation
             }
 

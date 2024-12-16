@@ -20,8 +20,8 @@ const PersistLogin = () => {
               ...prevAuth,
               accessToken: response.data.accessToken,
 
-              id: response.data.id,
-              roles: response.data.roles,
+              username: response.data.username,
+              role: response.data.role,
             }));
           }
         }
@@ -33,14 +33,17 @@ const PersistLogin = () => {
       }
     };
 
-    verifyToken()
+    verifyToken().catch(error =>
+        console.error("Token verification failed:", error)
+      // Catch any errors during token verification and clear auth context on failure
+    )
   }, [auth?.accessToken, setAuth]); // Add only relevant dependencies
 
   if (loading) {
     return <LoadingSpinner />; // Show loading spinner while verifying
   }
 
-  return auth?.id ? <Outlet /> : <Navigate to="/login" replace />; // Redirect if not authenticated
+  return auth?.username ? <Outlet /> : <Navigate to="/login" replace />; // Redirect if not authenticated
 };
 
 export default PersistLogin;

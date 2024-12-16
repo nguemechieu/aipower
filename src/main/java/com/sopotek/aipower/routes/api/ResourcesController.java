@@ -1,4 +1,4 @@
-package com.sopotek.aipower.routes;
+package com.sopotek.aipower.routes.api;
 
 
 import org.springframework.stereotype.Controller;

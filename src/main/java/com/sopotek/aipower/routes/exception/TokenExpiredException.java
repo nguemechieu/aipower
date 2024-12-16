@@ -1,4 +1,4 @@
-package com.sopotek.aipower.routes;
+package com.sopotek.aipower.routes.exception;
 
 /**
  * Custom exception to handle scenarios where a token has expired.

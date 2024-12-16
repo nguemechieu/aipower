@@ -1,4 +1,4 @@
-package com.sopotek.aipower.routes.telegram;
+package com.sopotek.aipower.routes.api.telegram;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.web.bind.annotation.*;

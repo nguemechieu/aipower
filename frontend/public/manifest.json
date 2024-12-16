@@ -3,17 +3,17 @@
   "name": "AIPOWER",
   "icons": [
     {
-      "src": "%PUBLIC_URL%/logo192.ico",
+      "src": "%PUBLIC_URL%/logo192.png",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     },
     {
-      "src": "%PUBLIC_URL%/aipower.png",
+      "src": "%PUBLIC_URL%/logo192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "%PUBLIC_URL%/logo192.ico/logo512.png",
+      "src": "%PUBLIC_URL%/logo512.png",
       "type": "image/png",
       "sizes": "512x512"
     }

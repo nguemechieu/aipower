@@ -1,10 +1,11 @@
 package com.sopotek.aipower.security;
 
-import com.sopotek.aipower.model.User;
 import com.sopotek.aipower.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,70 +17,104 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.rememberme.InMemoryTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+
+import javax.sql.DataSource;
 
 @Configuration
 public class SecurityConfig {
 
+    // Role constants for maintainability
+    public static final String ROLE_EMPLOYEE = "EMPLOYEE";
+    public static final String ROLE_MANAGER = "MANAGER";
+    public static final String ROLE_MODERATOR = "MODERATOR";
+    public static final String ROLE_USER = "USER";
+    public static final String ROLE_ADMIN = "ADMIN";
+    public static final String ROLE_OWNER = "OWNER";
+    public static final String ROLE_GROUP = "GROUP";
+
     @Value("${aipower.jwt.secret.key}")
-    String SecretKey;
+    private String secretKey;
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserRepository userRepository;
+    private final DataSource dataSource;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UserRepository userRepository) {
+    @Autowired
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UserRepository userRepository, DataSource dataSource) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userRepository = userRepository;
+        this.dataSource = dataSource;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
-
-
-        http.csrf(AbstractHttpConfigurer::disable)
+        http
+                // CSRF Protection
+                .csrf(AbstractHttpConfigurer::disable)//csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                // Authorization Configuration
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/users/employee/**").hasRole("EMPLOYEE")
-                        .requestMatchers("users/manager/**").hasRole("MANAGER")
-                        .requestMatchers("users/moderator/**").hasRole("MODERATOR")
-                        .requestMatchers("/users/me**").hasAnyRole("USER", "ADMIN", "OWNER", "GROUP", "MANAGER")
-                        .requestMatchers("/users/admin/**").hasRole("ADMIN")
-
+                        .requestMatchers("/users/employee/**").hasRole(ROLE_EMPLOYEE)
+                        .requestMatchers("/users/manager/**").hasRole(ROLE_MANAGER)
+                        .requestMatchers("/users/moderator/**").hasRole(ROLE_MODERATOR)
+                        .requestMatchers("/users/me/**").hasAnyRole(ROLE_USER, ROLE_ADMIN, ROLE_OWNER, ROLE_GROUP, ROLE_MANAGER)
+                        .requestMatchers("/users/admin/**").hasRole(ROLE_ADMIN)
                         .anyRequest().permitAll()
                 )
-                .rememberMe(
-                      remember->{
-                          remember.tokenValiditySeconds(1209600); // 14 days
-
-
-
-                          remember.key(SecretKey); // Replace with your secret key
-
-                          remember.tokenRepository(new InMemoryTokenRepositoryImpl()); // In-memory implementation, you can replace it with a persistent storage if needed
-
-                      }
-                ).formLogin(
-                        login -> login.loginPage("/login")
-                               .permitAll()
-
-                               .successForwardUrl("/users/me")
-
-                               .usernameParameter("username")
-                               .passwordParameter("password")
-
-
+                // Remember Me Configuration
+                .rememberMe(remember -> remember
+                        .tokenValiditySeconds(1209600) // 14 days
+                        .key(secretKey)
+                        .userDetailsService(userDetailsService())
+                        .tokenRepository(persistentTokenRepository())
                 )
+                // Login Configuration
+                .formLogin(login -> login
+                        .loginPage("/auth/login").permitAll()
 
-                .logout(logout -> logout.permitAll()
-                                                .logoutSuccessUrl("/logout")
-                                                .clearAuthentication(true)
-                                                .invalidateHttpSession(true)
 
+                        .successForwardUrl("/users/me")
+                        .usernameParameter("username")
+                        .passwordParameter("password")
                 )
-
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Logout Configuration
+                .logout(logout -> logout
+                        .logoutUrl("/auth/logout")
+                        .logoutSuccessUrl("/login?logout").permitAll()
+                        .clearAuthentication(true)
+                        .invalidateHttpSession(true)
+                )
+                // Session Management
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                // Exception Handling
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.sendError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized");
+                            System.out.println("Unauthorized access attempt to: " + request.getRequestURI());
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            System.out.println("Access denied to: " + request.getRequestURI() + " - Reason: " + accessDeniedException.getMessage());
+                            response.sendError(HttpStatus.FORBIDDEN.value(), "Access Denied");
+                        })
+                )
+                // JWT Authentication Filter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return username -> userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    }
+
+    @Bean
+    public PersistentTokenRepository persistentTokenRepository() {
+        JdbcTokenRepositoryImpl tokenRepository = new JdbcTokenRepositoryImpl();
+        tokenRepository.setDataSource(dataSource);
+        return tokenRepository;
     }
 
     @Bean
@@ -90,24 +125,5 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return username -> {
-            User user = userRepository.findByEmail(username)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
-
-            // Convert roles from the user to GrantedAuthority
-            return org.springframework.security.core.userdetails.User.builder()
-                    .username(user.getUsername())
-                    .password(user.getPassword()) // The Password is already encoded in the DB
-                    .authorities(user.getAuthorities())
-                    .accountExpired(!user.isAccountNonExpired())
-                    .accountLocked(!user.isAccountNonLocked())
-                    .credentialsExpired(!user.isCredentialsNonExpired())
-                    .disabled(!user.isEnabled())
-                    .build();
-        };
     }
 }

@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 @EqualsAndHashCode
 @Component
 public class Telegram {
-    private static final String TELEGRAM_BASE_URL = "https://api.telegram.org";
+  protected static final String TELEGRAM_BASE_URL = "https://api.telegram.org";
     private static final Logger LOG = Logger.getLogger(Telegram.class.getName());
     @Value("${telegram.bot.token}")
     private String botToken;

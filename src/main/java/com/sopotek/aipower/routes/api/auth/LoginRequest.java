@@ -1,4 +1,4 @@
-package com.sopotek.aipower.routes.auth;
+package com.sopotek.aipower.routes.api.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

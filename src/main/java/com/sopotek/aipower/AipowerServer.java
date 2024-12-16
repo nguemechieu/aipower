@@ -52,16 +52,10 @@ public class AipowerServer {
     }
 
     public static void main(String[] args) {
-
-
        // Load and set environment variables using Dotenv
         Dotenv dotenv = Dotenv.load();
         dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
         LOG.info("Environment variables loaded successfully.");
-
-
-
-
         // Start Spring Boot Application
         SpringApplication.run(AipowerServer.class, args);
         // Start Netty Client
@@ -105,6 +99,8 @@ public class AipowerServer {
             LOG.info("Netty client shutdown completed.");
         }
     }
+
+
 
     /**
      * Simple Netty client handler for handling connection and communication.

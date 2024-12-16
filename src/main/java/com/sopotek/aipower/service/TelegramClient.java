@@ -1,8 +1,10 @@
 package com.sopotek.aipower.service;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sopotek.aipower.model.News;
+import com.sopotek.aipower.model.Telegram;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.Getter;
@@ -11,11 +13,10 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,48 +27,32 @@ import java.util.concurrent.TimeUnit;
 @Getter
 @Setter
 @Service
-public class TelegramClient {
+public class TelegramClient extends Telegram {
 
     private static final Logger LOG = LoggerFactory.getLogger(TelegramClient.class);
     ChatGPTService chatGPTService=new ChatGPTService();
 
-    @Value("${telegram.bot.token}")
-    private String botToken;
 
-
-    private String apiUrl="https://api.telegram.org/bot"+botToken;
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private String botApiBase=apiUrl;
     private ScheduledExecutorService scheduler;
+    private String chatId;
 
     public TelegramClient() {
 
     }
-    public JsonNode getUpdates() {
-        String endpoint = botApiBase + "/getUpdates";
-        try {
-            String response = restTemplate.getForObject(URI.create(endpoint), String.class);
-            return objectMapper.readTree(response);
-        } catch (Exception e) {
-            LOG.error("Error fetching updates from Telegram API at {}: {}", endpoint, e.getMessage(), e);
-            return null;
-        }
-    }
+
 
 
     @PostConstruct
     public void init() {
-        if (botToken == null || botToken.isEmpty()) {
-            throw new IllegalStateException("Telegram bot token is not configured");
-        }
 
-        this.botApiBase = apiUrl + "/bot" + botToken;
+
         this.running = true;
 
-        LOG.info("Telegram client initialized with base URL: {}", botApiBase);
+        LOG.info("Telegram client initialized with base URL: {}", TELEGRAM_BASE_URL);
 
         // Use a scheduler for update polling
         this.scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -87,24 +72,9 @@ public class TelegramClient {
         LOG.info("Telegram bot has been stopped.");
     }
 
- 
-    /**
-     * Send a message to a specific chat.
-     *
-     * @param chatId  The chat ID to send the message to.
-     * @param message The message text.
-     */
-    public void sendMessage(String chatId, String message) {
-        String endpoint = botApiBase + "/sendMessage";
-        try {
-            Map<String, String> payload = Map.of("chat_id", chatId, "text", message);
-            restTemplate.postForObject(URI.create(endpoint), payload, String.class);
-            LOG.info("Message sent to chat {}: {}", chatId, message);
-        } catch (Exception e) {
-            LOG.error("Error sending message: {}", e.getMessage());
-        }
-    }
-private String chatId;
+
+
+
 
     boolean running = false; // Control flag for graceful exit
     /**
@@ -115,31 +85,37 @@ private String chatId;
 
         while (running) {
             try {
-                JsonNode updates = getUpdates();
+                JsonNode updates = getUpdates(0);
                 if (updates == null || !updates.has("result")) {
-                    LOG.warn("No updates found");
-                    sleepFor(5000); // Avoid spamming requests
-                    continue;
-                }
-
-                updates.get("result").forEach(update -> {
-                    if (update.has("message")) {
-                        JsonNode message = update.get("message");
-                         chatId = message.get("chat").get("id").asText();
-                        String text = message.has("text") ? message.get("text").asText() : "";
-
-                        handleCommand(chatId, text);
+                    if (updates == null || !updates.has("result")) {
+                        LOG.warn("No updates found");
+                        // sleepFor(5000); // Avoid spamming requests
+                        continue;
                     }
-                });
 
-                sleepFor(1000); // Prevent rapid polling
-            } catch (Exception e) {
-                LOG.error("Error processing updates: {}", e.getMessage());
-                sleepFor(5000); // Wait before retrying to avoid excessive error logs
+                    updates.get("result").forEach(update -> {
+                        if (update.has("message")) {
+                            JsonNode message = update.get("message");
+                            chatId = message.get("chat").get("id").asText();
+                            String text = message.has("text") ? message.get("text").asText() : "";
+
+                            try {
+                                handleCommand(Long.parseLong(chatId), text);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    });
+
+                    sleepFor(); // Prevent rapid polling
+
+
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
     }
-
 
     /**
      * Handles user commands and sends appropriate responses.
@@ -147,34 +123,43 @@ private String chatId;
      * @param chatId The chat ID.
      * @param text   The user message text.
      */
-    private void handleCommand(String chatId, @NotNull String text) {
+    private void handleCommand(long chatId, @NotNull String text) throws IOException {
         switch (text.split(" ")[0]) { // Use the first word as the command
-            case "/start" -> sendMessage(chatId, "Welcome! Use /help to see available commands.");
-            case "/help" -> sendMessage(chatId, getHelpMessage());
+            case "/start" -> sendMessage(chatId, "Welcome! Use /help to see available commands.",false,false);
+            case "/help" -> sendMessage(chatId, text,false,false);
             case "/trade" -> handleTrade(chatId);
-            case "/news" -> handleMarketNews(chatId);
+            case "/news" -> handleMarketNews(String.valueOf(chatId));
             case "/portfolio" -> handlePortfolio(chatId);
-            case "/settings" -> handleSettings(chatId);
-            case "/deposit", "/withdraw", "/balance", "/deposit-history", "/withdraw-history" -> handleFinanceCommand(chatId, text);
-            case "/convert", "/rate" -> handleConversion(chatId, text);
-            case "/analysis" -> handleAnalysis(chatId);
-            case "/chat-gpt" -> handleChatGPT(chatId);
-            default -> sendMessage(chatId, "You said: " + text);
+            case "/settings" -> handleSettings(String.valueOf(chatId));
+            case "/deposit", "/withdraw", "/balance", "/deposit-history", "/withdraw-history" -> handleFinanceCommand(String.valueOf(chatId), text);
+            case "/convert", "/rate" -> handleConversion(String.valueOf(chatId), text);
+            case "/analysis" -> handleAnalysis(String.valueOf(chatId));
+            case "/chat-gpt" -> handleChatGPT(String.valueOf(chatId));
+            default -> sendMessage(String.valueOf(chatId), "You said: " + text);
         }
     }
 
-    private void handleTrade(String chatId) {
+    private void handleTrade(long chatId) throws IOException {
         // Trade logic to select exchange, trade pair, and execute
-        sendMessage(chatId, "Trade command received. Please provide the trade details.");
+        sendMessage(chatId, "Trade command received. Please provide the trade details.",false,false);
     }
 
 
 
-    private void handlePortfolio(String chatId) {
+    private void handlePortfolio(long chatId) {
         // Fetch portfolio details
-        sendMessage(chatId, "Fetching your portfolio...");
+        sendMessage(String.valueOf(chatId), "Fetching your portfolio...");
         // Simulate portfolio details
-        sendMessage(chatId, "Portfolio: [BTC: 0.5, ETH: 2.0]");
+        sendMessage(String.valueOf(chatId), "Portfolio: [BTC: 0.5, ETH: 2.0]");
+    }
+
+    public void sendMessage(String chatId, String s) {
+        // Send a message to the specified chat
+        String method = "sendMessage";
+        Map<String, Object> params = Map.of("chat_id", chatId, "text", s);
+        String response = restTemplate.postForObject(String.format("%s/%s", TELEGRAM_BASE_URL, method), params, String.class);
+        LOG.info("Sent message: {}", s);
+        LOG.info("Response: {}", response);
     }
 
     private void handleSettings(String chatId) {
@@ -234,9 +219,9 @@ private String chatId;
                 """;
     }
 
-    private void sleepFor(int milliseconds) {
+    private void sleepFor() {
         try {
-            Thread.sleep(milliseconds);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             LOG.error("Error in sleep: {}", e.getMessage());
             Thread.currentThread().interrupt();
@@ -255,13 +240,9 @@ private String chatId;
     }
 
     @Contract(pure = true)
-    private @NotNull List<News> fetchMarketNews() {
+    private @NotNull List<News> fetchMarketNews() throws IOException {
 
-        List <News>result = restTemplate.getForObject(
-"https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=e670b7d3bd02427fbbfd29d55a0e78ef"
-
-                , List.class
-        );
+        List <News>result =new ObjectMapper().readTree((JsonParser) restTemplate.getForObject("https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=e670b7d3bd02427fbbfd29d55a0e78ef", List.class));
      if (result==null) return new ArrayList<>();
      return result;
 

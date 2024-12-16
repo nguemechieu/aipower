@@ -1,0 +1,46 @@
+/* Header.css */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #0f73d8;
+    color: #ecf0f1;
+}
+
+.logo a {
+    font-size: 1.5rem;
+    color: #45d16f;
+    text-decoration: none;
+}
+
+.navigation ul {
+    list-style: none;
+    display: flex;
+    gap: 15px;
+}
+
+.navigation li a {
+    color: #ecf0f1;
+    text-decoration: none;
+    font-size: 1rem;
+    padding: 5px 10px;
+    transition: background-color 0.3s;
+}
+
+.navigation li a:hover {
+    background-color: #34495e;
+    border-radius: 5px;
+}
+
+.login-button {
+    font-weight: bold;
+    border: 1px solid #ecf0f1;
+    border-radius: 5px;
+    padding: 5px 10px;
+}
+
+.login-button:hover {
+    background-color: #ecf0f1;
+    color: #2c3e50;
+}

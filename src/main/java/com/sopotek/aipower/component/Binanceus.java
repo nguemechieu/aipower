@@ -1,134 +1,226 @@
-package com.sopotek.aipower.routes.api.binanceus;
+package com.sopotek.aipower.component;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sopotek.aipower.model.AccountInfo;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
-import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Getter
 @Setter
+@Component
 public class Binanceus {
-private static final Logger LOG= LoggerFactory.getLogger(Binanceus.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Binanceus.class);
 
-@Value("${binanceus.api.key}")
+    @Value("${binanceus.api.key}")
     private String apiKey;
-@Value("${binanceus.api.secret}")
+
+    @Value("${binanceus.api.secret}")
     private String secretKey;
 
-    private ResponseEntity<String> response;
+    private  WebClient webClient;
+    private AccountInfo accountInfo;
 
-    public Binanceus() {
-
+    public Binanceus(WebClient.Builder webClientBuilder) {
+        this.webClient = webClientBuilder
+                .baseUrl("https://api.binance.us/api/v3/")
+                .codecs(clientCodecConfigurer -> clientCodecConfigurer.defaultCodecs()
+                        .maxInMemorySize(10 * 1024 * 1024)) // Set max size to 10MB
+                .build();
     }
 
-    public ResponseEntity<String> makeRequest(HttpMethod  method, String path, Map<String,String> parameters) {
+    public Mono<String> makeRequest(HttpMethod method, String path, Map<String, String> parameters) {
         try {
-        // Set up headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + apiKey);
+            String url = path;
+            if (parameters != null && !parameters.isEmpty()) {
+                url += "?" + parameters.entrySet().stream()
+                        .map(entry -> entry.getKey() + "=" + entry.getValue())
+                        .collect(Collectors.joining("&"));
+            }
 
-        // Create entity with headers
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        // Add parameters to request
-        if (parameters!= null) {
-            path = path + "?" + parameters.entrySet().stream()
-                   .map(entry -> entry.getKey() + "=" + entry.getValue())
-                   .collect(Collectors.joining("&"));
-        }
+            LOG.info("Making request to BinanceUS API: Method={}, URL={}", method, url);
 
-
-        // Create URI
-        URI urls = URI.create("https://api.binance.us/api/v3/" + path);
-
-        // Make request
-        RestTemplate restTemplate = new RestTemplate();
-
-
-            response = restTemplate.exchange(urls, method, entity, String.class);
+            return webClient.method(method)
+                    .uri(url)
+                    .header("X-MBX-APIKEY", apiKey)
+                    .retrieve()
+                    .bodyToFlux(String.class) // Stream response
+                    .reduce("", String::concat) // Concatenate chunks
+                    .doOnSuccess(response -> LOG.info("Response received: {}", response))
+                    .doOnError(e -> LOG.error("Error while calling BinanceUS API: {}", e.getMessage(), e));
         } catch (Exception e) {
-           LOG.warn(
-                   e.getMessage(), e);
-
+            LOG.error("Unexpected error in BinanceUS API call: {}", e.getMessage(), e);
+            throw new BinanceApiException("Error while processing BinanceUS API request", e);
         }
-        return response;
+    }
+
+    public Mono<ExchangeInfo> getAllTradingPairs() {
+        return makeRequest(HttpMethod.GET, "exchangeInfo", null)
+                .flatMap(response -> {
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        ExchangeInfo exchangeInfo = mapper.readValue(response, ExchangeInfo.class);
+                        LOG.info("Parsed ExchangeInfo: {}", exchangeInfo);
+                        return Mono.just(exchangeInfo);
+                    } catch (Exception e) {
+                        LOG.error("Error parsing exchangeInfo response: {}", e.getMessage(), e);
+                        return Mono.error(new BinanceApiException("Failed to parse exchangeInfo response", e));
+                    }
+                });
+    }
+
+    public Mono<ResponseEntity<?>> getAccountInfo() throws NoSuchAlgorithmException {
+//        # Get HMAC SHA256 signature
+//
+//        timestamp=`date +%s000`
+//
+//        api_key=<your_api_key>
+//                secret_key=<your_secret_key>
+//
+//                api_url="https://api.binance.us"
+//
+//        signature=`echo -n "timestamp=$timestamp" | openssl dgst -sha256 -hmac $secret_key`
+//
+//        curl -X "GET" "$api_url/api/v3/account?timestamp=$timestamp&signature=$signature" \
+//        -H "X-MBX-APIKEY: $api_key"
+        Map<String, String> params= new HashMap<>();
+        params.put("timestamp", String.valueOf(System.currentTimeMillis()));
+
+                // HMAC-SHA256 signature
+        long timestamp=
+                Instant.now().atZone(ZoneId.of("UTC")).toEpochSecond() * 1000;
+        String signature =
+                        java.util.Base64.getEncoder()
+                               .encodeToString(
+                                        java.security.MessageDigest.getInstance("SHA-256")
+                                               .digest((timestamp + "api_key=" + apiKey).getBytes(StandardCharsets.UTF_8)));
+        params.put("signature", signature);
+
+        return makeRequest(HttpMethod.GET, "account", params)
+                .map(response -> {
+                    try {
+                        ObjectMapper objectMapper = new ObjectMapper();
+                     accountInfo = objectMapper.readValue(response, AccountInfo.class);
+                        return ResponseEntity.ok(accountInfo);
+                    } catch (Exception e) {
+                        LOG.error("Error parsing account info: {}", e.getMessage(), e);
+                        return ResponseEntity.status(500).body("Failed to parse account information\n"+e.getMessage());
+                    }
+                })
+                .onErrorResume(e -> {
+                    LOG.error("Error retrieving account info: {}", e.getMessage(), e);
+                    return Mono.just(ResponseEntity.status(500).body("Failed to retrieve account information"));
+                });
     }
 
 
-    //Get all trading pairs
-    public ResponseEntity<String> getAllTradingPairs() {
-        return makeRequest(HttpMethod.GET, "ticker/allPrices", null);
-    }
-
-    //Get ticker for a specific pair
-    public ResponseEntity<String> getTicker(String symbol) {
+    public Mono<String> getTicker(String symbol) {
         return makeRequest(HttpMethod.GET, "ticker/price", Map.of("symbol", symbol));
     }
 
-    //Get 24 hour price change statistics for all symbols
-    public ResponseEntity<String> get24HourPriceChangeStats() {
+    public Mono<String> get24HourPriceChangeStats() {
         return makeRequest(HttpMethod.GET, "ticker/24hr", null);
     }
 
-    //Get 24 hour volume by market
-    public ResponseEntity<String> get24HourVolumeByMarket() {
+    public Mono<String> get24HourVolumeByMarket() {
         return makeRequest(HttpMethod.GET, "ticker/24hrVolume", null);
     }
 
-    //Get depth of the order book
-    public ResponseEntity<String> getOrderBook(String symbol, int limit) {
+    public Mono<String> getOrderBook(String symbol, int limit) {
         return makeRequest(HttpMethod.GET, "depth", Map.of("symbol", symbol, "limit", String.valueOf(limit)));
     }
 
-    // Get historical candlestick data
-    public ResponseEntity<String> getHistoricalCandlestickData(String symbol, String interval, int limit) {
+    public Mono<String> getHistoricalCandlestickData(String symbol, String interval, int limit) {
         return makeRequest(HttpMethod.GET, "klines", Map.of("symbol", symbol, "interval", interval, "limit", String.valueOf(limit)));
     }
 
-    // Get aggregate trades for a specific symbol
-    public ResponseEntity<String> getAggregateTrades(String symbol, int fromId, int limit) {
-        return makeRequest(HttpMethod.GET, "aggTrades", Map.of("symbol", symbol, "fromId", String.valueOf(fromId), "limit", String.valueOf(limit)));
+    public Mono<String> getAggregateTrades(String symbol, int fromId, int limit) {
+        return makeRequest(HttpMethod.GET, "aggTrades", Map.of(
+                "symbol", symbol,
+                "fromId", String.valueOf(fromId),
+                "limit", String.valueOf(limit)
+        ));
     }
 
-    // Get current server time
-    public ResponseEntity<String> getServerTime() {
+    public Mono<String> getServerTime() {
         return makeRequest(HttpMethod.GET, "time", null);
     }
 
-    // Get the best price/qty on a buy or sell order
-    public ResponseEntity<String> getBestPrice(String symbol, String side) {
+    public Mono<String> getBestPrice(String symbol, String side) {
         return makeRequest(HttpMethod.GET, "book/price", Map.of("symbol", symbol, "side", side));
     }
 
-    // Get the current open orders on a symbol
-    public ResponseEntity<String> getOpenOrders(String symbol) {
-        return makeRequest(HttpMethod.GET, "openOrders", Map.of("symbol", symbol));
+    public Mono<String> getOpenOrders(String symbol) {
+        Map<String, String> params = new HashMap<>();
+        params.put("symbol", symbol);
+        //type
+        params.put("type", "LIMIT_MAKER"); // Include type to avoid rate limiting issues.
+        // Set a large value to avoid rate limiting issues.
+        params.put("recvWindow", "5000"); // Set a large value to avoid rate limiting issues.
+        return makeRequest(HttpMethod.GET, "openOrders", params);
     }
 
-    // Place a new order
-    public ResponseEntity<String> placeOrder(String symbol, String side, String type, String quantity, String price) {
-        return makeRequest(HttpMethod.POST, "order", Map.of("symbol", symbol, "side", side, "type", type, "quantity", quantity, "price", price));
+    public Mono<String> placeOrder(String symbol, String side, String type, String quantity, String price) {
+        return makeRequest(HttpMethod.POST, "order", Map.of(
+                "symbol", symbol,
+                "side", side,
+                "type", type,
+                "quantity", quantity,
+                "price", price
+        ));
     }
 
-    // Cancel an existing order
-    public ResponseEntity<String> cancelOrder(String symbol, long orderId) {
+    public Mono<String> cancelOrder(String symbol, long orderId) {
         return makeRequest(HttpMethod.DELETE, "order", Map.of("symbol", symbol, "orderId", String.valueOf(orderId)));
     }
 
-    // Test new order
-    public ResponseEntity<String> testNewOrder(String symbol, String side, String type, String quantity, String price) {
-        return makeRequest(HttpMethod.POST, "order/test", Map.of("symbol", symbol, "side", side, "type", type, "quantity", quantity, "price", price));
+    public Mono<String> testNewOrder(String symbol, String side, String type, String quantity, String price) {
+        return makeRequest(HttpMethod.POST, "order/test", Map.of(
+                "symbol", symbol,
+                "side", side,
+                "type", type,
+                "quantity", quantity,
+                "price", price
+        ));
     }
 
+    public static class BinanceApiException extends RuntimeException {
+        public BinanceApiException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
 
+    @Getter
+    @Setter
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ExchangeInfo {
+        private List<SymbolInfo> symbols;
 
+        @Getter
+        @Setter
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        public static class SymbolInfo {
+            private String symbol;
+            private String status;
+            private String baseAsset;
+            private String quoteAsset;
+        }
+    }
 }

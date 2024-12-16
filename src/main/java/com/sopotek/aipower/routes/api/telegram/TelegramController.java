@@ -1,4 +1,4 @@
-package com.sopotek.aipower.routes.telegram;
+package com.sopotek.aipower.routes.api.telegram;
 
 import com.sopotek.aipower.service.TelegramClient;
 import org.jetbrains.annotations.NotNull;

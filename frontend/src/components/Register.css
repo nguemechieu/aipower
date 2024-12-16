@@ -16,7 +16,7 @@ section.register {
 
 
 /* Form Styles */
-form {
+.form {
     display: flex;
     flex-direction: column;
     gap: 15px;

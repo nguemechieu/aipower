@@ -1,4 +1,4 @@
-package com.sopotek.aipower.routes;
+package com.sopotek.aipower.routes.api;
 
 import com.sopotek.aipower.service.CryptoService;
 
@@ -24,8 +24,8 @@ CryptoService cryptoService;
     @GetMapping("/price")
     public ResponseEntity<?> getCryptoPrice(@RequestParam String coinId, @RequestParam String currency) {
         try {
-            List<Object> priceData =  cryptoService.getCryptoPrice(coinId, currency);
-            return ResponseEntity.ok(priceData);
+
+            return ResponseEntity.ok( cryptoService.getCryptoPrice(coinId, currency));
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error fetching crypto price: " + e.getMessage());
         }
@@ -35,8 +35,8 @@ CryptoService cryptoService;
     @GetMapping("/market")
     public ResponseEntity<?> getCryptoMarketData(@RequestParam String coinId, @RequestParam String currency) {
         try {
-            List<Object> marketData = cryptoService.getCryptoMarketData(coinId, currency);
-            return ResponseEntity.ok(marketData);
+
+            return ResponseEntity.ok( cryptoService.getCryptoMarketData(coinId, currency));
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error fetching market data: " + e.getMessage());
         }
@@ -46,8 +46,8 @@ CryptoService cryptoService;
     @GetMapping("/historical")
     public ResponseEntity<?> getCryptoHistoricalData(@RequestParam String coinId, @RequestParam String currency, @RequestParam int days) {
         try {
-            List<Object> historicalData =  cryptoService.getCryptoHistoricalData(coinId, currency, days);
-            return ResponseEntity.ok(historicalData);
+
+            return ResponseEntity.ok(cryptoService.getCryptoHistoricalData(coinId, currency, days));
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error fetching historical data: " + e.getMessage());
         }
@@ -57,8 +57,8 @@ CryptoService cryptoService;
     @GetMapping("/list")
     public ResponseEntity<?> listAvailableCryptos() {
         try {
-            List<Object> cryptos = cryptoService.listAvailableCryptos();
-            return ResponseEntity.ok(cryptos);
+
+            return ResponseEntity.ok(cryptoService.listAvailableCryptos());
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error listing available cryptocurrencies: " + e.getMessage());
         }
@@ -68,8 +68,7 @@ CryptoService cryptoService;
     @GetMapping("/global")
     public ResponseEntity<?> getGlobalMarketSummary() {
         try {
-            List<Object> globalData = cryptoService.getGlobalMarketSummary();
-            return ResponseEntity.ok(globalData);
+            return ResponseEntity.ok( cryptoService.getGlobalMarketSummary());
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error fetching global market summary: " + e.getMessage());
         }

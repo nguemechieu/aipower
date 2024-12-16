@@ -1,25 +1,30 @@
-# Stage 1: Build React App
+# Stage 1: Build Frontend
 FROM node:latest AS frontend-builder
 WORKDIR /aipower/frontend
 
-# Copy frontend package files and install dependencies
+# Copy package.json and package-lock.json and install dependencies
 COPY frontend/package*.json ./
-RUN npm ci --production
+RUN npm ci
 
-# Copy the rest of the frontend source code
+# Copy the rest of the frontend source code and build
 COPY frontend/ ./
-
-# Build the frontend for production
 RUN npm run build
 
-
-
 # Stage 2: Build Spring Boot Backend
-FROM gradle:8.0-jdk-jammy AS backend-builder
+FROM gradle:8.3-jdk-jammy AS backend-builder
 
-# Ensure correct Java path and set JAVA_HOME
-ENV JAVA_HOME=/usr/lib/jvm/java-23-openjdk
-RUN mkdir -p $JAVA_HOME && ln -s $(dirname $(dirname $(readlink -f $(which java)))) $JAVA_HOME
+# Install Java 23
+RUN apt-get update && \
+    apt-get install -y curl && \
+    mkdir -p /usr/lib/jvm && \
+    curl -L -o temurin.tar.gz https://github.com/adoptium/temurin23-binaries/releases/download/jdk-23.0.1%2B11/OpenJDK23U-jdk_x64_linux_hotspot_23.0.1_11.tar.gz && \
+    tar -xzf temurin.tar.gz -C /usr/lib/jvm && \
+    mv /usr/lib/jvm/jdk-23.0.1+11 /usr/lib/jvm/jdk-23.0.1 && \
+    rm temurin.tar.gz
+
+# Set JAVA_HOME and update PATH
+ENV JAVA_HOME=/usr/lib/jvm/jdk-23.0.1
+ENV PATH="$JAVA_HOME/bin:$PATH"
 
 WORKDIR /aipower
 
@@ -37,22 +42,22 @@ RUN ./gradlew dependencies --no-daemon
 COPY . ./
 RUN ./gradlew bootJar --no-daemon
 
-# Stage 3: Final Deployment Image
-FROM openjdk:22 AS production
+# Stage 3: Production
+FROM openjdk:23 AS production
 
 WORKDIR /aipower
 
 # Copy built backend JAR
 COPY --from=backend-builder /aipower/build/libs/*.jar aipower.jar
 
-# Copy built frontend files
+# Copy frontend build output
 COPY --from=frontend-builder /aipower/frontend/build ./src/main/resources/static
 
 # Set environment variables
 ENV SPRING_PROFILES_ACTIVE=production
 
-# Expose application port
+# Expose the application port
 EXPOSE 8080
 
-# Run Spring Boot application
+# Start the Spring Boot application
 ENTRYPOINT ["java", "-jar", "aipower.jar"]

@@ -1,197 +1,142 @@
 package com.sopotek.aipower.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sopotek.aipower.component.StellarSorobanSmartContract;
 import com.sopotek.aipower.model.ENUM_SIGNAL;
+
 import com.sopotek.aipower.model.PythonIntegration;
 import jakarta.annotation.PostConstruct;
-import lombok.*;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import net.glxn.qrgen.QRCode;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.stellar.sdk.*;
 import org.stellar.sdk.Price;
-import org.stellar.sdk.exception.TooManyRequestsException;
-import org.stellar.sdk.operations.ChangeTrustOperation;
-import org.stellar.sdk.operations.ManageBuyOfferOperation;
-import org.stellar.sdk.operations.ManageSellOfferOperation;
-import org.stellar.sdk.operations.Operation;
+import org.stellar.sdk.operations.*;
 import org.stellar.sdk.responses.*;
-import org.stellar.sdk.xdr.TransactionV0Envelope;
+import org.stellar.sdk.responses.operations.OperationResponse;
 
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Base64;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static com.sopotek.aipower.model.ENUM_SIGNAL.*;
+import static com.sopotek.aipower.component.StellarSorobanSmartContract.deploySmartContractXdr;
+import static com.sopotek.aipower.model.ENUM_SIGNAL.BUY;
+import static com.sopotek.aipower.model.ENUM_SIGNAL.SELL;
 
+/**
+ * A service for interacting with the Stellar blockchain.
+ */
 @Getter
 @Setter
-@AllArgsConstructor
-
-@Service
+@Component
 public class StellarClient {
     private static final Logger LOG = LoggerFactory.getLogger(StellarClient.class);
+    private static final String HORIZON_MAINNET_URL = "https://horizon.stellar.org";
 
+    private final Server server = new Server(HORIZON_MAINNET_URL);
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
-    private double balance; // Account balance
-    private String currency; // Currency type (e.g., XLM)
-    @Value("${STELLAR_LUMEN_API_URL}")
-    private  String HORIZON_URL="https://horizon.stellar.org" ; // Public Stellar network URL
-    private final Server server = new Server(HORIZON_URL);
+    private volatile boolean running = true;
+
+    @Value("${stellar.public}")
+    private String publicKey;
+
+    @Value("${stellar.secret}")
+    private String secretKey;
 
     private KeyPair sourceKeyPair;
     private AccountResponse accountResponse;
-    private TransactionV0Envelope envelope;
-    private Transaction transaction;
-    private Page<TradeAggregationResponse> tradeAggregations;
+    private Map<String, String> tradeResult;
+    private Map<String, String> marketData;
+    private TransactionResponse transaction;
+    private TransactionResponse response;
+    private Operation operation;
+    private double balance;
+    private Page<OfferResponse> offers;
+    private Page<AssetResponse> assets;
 
-
-    private String publicKey; // Stellar public key
-
-    private String secretKey; // Stellar secret key
-    private String exchange;
-    private String assetCode;
-
-    @Autowired
-    public StellarClient(
-        @Value("${stellar.public}")String publicKey,
-        @Value("${stellar.secret}")String secretKey) {
-        this.sourceKeyPair=KeyPair.fromSecretSeed(secretKey);
-        this.accountResponse = server.accounts().account(publicKey);
-    startLiveTrade();findTrustedAssetIssuer("BINANCE","USDC");
+    public StellarClient() {
     }
-
     /**
      * Initializes the Stellar client.
      */
     @PostConstruct
     public void init() {
-        LOG.info("Stellar client initialized with Horizon URL: {}", HORIZON_URL);
-
-
-    }
-
-
-    public List<Map<String, String>> getAllAssets() {
-        String horizonAssetsUrl = "https://horizon.stellar.org/assets"; // Use Horizon Testnet for testing
-
         try {
-            // Make the API request to Stellar Horizon
-            RestTemplate restTemplate = new RestTemplate();
-            String response = restTemplate.getForObject(horizonAssetsUrl, String.class);
-
-            // Parse the JSON response
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode rootNode = objectMapper.readTree(response);
-
-            // Extract asset information
-            List<Map<String, String>> assets = new ArrayList<>();
-            JsonNode records = rootNode.path("_embedded").path("records");
-            for (JsonNode record : records) {
-                String code = record.path("asset_code").asText();
-                String issuer = record.path("asset_issuer").asText();
-                String amount = record.path("amount").asText();
-
-                String type = record.path("asset_type").asText();
-
-
-                assets.add(Map.of(
-                        "code", code,"type",type,
-                        "issuer", issuer,
-                        "amount", amount
-                ));
-            }
-
-            return assets;
+            this.sourceKeyPair = KeyPair.fromSecretSeed(secretKey);
+            this.accountResponse = server.accounts().account(publicKey);
+            LOG.info("Stellar client initialized with public key: {}", publicKey);
+            deploySmartContractXdr(secretKey);
         } catch (Exception e) {
-            LOG.error("Error fetching assets from Stellar ledger: {}", e.getMessage(), e);
-            return List.of(Map.of("error", "Failed to fetch assets: " + e.getMessage()));
+            LOG.error("Error initializing Stellar client: {}", e.getMessage(), e);
         }
     }
-    public Map<String, String> findTrustedAssetIssuer(String exchange, String assetCode) {
 
-        LOG.info("Searching for trusted issuer for asset: {} on exchange: {}", assetCode, exchange);
+    public void smartContract(String secretKey) throws IOException {
+        deploySmartContractXdr(secretKey);
+    }
 
-        String trustedUrl = "https://api.stellar.expert/explorer/directory?search=" + exchange;
-
+    /**
+     * Fetches the account balances.
+     * @return Map of asset and balance.
+     */
+    public Map<String, String> getBalances() {
         try {
-            // Make the API request to Stellar Expert
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<String> response = restTemplate.getForEntity(trustedUrl, String.class);
-
-            // Parse the JSON response
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode rootNode = objectMapper.readTree(response.getBody());
-
-            // Find the issuer from the response based on asset code
-            JsonNode records = rootNode.path("_embedded").path("records");
-            for (JsonNode record : records) {
-                if (record.has("assets")) {
-                    JsonNode assets = record.get("assets");
-                    for (JsonNode asset : assets) {
-                        if (assetCode.equalsIgnoreCase(asset.get("code").asText())) {
-                            String issuer = asset.get("issuer").asText();
-                            LOG.info("Found trusted issuer for {} on {}: {}", assetCode, exchange, issuer);
-                            return Map.of("assetCode", assetCode, "issuer", issuer);
-                        }
-                    }
-                }
+            AccountResponse account = server.accounts().account(publicKey);
+            Map<String, String> balances = new HashMap<>();
+            for (AccountResponse.Balance balance : account.getBalances()) {
+                String asset = balance.getAssetType().equals("native") ? "XLM" : balance.getAssetCode();
+                balances.put(asset, balance.getBalance());
             }
-
-            LOG.warn("No trusted issuer found for asset: {} on exchange: {}", assetCode, exchange);
-            return Map.of("error", "No trusted issuer found for asset: " + assetCode);
+            LOG.info("Balances fetched successfully for account: {}", publicKey);
+            return balances;
         } catch (Exception e) {
-            LOG.error("Error finding trusted issuer for asset {} on exchange {}: {}", assetCode, exchange, e.getMessage(), e);
-            return Map.of("error", "Error finding trusted issuer: " + e.getMessage());
+            LOG.error("Error fetching balances: {}", e.getMessage(), e);
+            return Map.of("error", "Failed to fetch balances: " + e.getMessage());
         }
     }
-    public Map<String, String> createTrustline(String sourceSecretKey, String assetCode, String issuerPublicKey,int limit) {
-        try {
-            // Initialize keypair and account response
-            KeyPair sourceKeyPair = KeyPair.fromSecretSeed(sourceSecretKey);
-            AccountResponse sourceAccount = server.accounts().account(sourceKeyPair.getAccountId());
 
-            // Create the asset
+    /**
+     * Creates a trustline for a given asset.
+     * @param assetCode The asset code.
+     * @param issuerPublicKey The issuer's public key.
+     * @param limit The trustline limit.
+     * @return Result of the operation.
+     */
+    public Map<String, String> createTrustline(String assetCode, String issuerPublicKey, BigDecimal limit) {
+        try {
             Asset asset = Asset.createNonNativeAsset(assetCode, issuerPublicKey);
-
-        Operation operation = ChangeTrustOperation.builder().
-                asset(new ChangeTrustAsset(asset))
-                .limit(BigDecimal.valueOf(limit)).build()
-                ;
-            Transaction transaction = new TransactionBuilder(sourceAccount, Network.PUBLIC)
-                    .addOperation(operation)
-                    .setBaseFee(Transaction.MIN_BASE_FEE)
-                    .setTimeout(180) // Timeout in seconds
+            @NonNull ChangeTrustAsset assetd= new ChangeTrustAsset(asset);
+            ChangeTrustOperation operation = ChangeTrustOperation.builder()
+                    .asset(assetd)
+                    .limit(limit)
                     .build();
 
+            Transaction transaction = buildTransaction(List.of(operation));
             transaction.sign(sourceKeyPair);
 
-            // Submit the transaction
-            TransactionResponse response = server.submitTransaction(transaction);
-
+            response = server.submitTransaction(transaction);
             if (response.getSuccessful()) {
-                LOG.info("Trustline created successfully for asset {} issued by {}", assetCode, issuerPublicKey);
-                return Map.of(
-                        "success", "Trustline created successfully",
-                        "ledger", String.valueOf(response.getLedger())
-                );
+                LOG.info("Trustline created successfully for asset: {}", assetCode);
+                return Map.of("success", "Trustline created successfully");
             } else {
                 LOG.error("Failed to create trustline: {}", response.getResultXdr());
                 return Map.of("error", "Failed to create trustline", "details", response.getResultXdr());
@@ -202,161 +147,203 @@ public class StellarClient {
         }
     }
 
-
-
-
     /**
-     * Fetches account details from the Stellar network.
+     * Places a trade on the Stellar DEX.
+     * @param signal Trade signal (BUY/SELL).
+     * @param sellingAsset The asset to sell.
+     * @param buyingAsset The asset to buy.
+     * @param amount The amount to trade.
+     * @param price The price per unit.
+     * @return Result of the operation.
      */
-    public Map<String,String>fetchAccountDetails() {
-        String accountId=publicKey;
+    public Map<String, String> placeTrade(ENUM_SIGNAL signal, Asset sellingAsset, Asset buyingAsset, BigDecimal amount, String price) {
         try {
-            accountResponse = server.accounts().account(accountId);
-
-            this.balance = Double.parseDouble(parseBalances(
-                    accountResponse.getBalances().toArray(
-                            new AccountResponse.Balance[0]
-                    )
-            ));
-            LOG.info("Fetched account details for account ID: {}", accountId);
-            return Map.of("account", accountResponse.toString());
-        } catch (Exception e) {
-            LOG.error("Failed to fetch account details for {}: {}", accountId, e.getMessage(), e);
-            return Map.of("error", "Failed to fetch account details: " + e.getMessage());
-        }
-
-    }
-
-    private @NotNull String parseBalances(AccountResponse.Balance @NotNull [] balances) {
-        StringBuilder balanceInfo = new StringBuilder();
-        for (AccountResponse.Balance balance : balances) {
-            String asset = balance.getAssetType().equals("native") ? "XLM" : balance.getAssetCode();
-            balanceInfo.append(String.format("%s: %s ", asset, balance.getBalance()));
-        }
-        return balanceInfo.toString();
-    }
-    AccountResponse sourceAccount ;
-    /**
-     * Places a trade (buy/sell offer) on the Stellar DEX.
-
-     * @param type            The trade type (BUY or SELL).
-     * @param sellingAsset    The asset being sold.
-     * @param buyingAsset     The asset being bought.
-     * @param amount          Amount to trade.
-     * @param price           Price per unit.
-     * @return A map with the trade result, including success or error messages.
-     */
-    public Map<String, String> placeTrade(ENUM_SIGNAL type, Asset sellingAsset, Asset buyingAsset, String amount, String price) {
-        try {
-            // Initialize source account and key pair
-
-            AccountResponse sourceAccount = server.accounts().account(sourceKeyPair.getAccountId());
-
-            // Determine the operation type
-            Operation operation;
-            if (type == ENUM_SIGNAL.BUY) {
-                operation = ManageBuyOfferOperation.builder().buying(buyingAsset)
-                        .selling(sellingAsset).offerId(0).amount(new BigDecimal(amount)) .price( Price.fromString(price)).build();
-
-            } else if (type == ENUM_SIGNAL.SELL) {
-                operation = ManageSellOfferOperation.builder().selling(sellingAsset)
-                        .buying(buyingAsset).offerId(0).amount(new BigDecimal(amount)) .price(Price.fromString(price)).build();
-
-            } else {
-                return Map.of("error", "Invalid trade type. Must be BUY or SELL.");
-            }
-
-            // Build and sign the transaction
-            Transaction transaction = new TransactionBuilder(sourceAccount, Network.PUBLIC)
-                    .addOperation(operation)
-                    .setBaseFee(Transaction.MIN_BASE_FEE)
-                    .setTimeout(180) // Timeout in seconds
-                    .build();
-
-            transaction.sign(sourceKeyPair);
-
-            // Submit the transaction
-            TransactionResponse response = server.submitTransaction(transaction);
-
+          operation = createTradeOperation(signal, sellingAsset, buyingAsset, amount, price);
+            Transaction transactions = buildTransaction(List.of(operation));
+            transactions.sign(sourceKeyPair);
+            response = server.submitTransaction(transactions);
             if (response.getSuccessful()) {
+                LOG.info("Trade executed successfully: Ledger {}", response.getLedger());
                 return Map.of("success", "Trade executed successfully", "ledger", String.valueOf(response.getLedger()));
             } else {
+                LOG.error("Trade failed: {}", response.getResultXdr());
                 return Map.of("error", "Trade execution failed", "details", response.getResultXdr());
             }
         } catch (Exception e) {
-            LOG.error("Error while placing trade: {}", e.getMessage(), e);
+            LOG.error("Error placing trade: {}", e.getMessage(), e);
             return Map.of("error", "Failed to execute trade: " + e.getMessage());
         }
     }
 
     /**
-     * Fetches OHLC market data using Stellar's trade aggregations.
-     *
-     * @param baseAsset   Base asset in the trade pair.
-     * @param counterAsset Counter asset in the trade pair.
-     * @param resolution   Time resolution in milliseconds (e.g., 300000 for 5 minutes).
-     * @param startTime    Start time in milliseconds since epoch.
-     * @param endTime      End time in milliseconds since epoch.
+     * Builds a Stellar transaction.
+     * @param operations List of operations to include in the transaction.
+     * @return A Stellar transaction.
      */
-    public Map<String,String> fetchOHLCData(Asset baseAsset, Asset counterAsset, long resolution, long startTime, long endTime) throws InterruptedException {
+    private Transaction buildTransaction(List<Operation> operations) {
+        return new TransactionBuilder(accountResponse, Network.PUBLIC)
+                .addOperations(operations)
+                .setBaseFee(Transaction.MIN_BASE_FEE)
+                .setTimeout(180)
+                .build();
+    }
 
 
-
-        int retryCount = 0;
-        int maxRetries = 5;
-        while (retryCount < maxRetries) {
-            try {
-                // Attempt API request
-
-
-
-        try {
-            Page<TradeAggregationResponse> tradeAggregations = server.tradeAggregations(
-                    baseAsset, counterAsset, startTime, endTime, resolution, -6).execute();
-
-            tradeAggregations.getRecords().forEach(aggregation -> LOG.info("OHLC: Open={}, High={}, Low={}, Close={}, Volume={}",
-                    aggregation.getOpen(),
-                    aggregation.getHigh(),
-                    aggregation.getLow(),
-                    aggregation.getClose(),
-                    aggregation.getBaseVolume()));
-            return Map.of("ohlc", "Open: " + tradeAggregations.getRecords().getFirst().getOpen() +
-                    ", High: " + tradeAggregations.getRecords().getFirst().getHigh() +
-                    ", Low: " + tradeAggregations.getRecords().getFirst().getLow() +
-                    ", Close: " + tradeAggregations.getRecords().getFirst().getClose() +
-                    ", Volume : " + tradeAggregations.getRecords().getFirst().getBaseVolume() +
-                    ", Time: " + new Date(tradeAggregations.getRecords().getFirst().getTimestamp()));
-        } catch (Exception e) {
-            LOG.error("Error fetching OHLC data: {}", e.getMessage(), e);
-            return Map.of("error", "Failed to fetch OHLC data: " + e.getMessage());
+    /**
+     * Creates a trade operation.
+     * @param signal The trade signal.
+     * @param sellingAsset The asset to sell.
+     * @param buyingAsset The asset to buy.
+     * @param amount The amount to trade.
+     * @param price The price per unit.
+     * @return A Stellar trade operation.
+     */
+    private Operation createTradeOperation(ENUM_SIGNAL signal, Asset sellingAsset, Asset buyingAsset, BigDecimal amount, String price) {
+        Price priceObject = Price.fromString(price);
+        if (signal == BUY) {
+            return ManageBuyOfferOperation.builder()
+                    .buying(buyingAsset)
+                    .selling(sellingAsset)
+                    .amount(amount)
+                    .price(priceObject)
+                    .build();
+        } else {
+            return ManageSellOfferOperation.builder()
+                    .selling(sellingAsset)
+                    .buying(buyingAsset)
+                    .amount(amount)
+                    .price(priceObject)
+                    .build();
         }
-} catch (TooManyRequestsException e) {
-                retryCount++;
-                int waitTime = (int) Math.pow(2, retryCount); // Exponential backoff
-                Thread.sleep(waitTime * 1000L);
-                System.out.println("Retrying after " + waitTime + " seconds...");
-            }
-        }
-        throw new RuntimeException("Max retries exceeded");
     }
 
 
 
-    public Map<String,String> getTransactionDetails() {
+    /**
+     * Creates a new offer on the Stellar DEX.
+     *
+     * @param sellingAsset The asset to sell.
+     * @param buyingAsset  The asset to buy.
+     * @param amount       The amount to sell.
+     * @param price        The price per unit.
+     * @return Result of the operation.
+     */
+    public Map<String, String> createOffer(Asset sellingAsset, Asset buyingAsset, BigDecimal amount, String price) {
         try {
-            TransactionResponse transaction = server.transactions().transaction(publicKey);
+            ManageSellOfferOperation operation = ManageSellOfferOperation.builder()
+                    .selling(sellingAsset)
+                    .buying(buyingAsset)
+                    .amount(amount)
+                    .price(Price.fromString(price))
+                    .offerId(0) // New offer
+                    .build();
+
+            Transaction transactions = buildTransaction(List.of(operation));
+            transactions.sign(sourceKeyPair);
+
+             response = server.submitTransaction(transactions);
+            if (response.getSuccessful()) {
+                LOG.info("Offer created successfully: Ledger {}", response.getLedger());
+                return Map.of("success", "Offer created successfully", "ledger", String.valueOf(response.getLedger()));
+            } else {
+                LOG.error("Failed to create offer: {}", response.getResultXdr());
+                return Map.of("error", "Failed to create offer", "details", response.getResultXdr());
+            }
+        } catch (Exception e) {
+            LOG.error("Error creating offer: {}", e.getMessage(), e);
+            return Map.of("error", "Failed to create offer: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Cancels an existing offer on the Stellar DEX.
+     *
+     * @param offerId The ID of the offer to cancel.
+     * @param sellingAsset The asset being sold.
+     * @param buyingAsset The asset being bought.
+     * @return Result of the operation.
+     */
+    public Map<String, String> cancelOffer(long offerId, Asset sellingAsset, Asset buyingAsset) {
+        try {
+            ManageSellOfferOperation operation = ManageSellOfferOperation.builder()
+                    .selling(sellingAsset)
+                    .buying(buyingAsset)
+                    .amount(BigDecimal.ZERO) // Setting amount to 0 cancels the offer
+                    .offerId(offerId)
+                    .price(Price.fromString("1")) // Arbitrary price for cancel
+                    .build();
+
+            Transaction transaction = buildTransaction(List.of(operation));
+            transaction.sign(sourceKeyPair);
+
+            TransactionResponse response = server.submitTransaction(transaction);
+            if (response.getSuccessful()) {
+                LOG.info("Offer canceled successfully: Ledger {}", response.getLedger());
+                return Map.of("success", "Offer canceled successfully", "ledger", String.valueOf(response.getLedger()));
+            } else {
+                LOG.error("Failed to cancel offer: {}", response.getResultXdr());
+                return Map.of("error", "Failed to cancel offer", "details", response.getResultXdr());
+            }
+        } catch (Exception e) {
+            LOG.error("Error canceling offer: {}", e.getMessage(), e);
+            return Map.of("error", "Failed to cancel offer: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Updates an existing offer on the Stellar DEX.
+     *
+     * @param offerId      The ID of the offer to update.
+     * @param sellingAsset The asset to sell.
+     * @param buyingAsset  The asset to buy.
+     * @param newAmount    The new amount to sell.
+     * @param newPrice     The new price per unit.
+     * @return Result of the operation.
+     */
+    public Map<String, String> updateOffer(long offerId, Asset sellingAsset, Asset buyingAsset, BigDecimal newAmount, String newPrice) {
+        try {
+            ManageSellOfferOperation operation = ManageSellOfferOperation.builder()
+                    .selling(sellingAsset)
+                    .buying(buyingAsset)
+                    .amount(newAmount)
+                    .price(Price.fromString(newPrice))
+                    .offerId(offerId) // Existing offer ID
+                    .build();
+
+            Transaction transaction = buildTransaction(List.of(operation));
+            transaction.sign(sourceKeyPair);
+
+            TransactionResponse response = server.submitTransaction(transaction);
+            if (response.getSuccessful()) {
+                LOG.info("Offer updated successfully: Ledger {}", response.getLedger());
+                return Map.of("success", "Offer updated successfully", "ledger", String.valueOf(response.getLedger()));
+            } else {
+                LOG.error("Failed to update offer: {}", response.getResultXdr());
+                return Map.of("error", "Failed to update offer", "details", response.getResultXdr());
+            }
+        } catch (Exception e) {
+            LOG.error("Error updating offer: {}", e.getMessage(), e);
+            return Map.of("error", "Failed to update offer: " + e.getMessage());
+        }
+    }
+
+
+
+    public TransactionResponse getTransactionDetails() {
+        try {
+        transaction = server.transactions().transaction(publicKey);
             LOG.info("Transaction Details: Ledger {}, Account {}, Fee {}, OperationType: {}",
                     transaction.getLedger(),
                     transaction.getSourceAccount(),
                     transaction.getFeeAccount(),
                     transaction.getOperationCount());
-            return Map.of("transaction", "Ledger: " + transaction.getLedger() +
-                    ", Account: " + transaction.getSourceAccount() +
-                    ", Fee: " + transaction.getFeeAccount() +
-                    ", Operation Type: " + transaction.getOperationCount());
+            return transaction;
+
+
         } catch (Exception e) {
             LOG.error("Error fetching transaction details: {}", e.getMessage(), e);
-            return Map.of("error", "Failed to fetch transaction details: " + e.getMessage());
+            return null;
+
         }
     }
 
@@ -375,14 +362,14 @@ public class StellarClient {
             return Map.of("error", "Failed to fetch balances: " + e.getMessage());
         }
     }
+
     @Contract("_ -> new")
     private @NotNull Asset getAsset(String assetCode) {
         if ("XLM".equalsIgnoreCase(assetCode)) {
             return Asset.createNativeAsset();
-        } else {
-            // Replace with correct issuer
-            return Asset.createNonNativeAsset(assetCode, "GDUKMGUGDZQK6YH3AFHR2NT4C5OABO5XD66GSW5JHTP6Q2XXQXBDUBB6");
         }
+            return Asset.createNonNativeAsset(assetCode, "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN");
+
     }
     private double parseTimestamp(String timestamp) {
         try {
@@ -394,7 +381,7 @@ public class StellarClient {
             throw new IllegalArgumentException("Invalid timestamp format: " + timestamp, e);
         }
     }
-    private double[] @Nullable [] preprocessMarketData(Map<String, String> marketData) {
+    private double[][] preprocessMarketData(Map<String, String> marketData) {
         try {
             // Extract OHLC data from the market data
             String ohlc = marketData.get("ohlc");
@@ -430,21 +417,50 @@ public class StellarClient {
             return null;
         }
     }
+    public Map<String,String> fetchOHLCData(Asset baseAsset, Asset counterAsset, long resolution, long startTime, long endTime) throws InterruptedException {
 
 
 
-    private @NotNull @Unmodifiable Map<String, String> fetchTradeSignal() {
+        try {
+       tradeAggregations = server.tradeAggregations(
+                    baseAsset, counterAsset, startTime, endTime, resolution, -6).execute();
+
+            tradeAggregations.getRecords().forEach(aggregation -> LOG.info("OHLC: Open={}, High={}, Low={}, Close={}, Volume={}",
+                    aggregation.getOpen(),
+                    aggregation.getHigh(),
+                    aggregation.getLow(),
+                    aggregation.getClose(),
+                    aggregation.getBaseVolume()));
+            return Map.of("ohlc", "Open: " + tradeAggregations.getRecords().getFirst().getOpen() +
+                    ", High: " + tradeAggregations.getRecords().getFirst().getHigh() +
+                    ", Low: " + tradeAggregations.getRecords().getFirst().getLow() +
+                    ", Close: " + tradeAggregations.getRecords().getFirst().getClose() +
+                    ", Volume : " + tradeAggregations.getRecords().getFirst().getBaseVolume() +
+                    ", Time: " + new Date(tradeAggregations.getRecords().getFirst().getTimestamp()));
+        } catch (Exception e) {
+            LOG.error("Error fetching OHLC data: {}", e.getMessage(), e);
+            return Map.of("error", "Failed to fetch OHLC data: " + e.getMessage());
+
+        }
+    }
+
+
+
+
+
+
+    private @NotNull Map<String, String> fetchTradeSignal(Asset buyingAsset, Asset sellingAsset) {
         LOG.info("Fetching trade signal...");
 
         try {
+            int timeframe=
+                    600000*60; // 1 minute in milliseconds
+            long start_time = System.currentTimeMillis() - timeframe;
 
-            
             // Fetch OHLC market data
-            Map<String, String> marketData = fetchOHLCData(
-                    Asset.createNativeAsset(),
-                    Asset.createNonNativeAsset("USDC", "issuer-address"),
-                    300000,
-                    System.currentTimeMillis() - 86400000,
+        marketData = fetchOHLCData(
+                    buyingAsset,sellingAsset, timeframe,
+                    start_time,
                     System.currentTimeMillis()
             );
 
@@ -476,8 +492,8 @@ public class StellarClient {
             } else if (signal == SELL) {
                 return Map.of(
                         "action", "SELL",
-                        "sellingAsset", "USDC",
-                        "buyingAsset", "XLM",
+                        "sellingAsset",     sellingAsset.toString(),
+                        "buyingAsset", buyingAsset.toString(),
                         "amount", "10",
                         "price", "0.12"
                 );
@@ -493,9 +509,6 @@ public class StellarClient {
 
 
 
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    private volatile boolean running = true; // Flag to control the scheduler
-
     public void startLiveTrade() {
         LOG.info("Starting live trade...");
         scheduler.scheduleAtFixedRate(() -> {
@@ -504,10 +517,14 @@ public class StellarClient {
                 LOG.info("Live trading stopped.");
                 return;
             }
-
             try {
+
+                // Replace it with actual asset codes
+                Asset a1 = Asset.createNativeAsset();
+                Asset a2 = Asset.createNonNativeAsset("USDC", "GA4CIZX3QJADGZZKI7HUS6WVHBNIX3EUNUW4MZUDPK5FIW2E6LLVVHGU");
+
                 // Step 1: Fetch trade signals
-                Map<String, String> signal = fetchTradeSignal();
+                Map<String, String> signal = fetchTradeSignal(a1,a2);
                 String action = signal.get("action");
 
                 if ("HOLD".equalsIgnoreCase(action)) {
@@ -532,14 +549,9 @@ public class StellarClient {
             } catch (Exception e) {
                 LOG.error("Error during live trade: {}", e.getMessage(), e);
             }
-        }, 0, 5, TimeUnit.SECONDS); // Schedule task every 5 seconds
+        }, 0, 10, TimeUnit.SECONDS); // Schedule task every 5 seconds
     }
 
-    public void stopLiveTrade() {
-        running = false;
-        scheduler.shutdown();
-        LOG.info("Requested live trade shutdown.");
-    }
 
     private ENUM_SIGNAL predictTradeSignal(double[][] ohlcFeatures) {
         try {
@@ -562,19 +574,16 @@ public class StellarClient {
         LOG.info("Trade Signal: Action={}, Selling={}, Buying={}, Amount={}, Price={}",
                 action, sellingAsset, buyingAsset, amount, price);
 
-        Map<String, String> tradeResult = placeTrade(enumSignal, sellingAsset, buyingAsset, amount, price);
-        if (tradeResult.containsKey("error")) {
-            LOG.error("Trade failed: {}", tradeResult.get("error"));
-        } else {
-            LOG.info("Trade executed successfully: {}", tradeResult.get("offer"));
-        }
+       tradeResult = placeTrade(enumSignal, sellingAsset, buyingAsset, BigDecimal.valueOf(Long.parseLong(amount)), price);
+        if (tradeResult.containsKey("error")) LOG.error("Trade failed: {}", tradeResult.get("error"));
+        else LOG.info("Trade executed successfully: {}", tradeResult.get("offer"));
     }
 
 
     public ResponseEntity<?> getOffers() {
         try {
 
-            Page<OfferResponse> offers = server.offers().execute();
+           offers = server.offers().execute();
             offers.getRecords().forEach(offer -> LOG.info("Offer: ID={}, Selling={}, Buying={}, Price={}, Amount={}",
                     offer.getId(),
                     offer.getSelling(),
@@ -589,23 +598,8 @@ public class StellarClient {
 
     }
 
-    @Override
-    public String toString() {
-        return "StellarClient{" +
-                "account='" + publicKey + '\'' +
-                ", balance='" + balance + '\'' +
-                ", currency='" + currency + '\'' +
-                ", HORIZON_URL='" + HORIZON_URL + '\'' +
-                ", server=" + server +
-                ", sourceKeyPair=" + sourceKeyPair +
-                ", accountResponse=" + accountResponse +
-                ", envelope=" + envelope +
-                ", transaction=" + transaction +
-                ", tradeAggregations=" + tradeAggregations +
-                ", publicKey='" + publicKey + '\'' +
-                ", secretKey='" + secretKey + '\'' +
-                '}';
-    }
+
+
     public Map<String, String> createOffer(Asset selling, Asset buying, String amount, String price) {
         try {
             // Create the operation
@@ -616,17 +610,18 @@ public class StellarClient {
                     .price(Price.fromString(price))
                     .offerId(0) // Use 0 for a new offer
                     .build();
+            AccountResponse sourceAccount = server.accounts().account(sourceKeyPair.getAccountId());
 
             // Build the transaction
-            Transaction transaction = new TransactionBuilder(sourceAccount, Network.PUBLIC)
+            Transaction transactions = new TransactionBuilder(sourceAccount, Network.PUBLIC)
                     .addOperation(operation)
                     .setBaseFee(Transaction.MIN_BASE_FEE)
                     .setTimeout(5000)
                     .build();
 
             // Sign and submit the transaction
-            transaction.sign(sourceKeyPair);
-            TransactionResponse response = server.submitTransaction(transaction);
+            transactions.sign(sourceKeyPair);
+            TransactionResponse response = server.submitTransaction(transactions);
 
             if (response.getSuccessful()) {
                 LOG.info("Offer created successfully: Ledger {}", response.getLedger());
@@ -641,8 +636,10 @@ public class StellarClient {
         }
 
     }
+    private Page<TradeAggregationResponse> tradeAggregations;
 
-    public List<TradeAggregationResponse> getOhclv() {
+
+    public List<TradeAggregationResponse> getOHCLV() {
         try {
             List<TradeAggregationResponse> candles = getTradeAggregations().getRecords();
 
@@ -661,4 +658,243 @@ public class StellarClient {
         }
 
     }
+
+    private @NotNull String parseBalances(AccountResponse.Balance @NotNull [] balances) {
+        StringBuilder balanceInfo = new StringBuilder();
+        for (AccountResponse.Balance balance : balances) {
+            String asset = balance.getAssetType().equals("native") ? "XLM" : balance.getAssetCode();
+            balanceInfo.append(String.format("%s: %s ", asset, balance.getBalance()));
+        }
+        return balanceInfo.toString();
+    }
+    /**
+     * Fetches account details from the Stellar network.
+     */
+    public AccountResponse fetchAccountDetails() {
+        String accountId=publicKey;
+
+           return  server.accounts().account(accountId);
+
+
+
+    }
+
+    public Page<AssetResponse> getAllAssets() {
+        try {
+            assets = server.assets().execute();
+            assets.getRecords().forEach(asset -> LOG.info("Asset: Code={}, Type={}, Description={}, Issuer={}",
+                    asset.getAssetCode(),
+                    asset.getAssetType(),
+                    asset.getBalances(),
+                    asset.getAssetIssuer()));
+            return assets;
+        } catch (Exception e) {
+            LOG.error("Error fetching all assets: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    public OrderBookResponse getOrderbook() {
+        try {
+            return  server.orderBook().buyingAsset(Asset.createNonNativeAsset("BTCLN", "GA4CIZX3QJADGZZKI7HUS6WVHBNIX3EUNUW4MZUDPK5FIW2E6LLVVHGU")).sellingAsset(Asset.createNativeAsset()).execute();
+
+        } catch (Exception e) {
+            LOG.error("Error fetching orderbook: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+
+
+
+    // Send  payment request
+    /**
+     * Sends a payment to the specified destination address.
+     *
+     * @param destinationAddress The Stellar address of the recipient.
+     * @param assetCode          The code of the asset to send (e.g., XLM).
+     * @param amount             The amount of the asset to send.
+     * @return A map containing the status and details of the operation.
+     */
+    public Map<String, String> sendPayment(String destinationAddress, String assetCode, String amount) {
+        Map<String, String> operationResponse = new HashMap<>();
+        try {
+            // Retrieve the destination account to ensure it's valid
+            server.accounts().account(destinationAddress);
+
+            // Define the asset
+            Asset asset = "XLM".equalsIgnoreCase(assetCode)
+                    ? Asset.createNativeAsset()
+                    : Asset.createNonNativeAsset(assetCode, publicKey);
+
+            // Create the payment operation
+
+            PaymentOperation paymentOperation = PaymentOperation.builder().amount(BigDecimal.valueOf(Long.parseLong(amount)))
+                    .asset(asset)
+                    .destination(destinationAddress)
+                    .build();
+
+            // Build the transaction
+            Transaction transaction = new TransactionBuilder(accountResponse, Network.PUBLIC)
+                    .addOperation(paymentOperation)
+                    .setBaseFee(Transaction.MIN_BASE_FEE)
+                    .setTimeout(180)
+                    .build();
+
+            // Sign the transaction
+            transaction.sign(sourceKeyPair);
+
+            // Submit the transaction
+            TransactionResponse response = server.submitTransaction(transaction);
+            if (response.getSuccessful()) {
+                LOG.info("Payment sent successfully: Ledger {}", response.getLedger());
+                operationResponse.put("success", "Payment sent successfully");
+                operationResponse.put("ledger", String.valueOf(response.getLedger()));
+            } else {
+                LOG.error("Payment failed: {}", response.getResultXdr());
+                operationResponse.put("error", "Payment failed");
+                operationResponse.put("details", response.getResultXdr());
+            }
+        } catch (Exception e) {
+            LOG.error("Error sending payment: {}", e.getMessage(), e);
+            operationResponse.put("error", "Failed to send payment");
+            operationResponse.put("details", e.getMessage());
+        }
+        return operationResponse;
+    }
+
+
+    //Generate QR CODE TO RECEIVE MONEY
+
+    /**
+     * Generates a QR code for receiving Stellar payments.
+     *
+     * @param destinationAddress The Stellar address where the payment will be sent.
+     * @param assetCode          The code of the asset to receive (e.g., XLM).
+     * @param amount             The amount of the asset to receive.
+     * @return A Base64-encoded QR code image as a string.
+     */
+    public String generateReceiveQRCode(String destinationAddress, String assetCode, String amount) {
+        String receiveUrl = String.format("https://stellar.expert/explorer/public/account/%s?asset=%s&amount=%s",
+                destinationAddress, assetCode, amount);
+
+        try {
+            // Generate QR code as a byte array
+            ByteArrayOutputStream qrCodeStream = QRCode.from(receiveUrl)
+                    .withSize(500, 500)
+                    .stream();
+
+            // Convert QR code byte array to Base64-encoded string
+            byte[] qrCodeBytes = qrCodeStream.toByteArray();
+            return "data:image/png;base64," + Base64.getEncoder().encodeToString(qrCodeBytes);
+        } catch (Exception e) {
+            LOG.error("Error generating QR code: {}", e.getMessage(), e);
+            return "Error generating QR code";
+        }
+    }
+
+//GET ALL LIST OF PAYMENTS
+    public   Page<OperationResponse>getPayments() {
+        try {
+
+            return server.payments().forAccount(publicKey).execute();
+        } catch (Exception e) {
+            LOG.error("Error fetching payments: {}", e.getMessage(), e);
+            return null;
+        }
+
+    }
+    private static final String STELLAR_EXPERT_URL = "https://api.stellar.expert/explorer/public/directory?search=exchange";
+    private static final String HORIZON_ASSETS_URL = "https://horizon.stellar.org/assets";
+
+    private  RestTemplate restTemplate = new RestTemplate();
+
+    /**
+     * Fetches a list of exchanges from Stellar Expert API and filters out malicious entries.
+     *
+     * @return A list of exchanges containing their name and address.
+     */
+    public List<Map<String, String>> getExchangesFromStellarExpert() {
+        List<Map<String, String>> exchanges = new ArrayList<>();
+        try {
+            JsonNode response = restTemplate.getForObject(STELLAR_EXPERT_URL, JsonNode.class);
+            if (response != null) {
+                JsonNode records = response.path("_embedded").path("records");
+                for (JsonNode record : records) {
+                    String name = record.path("name").asText();
+                    String address = record.path("address").asText();
+                    String type = record.path("type").asText();
+                    JsonNode tags = record.path("tags");
+
+                    if ("exchange".equalsIgnoreCase(type) && !isMalicious(name, tags)) {
+                        exchanges.add(Map.of(
+                                "name", name,
+                                "address", address
+                        ));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error fetching exchanges from Stellar Expert: " + e.getMessage());
+        }
+        exchanges.addAll(getExchangesFromHorizon());
+        return exchanges;
+    }
+
+    /**
+     * Checks if an exchange is malicious based on its name or tags.
+     *
+     * @param name The name of the exchange.
+     * @param tags The tags associated with the exchange.
+     * @return True if the exchange is malicious or scam-related, otherwise false.
+     */
+    private boolean isMalicious(@NotNull String name, JsonNode tags) {
+        // Check if the name contains keywords like "scam" or "malicious"
+        if (name.toLowerCase().contains("scam") || name.toLowerCase().contains("malicious")) {
+            return true;
+        }
+
+        // Check if tags contain keywords like "scam" or "malicious"
+        if (tags.isArray()) {
+            for (JsonNode tag : tags) {
+                String tagValue = tag.asText().toLowerCase();
+                if (tagValue.contains("scam") || tagValue.contains("malicious")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    /**
+     * Fetches a list of all assets from Horizon API and deduces exchanges.
+     *
+     * @return A list of assets with possible exchange information.
+     */
+    public List<Map<String, String>> getExchangesFromHorizon() {
+        List<Map<String, String>> assets = new ArrayList<>();
+        try {
+            JsonNode response = restTemplate.getForObject(HORIZON_ASSETS_URL, JsonNode.class);
+            if (response != null) {
+                JsonNode records = response.path("_embedded").path("records");
+                for (JsonNode record : records) {
+                    String assetCode = record.path("asset_code").asText();
+                    String issuer = record.path("asset_issuer").asText();
+                    String amount = record.path("amount").asText();
+                    int numAccounts = record.path("num_accounts").asInt();
+
+                    assets.add(Map.of(
+                            "asset_code", assetCode.isEmpty() ? "XLM" : assetCode,
+                            "issuer", issuer,
+                            "amount", amount,
+                            "num_accounts", String.valueOf(numAccounts)
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("Error fetching assets from Horizon: {}", e.getMessage());
+        }
+        return assets;
+    }
+
+
 }

@@ -1,4 +1,4 @@
-package com.sopotek.aipower.routes;
+package com.sopotek.aipower.routes.api;
 
 
 import com.sopotek.aipower.model.User;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.sopotek.aipower.routes.NewsController.logger;
+import static com.sopotek.aipower.routes.api.NewsController.logger;
 
 
 @RestController

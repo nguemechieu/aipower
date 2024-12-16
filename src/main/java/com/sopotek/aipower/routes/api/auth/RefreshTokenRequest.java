@@ -1,4 +1,4 @@
-package com.sopotek.aipower.routes.auth;
+package com.sopotek.aipower.routes.api.auth;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -8,12 +8,12 @@ import lombok.Setter;
 public class RefreshTokenRequest {
     private String refreshToken;
     private String accessToken;
-    private String id;
-    private String id2;
-    public RefreshTokenRequest(String refreshToken, String accessToken, String id, String id2) {
+    private String role;
+    private String username;
+    public RefreshTokenRequest(String refreshToken, String accessToken, String username, String role) {
         this.refreshToken = refreshToken;
         this.accessToken = accessToken;
-        this.id = id;
-        this.id2 = id2;
+        this.username = username;
+        this.role= role;
     }
 }

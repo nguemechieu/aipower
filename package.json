@@ -28,11 +28,7 @@
 
   "dependencies": {
 
-    "@fortawesome/fontawesome-svg-core": "^6.7.1",
-
-    "child_process": "^1.0.2",
-
-    "lint-staged": "^15.2.10"
+    "child_process": "^1.0.2"
 
   }
 

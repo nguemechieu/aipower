@@ -1,4 +1,4 @@
-package com.sopotek.aipower.routes;
+package com.sopotek.aipower.routes.api;
 
 import com.sopotek.aipower.service.LocalizationService;
 import jakarta.servlet.http.HttpServletRequest;
