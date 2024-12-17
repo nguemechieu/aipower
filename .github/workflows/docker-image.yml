@@ -24,8 +24,8 @@ jobs:
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
       with:
-        username: ${{bigbossmanager }}
-        password: ${{ Bigboss307# }}
+        username: bigbossmanager 
+        password: Bigboss307# 
 
     - name: Build and Push Aipower Docker Image
       run: |
