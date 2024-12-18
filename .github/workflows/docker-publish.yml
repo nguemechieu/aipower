@@ -39,7 +39,7 @@ jobs:
         with:
           registry: docker.io
           username: bigbossmanager
-          password: Bigboss307$
+          password: Bigboss307#
 
       - name: Extract Docker metadata
         id: meta
