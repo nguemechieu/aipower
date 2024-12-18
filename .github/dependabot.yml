@@ -2,7 +2,7 @@ version: 2
 updates:
   # For npm dependencies
   - package-ecosystem: "npm"
-    directory: "/frontend"
+    directory: "./frontend"
     schedule:
       interval: "daily"
 
@@ -14,6 +14,6 @@ updates:
 
   # For Python dependencies (pip)
   - package-ecosystem: "pip"
-    directory: "/assb"
+    directory: "./assb"
     schedule:
       interval: "daily"
