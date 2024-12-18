@@ -65,7 +65,7 @@ dependencies {
     implementation 'com.hazelcast:hazelcast:5.5.0'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
     implementation 'com.github.ua-parser:uap-java:1.6.1'
-    implementation 'io.github.cdimascio:dotenv-java:3.0.2'
+    implementation 'io.github.cdimascio:dotenv-java:3.1.0'
     implementation 'org.apache.commons:commons-email:1.6.0'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'io.micrometer:micrometer-registry-jmx:1.14.2'
