@@ -29,7 +29,7 @@ const ResetPassword=()=>{
         setErrMsg("");
 
         try {
-            const response = await axiosPrivate.post("/auth/reset-password", {
+            const response = await axiosPrivate.post("/api/v3/auth/reset-password", {
 
                 reset_token:token,
                 password

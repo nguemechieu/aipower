@@ -52,7 +52,7 @@ public class AipowerServer {
     }
 
     public static void main(String[] args) {
-       // Load and set environment variables using Dotenv
+        // Load and set environment variables using Dotenv
         Dotenv dotenv = Dotenv.load();
         dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
         LOG.info("Environment variables loaded successfully.");

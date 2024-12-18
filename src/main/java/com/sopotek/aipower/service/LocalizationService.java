@@ -77,4 +77,7 @@ public class LocalizationService {
     }
 
 
+    public String getMessage(String s) {
+        return "localizationService.getMessage() - " + s;
+    }
 }

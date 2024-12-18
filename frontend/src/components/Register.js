@@ -101,7 +101,7 @@ const Register = () => {
         setErrMsg("");
 
         try {
-            const response = await axios.post("/auth/register", JSON.stringify(formData));
+            const response = await axios.post("/api/v3/auth/register", JSON.stringify(formData));
 
             if (response.status === 200 || response.status === 201) {
                 setSuccess(true);

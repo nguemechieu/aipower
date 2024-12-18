@@ -91,6 +91,7 @@ public class User implements UserDetails {
 
 
     private Date resetTokenExpiryTime;
+    private String fullName;
 
     /**
      * Increment the number of failed login attempts for this user.
@@ -150,4 +151,21 @@ public class User implements UserDetails {
     public boolean isCredentialsNonExpired() {
         return credentialsNonExpired;
     }
+
+    public void setFullName(String name) {
+        String[] names = name.split(" ");
+        this.firstName = names[0];
+        this.lastName = names.length > 1? names[1] : "";
+        this.middleName = names.length > 2? names[2] : "";
+        this.fullName = name;
+    }
+    @Override
+    public String getUsername() {
+        return username;
+    }
+    @Override
+    public String getPassword() {
+        return password;
+    }
+    
 }

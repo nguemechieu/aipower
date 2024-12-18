@@ -12,7 +12,7 @@ const PersistLogin = () => {
     const verifyToken = async () => {
       try {
         if (auth?.accessToken) { // Check for an existing access token
-          const response = await axiosPrivate.post("/auth/refresh");
+          const response = await axiosPrivate.post("/api/v3/auth/refresh");
 
           if (response.status === 200) {
             console.log("Token verified successfully");

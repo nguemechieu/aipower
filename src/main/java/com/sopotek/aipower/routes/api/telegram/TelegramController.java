@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 @Controller
+
 public class TelegramController {
 
     private static final Logger LOG = LoggerFactory.getLogger(TelegramController.class);

@@ -19,7 +19,7 @@ import static com.sopotek.aipower.routes.api.NewsController.logger;
 
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/v3/users")
 public class UsersController {
 
     private final CacheManager cacheManager;
@@ -76,14 +76,6 @@ public class UsersController {
     }
 
 
-    @GetMapping("/me")
-    public ResponseEntity<User> getMe() {
-        User user = userService.getCurrentUser();
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-        }
-        return ResponseEntity.ok(user);
-    }
 
 // Update a user by ID (PUT method)
     @PutMapping("/update/id:{id}")

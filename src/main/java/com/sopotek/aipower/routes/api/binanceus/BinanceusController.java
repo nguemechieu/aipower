@@ -49,10 +49,10 @@ public class BinanceusController {
                 .doOnError(e -> LOG.error("Error fetching 24-hour stats: {}", e.getMessage()))
                 .block();
     }
-
+    int limit=1000;
     @GetMapping("/order-book/{symbol}")
     public ResponseEntity<?> getOrderBook(@PathVariable String symbol) {
-        int limit=1000;
+
         LOG.info("{}: Fetching order book for symbol {} with limit {}", TAG, symbol, limit);
         return binanceus.getOrderBook(symbol, limit)
                 .map(ResponseEntity::ok)

@@ -30,6 +30,8 @@ import FriendsPage from "./components/FriendsPage";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import Dashboard from "./components/Dashboard";
+import Redirect from "./components/Redirect";
+import GitHubRedirect from "./components/GitHubRedirect";
 
 function Welcome() {
   return (
@@ -41,10 +43,12 @@ function Welcome() {
         </p>
         <div>
           <Link to="/">Home</Link>
-          <Link to="/about">About</Link>
+
           <Link to="/terms-of-service">Terms of Service</Link>
           <Link to="/help">Help</Link>
           <Link to="/docs">API Documentation</Link>
+
+          <Link to="/about">About</Link>
 
         </div>
       </div>
@@ -52,12 +56,15 @@ function Welcome() {
   );
 }
 
+
 const App = () => {
   return (
       <Routes>
         <Route element={<Layout />}>
           {/* Public Routes */}
           <Route path="/" element={<Login />} />
+          <Route path="/api/v3/auth/google/callback" element={<Redirect/>}/>
+          <Route path="api/v3/auth/github/callback" element={<GitHubRedirect/>}/>
           <Route path="aipower" element={<Welcome />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />

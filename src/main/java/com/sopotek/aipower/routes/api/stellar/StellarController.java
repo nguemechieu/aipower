@@ -107,7 +107,7 @@ public class StellarController {
 
 
     }
-    //Get All  payments
+    //Get All payments
     @GetMapping("/payments")
     public ResponseEntity<?> getPayments() {
          return  ResponseEntity.ok(stellarClient.getPayments());

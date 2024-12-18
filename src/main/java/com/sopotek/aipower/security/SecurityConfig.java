@@ -1,8 +1,9 @@
 package com.sopotek.aipower.security;
 
 import com.sopotek.aipower.repository.UserRepository;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -22,10 +23,12 @@ import org.springframework.security.web.authentication.rememberme.PersistentToke
 
 import javax.sql.DataSource;
 
+@Getter
+@Setter
 @Configuration
 public class SecurityConfig {
 
-    // Role constants for maintainability
+    // Role constants
     public static final String ROLE_EMPLOYEE = "EMPLOYEE";
     public static final String ROLE_MANAGER = "MANAGER";
     public static final String ROLE_MODERATOR = "MODERATOR";
@@ -33,9 +36,6 @@ public class SecurityConfig {
     public static final String ROLE_ADMIN = "ADMIN";
     public static final String ROLE_OWNER = "OWNER";
     public static final String ROLE_GROUP = "GROUP";
-
-    @Value("${aipower.jwt.secret.key}")
-    private String secretKey;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserRepository userRepository;
@@ -49,59 +49,41 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                // CSRF Protection
-                .csrf(AbstractHttpConfigurer::disable)//csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
-                // Authorization Configuration
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/users/employee/**").hasRole(ROLE_EMPLOYEE)
-                        .requestMatchers("/users/manager/**").hasRole(ROLE_MANAGER)
-                        .requestMatchers("/users/moderator/**").hasRole(ROLE_MODERATOR)
-                        .requestMatchers("/users/me/**").hasAnyRole(ROLE_USER, ROLE_ADMIN, ROLE_OWNER, ROLE_GROUP, ROLE_MANAGER)
-                        .requestMatchers("/users/admin/**").hasRole(ROLE_ADMIN)
-                        .anyRequest().permitAll()
-                )
-                // Remember Me Configuration
-                .rememberMe(remember -> remember
-                        .tokenValiditySeconds(1209600) // 14 days
-                        .key(secretKey)
-                        .userDetailsService(userDetailsService())
-                        .tokenRepository(persistentTokenRepository())
-                )
-                // Login Configuration
-                .formLogin(login -> login
-                        .loginPage("/auth/login").permitAll()
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless applications
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless sessions
+                .authorizeHttpRequests(a -> a
+                        .requestMatchers(
+                                "/api/v3/auth/users"
+                        ).hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(
+                                "/api/v3/auth/admin/**",
+                                "/api/v3/auth/employee/**",
+                                "/api/v3/auth/manager/**",
+                                "/api/v3/auth/moderator/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(
+                                "/api/v3/auth/register",
+                                "/api/v3/auth/reset-password",
+                                "/api/v3/auth/reset-password-confirm/**",
+                                "/api/v3/auth/confirm-email/**",
+                                "/api/v3/auth/logout",
+                                "/api/v3/auth/password-reset-token/**",
+                                "/api/v3/auth/verify-email/**",
+                                "/api/v3/auth/login"
+                        ).permitAll() // Public endpoints
+                        .requestMatchers("/api/v3/**").authenticated() // Protected API
+                        .anyRequest().permitAll() // Deny everything else
+                ).authenticationProvider(new CustomAuthenticationProvider(userRepository, passwordEncoder()))
 
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint((request, response, authException) -> response.sendError(HttpStatus.UNAUTHORIZED.value(), authException.getMessage()))
+                        .accessDeniedHandler((request, response, accessDeniedException) -> response.sendError(HttpStatus.FORBIDDEN.value(), accessDeniedException.getMessage()))
 
-                        .successForwardUrl("/users/me")
-                        .usernameParameter("username")
-                        .passwordParameter("password")
                 )
-                // Logout Configuration
-                .logout(logout -> logout
-                        .logoutUrl("/auth/logout")
-                        .logoutSuccessUrl("/login?logout").permitAll()
-                        .clearAuthentication(true)
-                        .invalidateHttpSession(true)
-                )
-                // Session Management
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
-                // Exception Handling
-                .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.sendError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized");
-                            System.out.println("Unauthorized access attempt to: " + request.getRequestURI());
-                        })
-                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            System.out.println("Access denied to: " + request.getRequestURI() + " - Reason: " + accessDeniedException.getMessage());
-                            response.sendError(HttpStatus.FORBIDDEN.value(), "Access Denied");
-                        })
-                )
-                // JWT Authentication Filter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
+        return httpSecurity.build();
     }
 
     @Bean

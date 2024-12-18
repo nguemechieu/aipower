@@ -14,29 +14,34 @@ import java.util.List;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+
     @Bean
-    public RestTemplate restTemplate() {return new RestTemplate();}
-    @Override
-    public void configureMessageConverters(@NotNull List<HttpMessageConverter<?>> converters) {converters.add(new MappingJackson2HttpMessageConverter());}
-
-
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 
     @Override
-    public void addResourceHandlers(@NotNull ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
+    public void configureMessageConverters(@NotNull List<HttpMessageConverter<?>> converters) {
+        converters.add(new MappingJackson2HttpMessageConverter());
     }
 
     @Override
     public void addCorsMappings(@NotNull CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins(
+                        "http://localhost:3000",
                         "http://localhost:3001",
-                        "http://localhost:9092",
                         "http://localhost:8081",
-                        "http://localhost:3000"
+                        "http://localhost:9092"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
+    }
+
+    @Override
+    public void addResourceHandlers(@NotNull ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/static/**")
+                .addResourceLocations("classpath:/static/");
     }
 }

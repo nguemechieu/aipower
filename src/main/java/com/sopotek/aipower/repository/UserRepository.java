@@ -39,4 +39,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("UPDATE User u SET u.failedLoginAttempts = :failedLoginAttempts WHERE u.id = :id")
     void updateFailedLoginAttempts(@Param("failedLoginAttempts") int failedLoginAttempts, @Param("id") Long id);
 
+    @Modifying
+    @Transactional
+    @Query("UPDATE User u SET u.resetToken = :resetToken WHERE u.id = :id")
+    void updateResetToken(@Param("resetToken") String resetToken, @Param("id") Long id);
+
+    @Query("SELECT u FROM User u WHERE u.resetToken = :resetToken")
+    Optional<User> findByResetToken(String token);
 }

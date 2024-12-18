@@ -2,7 +2,8 @@
 
 Welcome to **AiPower**, a powerful application designed to revolutionize trading and analysis using modern technologies. This project combines a Spring Boot backend and a React frontend to deliver an efficient and intuitive user experience. With Docker support, deployment has never been easier!
 
----
+![AiPower](./favicon.ico)
+
 
 ## Features
 

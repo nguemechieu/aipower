@@ -2,12 +2,14 @@ package com.sopotek.aipower.routes.api.auth;
 
 import com.sopotek.aipower.model.Role;
 import com.sopotek.aipower.model.User;
+import com.sopotek.aipower.repository.UserRepository;
 import com.sopotek.aipower.service.*;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,16 +28,17 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * REST controller for authentication and user account management.
- * Provides endpoints for login, registration, and password reset functionalities.
- * Handles user-related requests while ensuring proper validation, logging, and error handling.
+ * Handles login, registration, password resets, and refresh token operations.
  */
 @Getter
 @Setter
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v3/auth")
 public class AuthController {
 
     private static final Logger logger = Logger.getLogger(AuthController.class.getName());
@@ -47,13 +50,12 @@ public class AuthController {
     private final LocalizationService localizationService;
     private final IPBlockService ipBlockService;
     private final AuthenticationManager authenticationManager;
-
-    private String ipAddress;
-    private String refreshToken;
+    private final UserRepository userRepository;
 
     @Autowired
-    public AuthController(AuthenticationManager authenticationManager, LocalizationService localizationService, IPBlockService ipBlockService,
-                          UserService userService, AuthService authService, PasswordEncoder passwordEncoder, EmailService emailService) {
+    public AuthController(AuthenticationManager authenticationManager, LocalizationService localizationService,
+                          IPBlockService ipBlockService, UserService userService, AuthService authService,
+                          PasswordEncoder passwordEncoder, EmailService emailService, UserRepository userRepository) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
@@ -61,10 +63,18 @@ public class AuthController {
         this.ipBlockService = ipBlockService;
         this.localizationService = localizationService;
         this.authenticationManager = authenticationManager;
+        this.userRepository = userRepository;
 
         logger.info("AuthController initialized successfully");
     }
+//Login page
 
+    @GetMapping("/login")
+    public ResponseEntity<?> loginPage() {
+        String message ="You have to login first to continue...";
+        return ResponseEntity.ok(Map.of("message", message));
+
+    }
     @PostMapping(value = "/login", consumes = "application/json")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request) {
         String clientIP = ipBlockService.getClientIP(request);
@@ -91,18 +101,16 @@ public class AuthController {
                             ));
                         }
 
-                        user.setLastLoginDate(loginRequest.getTimestamp());
+                        user.setLastLoginDate(new Date());
                         user.resetFailedLoginAttempts();
                         userService.update(user);
 
                         String accessToken = authService.generateJwtAccessToken(user.getUsername(), user.getAuthorities());
-                        String refreshToken = authService.generateJwtRefreshToken(user.getUsername(), user.getAuthorities());
 
                         return ResponseEntity.ok(Map.of(
                                 "username", user.getUsername(),
                                 "role", user.getRole().getName(),
-                                "accessToken", accessToken,
-                                "refreshToken", refreshToken
+                                "accessToken", accessToken
                         ));
                     })
                     .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
@@ -110,16 +118,8 @@ public class AuthController {
                             "message", "Account does not exist."
                     )));
         } catch (Exception e) {
-            logger.severe("Login error: " + e);
+            logger.log(Level.SEVERE, "Login error", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error.");
-        }
-    }
-
-    private void enrichUserWithLocation(User user) {
-        try {
-            userService.saveUser(user);
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to update user location", e);
         }
     }
 
@@ -135,67 +135,10 @@ public class AuthController {
             user.setResetToken(UUID.randomUUID().toString());
             user.setResetTokenExpiryTime(Date.from(LocalDateTime.now().plusHours(2).atZone(ZoneId.systemDefault()).toInstant()));
 
-            enrichUserWithLocation(user);
-
             userService.saveUser(user);
-
             return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully.");
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error during user registration: ", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    e.getCause() + ": " + e.getLocalizedMessage()
-            );
-        }
-    }
-
-    @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@Valid @RequestBody String email) {
-        try {
-            Optional<User> optionalUser = userService.findByEmail(email);
-
-            if (optionalUser.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User with the provided email not found.");
-            }
-
-            User user = optionalUser.get();
-            String resetToken = UUID.randomUUID().toString();
-            user.setResetToken(resetToken);
-            user.setResetTokenExpiryTime(Date.from(LocalDateTime.now().plusHours(2).atZone(ZoneId.systemDefault()).toInstant()));
-            userService.update(user);
-
-            String resetLink = "https://localhost:3000/reset-password?token=" + resetToken;
-            emailService.sendEmail(user.getEmail(), "Password Reset Request",
-                    String.format("Hello %s,\n\nUse the following link to reset your password:\n%s\n\nThis link will expire in 2 hours.",
-                            user.getUsername(), resetLink));
-
-            return ResponseEntity.ok("Password reset link sent to " + email);
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error during password reset: ", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
-        }
-    }
-
-    @GetMapping("/logout")
-    public ResponseEntity<String> logout() {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-            if (authentication == null || !authentication.isAuthenticated()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
-            }
-
-            String username = authentication.getName();
-            boolean tokensInvalidated = authService.validateJwtToken(username);
-
-            SecurityContextHolder.clearContext();
-
-            if (tokensInvalidated) {
-                return ResponseEntity.ok("Successfully logged out");
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to log out");
-            }
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error during logout process", e);
+            logger.log(Level.SEVERE, "Error during user registration", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error.");
         }
     }
@@ -206,29 +149,81 @@ public class AuthController {
             String username = authService.validateJwtRefreshToken(refreshTokenRequest.getRefreshToken());
             List<GrantedAuthority> authorities = userService.getAuthoritiesByUsername(username);
 
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, null, authorities);
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-
             String newAccessToken = authService.generateJwtAccessToken(username, authorities);
-            String newRefreshToken = authService.generateJwtRefreshToken(username, authorities);
-            String role= userService.getAuthoritiesByUsername(username).getFirst().getAuthority();
+            String role = userRepository.findByUsername(username)
+                    .map(user -> user.getRole().getName())
+                    .orElse("USER");
 
             return ResponseEntity.ok(Map.of(
                     "username", username,
-                    "role",role,
-                    "message", "Successfully refreshed security context",
-                    "accessToken", newAccessToken,
-                    "refreshToken", newRefreshToken
+                    "role", role,
+                    "accessToken", newAccessToken
             ));
-        } catch (ExpiredJwtException ex) {
-            logger.log(Level.WARNING, "Refresh token expired", ex.getMessage());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid or expired refresh token");
-        } catch (JwtException ex) {
-            logger.log(Level.WARNING, "Invalid refresh token", ex.getMessage());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid or expired refresh token");
-        } catch (Exception ex) {
-            logger.log(Level.SEVERE, "Error during refreshing security context", ex.getMessage());
+        } catch (ExpiredJwtException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Refresh token expired");
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid refresh token");
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error during token refresh", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
         }
     }
+
+
+    @PostMapping("/google/callback")
+    public ResponseEntity<?> handleGoogleCallback(@RequestParam("code") String code) {
+        try {
+            // 1. Exchange the authorization code for a Google access token
+            String googleAccessToken = authService.exchangeGoogleCodeForAccessToken(code);
+
+            // 2. Fetch user information from Google using the access token
+            ResponseEntity<?> googleUserInfo = authService.fetchGoogleUserInfo(googleAccessToken);
+            if (!googleUserInfo.getStatusCode().is2xxSuccessful()) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch user information from Google.");
+            }
+            Map<String, String> userInfo = new HashMap<>((Map) Objects.requireNonNull(googleUserInfo.getBody()));
+
+            String email =  userInfo.get("email");
+            String name = userInfo.get("name");
+            String googleId = userInfo.get("sub");
+
+            // 3. Check if the user already exists in your system
+            Optional<User> existingUser = userService.findByEmail(email);
+            User user;
+
+            if (existingUser.isPresent()) {
+                user = existingUser.get();
+            } else {
+                // 4. Register the user if they don't exist
+                user = new User();
+                user.setUsername(email);  // Using email as username
+                user.setEmail(email);
+                user.setFullName(name);
+                user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString())); // Generate a random password
+                user.setRole(new Role("USER"));
+                userService.saveUser(user);
+                //Send new user with accessToken
+                String accessToken = authService.generateJwtAccessToken(user.getUsername(), user.getAuthorities());
+                return ResponseEntity.ok(Map.of(
+                        "username", user.getUsername(),
+                        "role", user.getRole().getName(),
+                        "accessToken", accessToken
+                ));
+            }
+
+            // 5. Issue JWT tokens for the authenticated user
+            String accessToken = authService.generateJwtAccessToken(user.getUsername(), user.getAuthorities());
+
+            // 6. Return the JWT tokens and user details
+            return ResponseEntity.ok(Map.of(
+                    "username", user.getUsername(),
+                    "role", user.getRole().getName(),
+                    "accessToken", accessToken
+            ));
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error during Google OAuth callback", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Google OAuth failed.");
+        }
+    }
+
 }

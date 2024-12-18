@@ -11,9 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -68,30 +70,7 @@ public class AuthService {
                 .compact();
     }
 
-    /**
-     * Generates a JWT refresh token.
-     *
-     * @param username    The username for the token subject.
-     * @param authorities The user's granted authorities (roles).
-     * @return The signed JWT refresh token.
-     */
-    public String generateJwtRefreshToken(String username, @NotNull Collection<? extends GrantedAuthority> authorities) {
-        return Jwts.builder().subject(username)
-                .claim(ROLES_CLAIM, authorities.stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.toList())).issuedAt(new Date()).expiration(
 
-                        calculateExpirationDate(refreshTokenExpirationMinutes))
-                .signWith(key)
-                .compact();
-    }
-
-    /**
-     * Validates a JWT token.
-     *
-     * @param token The JWT token to validate.
-     * @return True if the token is valid, false otherwise.
-     */
     public boolean validateJwtToken(String token) {
         if (isTokenBlacklisted(token)) {
             LOG.warn("Token is blacklisted");
@@ -195,4 +174,49 @@ public class AuthService {
             return null;
         }
     }
+
+
+
+        private final RestTemplate restTemplate = new RestTemplate();
+
+        public String exchangeGoogleCodeForAccessToken(String code) {
+            String tokenEndpoint = "https://oauth2.googleapis.com/token";
+            String redirectUri = "http://localhost:3000/api/v3/auth/google/callback";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            Map<String, String> body = Map.of(
+                    "code", code,
+                    "client_id", "539426084783-ju5ppl2ofi85nk1bti3ic6hos6vrr62s.apps.googleusercontent.com",
+                    "client_secret", "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",
+                    "redirect_uri", redirectUri,
+                    "grant_type", "authorization_code"
+            );
+
+            HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
+            ResponseEntity<?> response = restTemplate.postForEntity(tokenEndpoint, request, Map.class);
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new RuntimeException("Failed to exchange Google code for access token: " + response.getStatusCode());
+            }
+            Map<String, Object> responses = (Map<String, Object>) response.getBody();
+
+            assert responses != null;
+            return (String) responses.get("access_token");
+        }
+
+        public ResponseEntity<?> fetchGoogleUserInfo(String accessToken) {
+            String userInfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(accessToken);
+
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            return restTemplate.exchange(userInfoEndpoint, HttpMethod.GET, entity, Map.class);
+        }
+
+
+
+
 }
