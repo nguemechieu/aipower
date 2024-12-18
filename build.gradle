@@ -34,7 +34,7 @@ ext {
 }
 
 dependencies {
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.78'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.79'
     implementation group: 'net.glxn', name: 'qrgen', version: '1.4'
 
     // BouncyCastle PKIX and OpenSSL compatibility library
