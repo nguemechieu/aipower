@@ -13,4 +13,6 @@ public class KafkaListenerService {
     public void listen(String message) {
         logger.info("Received message: {}", message);
     }
+
+
 }

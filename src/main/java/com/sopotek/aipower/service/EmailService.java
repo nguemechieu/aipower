@@ -1,12 +1,15 @@
 package com.sopotek.aipower.service;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import static com.sopotek.aipower.routes.api.NewsController.logger;
-
+@Getter
+@Setter
 @Service
 public class EmailService {
 

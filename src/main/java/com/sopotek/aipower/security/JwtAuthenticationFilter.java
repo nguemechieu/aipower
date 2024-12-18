@@ -12,18 +12,19 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 
 import java.io.IOException;
 import java.util.List;
 
-@Component
+@Service
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 AuthService authService;
 
 
-@Autowired
+
     public JwtAuthenticationFilter(AuthService authService) {
         this.authService = authService;
     }

@@ -87,10 +87,27 @@ public class AipowerServer {
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(group)
                     .channel(NioSocketChannel.class)
-                    .handler(new SimpleClientHandler());
+                    .handler(
+                            new SimpleClientHandler()
+                    );
+            // Generate a secret key and write it to the.env file
+            String secretKey = generateSecretKey();
+           // writeSecretKeyToEnvFile(secretKey);
+            LOG.info("Generated and written secret key to.env file.");
+
+            // Connect to the Netty server
+            // Replace "localhost" and "8080" with your desired server address and port
+            // Make sure the Netty server is running before running the client
+            // Note: This example assumes the Netty server is running on the same machine as the client
+            // If the server is running on a different machine, replace "localhost" with the server's IP address
+            // Also, ensure the client and server are using the same secret key to encrypt and decrypt messages
+
+            // Uncomment the following lines to connect to a different server
+            String serverAddress = "localhost";
+            int serverPort = 8080;
 
             LOG.info("Connecting to localhost:8080...");
-            ChannelFuture future = bootstrap.connect("localhost", 8080).sync();
+            ChannelFuture future = bootstrap.connect(serverAddress,serverPort).sync();
             future.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             LOG.error("Error while running Netty client: " + e.getMessage(), e);

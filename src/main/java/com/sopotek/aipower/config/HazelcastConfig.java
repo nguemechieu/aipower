@@ -39,9 +39,6 @@ public class HazelcastConfig {
 
         @Bean
         public CacheManager cacheManager() {
-
-
-
             SimpleCacheManager cacheManager = new SimpleCacheManager();
             cacheManager.setCaches(List.of(new ConcurrentMapCache("users")));
             return cacheManager;

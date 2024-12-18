@@ -21,6 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -67,18 +68,15 @@ public class AuthController {
 
         logger.info("AuthController initialized successfully");
     }
-//Login page
-
-    @GetMapping("/login")
-    public ResponseEntity<?> loginPage() {
-        String message ="You have to login first to continue...";
-        return ResponseEntity.ok(Map.of("message", message));
-
+    @GetMapping("/csrf-token")
+    public Map<String, String> csrf(HttpServletRequest request) {
+        CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
+        return Map.of("csrfToken", csrfToken.getToken());
     }
-    @PostMapping(value = "/login", consumes = "application/json")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request) {
+    @PostMapping(value = "/login")
+    public ResponseEntity<?> login(@Valid @RequestParam User loginRequest, HttpServletRequest request) {
         String clientIP = ipBlockService.getClientIP(request);
-
+//
         if (ipBlockService.isBlocked(clientIP)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
                     "error", "IP_BLOCKED",

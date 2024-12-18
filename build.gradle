@@ -55,6 +55,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'io.netty:netty-all:4.1.115.Final'
+    implementation 'commons-fileupload:commons-fileupload:1.4'
+
     implementation 'org.jetbrains:annotations:24.0.0'
     implementation 'de.codecentric:spring-boot-admin-starter-client:3.4.1'
     implementation 'de.codecentric:spring-boot-admin-starter-server:3.4.1'

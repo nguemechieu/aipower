@@ -29,6 +29,7 @@
     "autolinker": "^4.0.0",
     "axios": "^1.7.8",
     "cross-env": "^7.0.3",
+    "csurf": "^1.10.0",
     "dotenv": "^16.4.7",
     "lightweight-charts": "^4.2.1",
     "lint-staged": "^15.2.10",

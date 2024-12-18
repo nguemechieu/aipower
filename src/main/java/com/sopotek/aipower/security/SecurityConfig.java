@@ -1,6 +1,7 @@
 package com.sopotek.aipower.security;
 
 import com.sopotek.aipower.repository.UserRepository;
+import com.sopotek.aipower.service.AuthService;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -20,6 +20,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import javax.sql.DataSource;
 
@@ -28,40 +29,31 @@ import javax.sql.DataSource;
 @Configuration
 public class SecurityConfig {
 
-    // Role constants
-    public static final String ROLE_EMPLOYEE = "EMPLOYEE";
-    public static final String ROLE_MANAGER = "MANAGER";
-    public static final String ROLE_MODERATOR = "MODERATOR";
-    public static final String ROLE_USER = "USER";
-    public static final String ROLE_ADMIN = "ADMIN";
-    public static final String ROLE_OWNER = "OWNER";
-    public static final String ROLE_GROUP = "GROUP";
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
     private final UserRepository userRepository;
     private final DataSource dataSource;
-
-    @Autowired
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UserRepository userRepository, DataSource dataSource) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+@Autowired
+    public SecurityConfig(UserRepository userRepository, DataSource dataSource, JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.userRepository = userRepository;
         this.dataSource = dataSource;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity
-                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless applications
-                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless sessions
-                .authorizeHttpRequests(a -> a
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())) // CSRF configuration
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless sessions
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v3/users").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/api/v3/**").authenticated() // Protected API
                         .requestMatchers(
-                                "/api/v3/auth/users"
-                        ).hasAnyRole("ADMIN", "USER")
-                        .requestMatchers(
-                                "/api/v3/auth/admin/**",
-                                "/api/v3/auth/employee/**",
-                                "/api/v3/auth/manager/**",
-                                "/api/v3/auth/moderator/**").hasAnyRole("ADMIN", "MANAGER")
+                                "/api/v3/admin/**",
+                                "/api/v3/employee/**",
+                                "/api/v3/manager/**",
+                                "/api/v3/moderator/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(
                                 "/api/v3/auth/register",
                                 "/api/v3/auth/reset-password",
@@ -70,20 +62,16 @@ public class SecurityConfig {
                                 "/api/v3/auth/logout",
                                 "/api/v3/auth/password-reset-token/**",
                                 "/api/v3/auth/verify-email/**",
-                                "/api/v3/auth/login"
-                        ).permitAll() // Public endpoints
-                        .requestMatchers("/api/v3/**").authenticated() // Protected API
+                                "/api/v3/auth/login").permitAll() // Public endpoints
                         .anyRequest().permitAll() // Deny everything else
-                ).authenticationProvider(new CustomAuthenticationProvider(userRepository, passwordEncoder()))
-
-                .exceptionHandling(e -> e
+                )
+                .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> response.sendError(HttpStatus.UNAUTHORIZED.value(), authException.getMessage()))
                         .accessDeniedHandler((request, response, accessDeniedException) -> response.sendError(HttpStatus.FORBIDDEN.value(), accessDeniedException.getMessage()))
-
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // JWT filter
 
-        return httpSecurity.build();
+        return http.build();
     }
 
     @Bean

@@ -3,7 +3,7 @@ import {Link, useLocation, useNavigate} from "react-router-dom";
 import useAuth from "../hooks/useAuth.js";
 import axios from "../api/axios.js";
 import usePersist from "../hooks/usePersist";
-import {Button} from "@mui/material";
+import {Button, CircularProgress} from "@mui/material";
 import {GitHub, Google} from "@mui/icons-material";
 
 const LOGIN_URL = "/api/v3/auth/login";
@@ -36,19 +36,30 @@ const Login = () => {
         }
     }, [persist]);
 
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setErrMsg("");
         try {
-            const timestamp = Date.now();
+
             const response = await axios.post(
                 LOGIN_URL,
-                JSON.stringify({ username, password,rememberMe,timestamp }),
-                { headers: { "Content-Type": "application/json",
-                        "Accept": "application/json"
-                    } ,
-                    withCredentials: true
+                JSON.stringify({ username, password,rememberMe }),
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+
+
+                    }
+                    ,
+                    withCredentials: true,
+                    onUploadProgress: (progressEvent) => {
+                        const progress = Math.round(
+                            (progressEvent.loaded / progressEvent.total) * 100
+                        );
+                        console.log(`Upload progress: ${progress}%`);
+                    }
                 }
             );
 
@@ -72,12 +83,20 @@ const Login = () => {
             if (err?.response?.data) {
                 setErrMsg(JSON.stringify(err.response.data));
             } else {
-                setErrMsg("Server unreachable! Please try again later.");
+                setErrMsg(
+                    err?.response?.data?.message || "Server unreachable! Please try again later."
+                );
+
             }
             errRef.current?.focus();
+            console.log(
+
+                err.response
+            )
         } finally {
             setLoading(false);
         }
+
     };
 
     const googleLogin = () => {
@@ -140,9 +159,15 @@ const Login = () => {
                                 {errMsg}
                             </p>
                         )}
-                        <Button type="submit" disabled={loading} variant="contained">
+                        <Button
+                            type="submit"
+                            disabled={loading}
+                            variant="contained"
+                            startIcon={loading ? <CircularProgress size={20} /> : null}
+                        >
                             {loading ? "Logging in..." : "Login"}
                         </Button>
+
 
                         <div className="social-media-buttons">
                             <Button

@@ -171,7 +171,7 @@ public class AuthService {
             return username;
         } catch (Exception e) {
             LOG.error("Failed to validate refresh token: {}", e.getMessage(), e);
-            return null;
+            return e.getMessage();
         }
     }
 
