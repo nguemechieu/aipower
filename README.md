@@ -1,6 +1,8 @@
 # AiPower
 
 [![Aipower Docker Image CI](https://github.com/nguemechieu/aipower/actions/workflows/docker-image.yml/badge.svg)](https://github.com/nguemechieu/aipower/actions/workflows/docker-image.yml)
+[![Gradle Package](https://github.com/nguemechieu/aipower/actions/workflows/gradle-publish.yml/badge.svg)](https://github.com/nguemechieu/aipower/actions/workflows/gradle-publish.yml)[![Dependabot Updates](https://github.com/nguemechieu/aipower/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/nguemechieu/aipower/actions/workflows/dependabot/dependabot-updates)[![Aipower Node.js Package](https://github.com/nguemechieu/aipower/actions/workflows/npm-publish-github-packages.yml/badge.svg)](https://github.com/nguemechieu/aipower/actions/workflows/npm-publish-github-packages.yml)[![Aipower Build and Test](https://github.com/nguemechieu/aipower/actions/workflows/webpack.yml/badge.svg)](https://github.com/nguemechieu/aipower/actions/workflows/webpack.yml)
+[![Build and Deploy to GKE](https://github.com/nguemechieu/aipower/actions/workflows/google.yml/badge.svg)](https://github.com/nguemechieu/aipower/actions/workflows/google.yml)
 
 ![aipower](aipower2.ico)
 
