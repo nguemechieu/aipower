@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.0'
     id 'io.spring.dependency-management' version '1.1.6'
-    id 'org.asciidoctor.jvm.convert' version '3.3.2'
+    id 'org.asciidoctor.jvm.convert' version '4.0.3'
 }
 
 group = 'com.sopotek'
@@ -34,7 +34,7 @@ ext {
 }
 
 dependencies {
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.78'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.79'
     implementation group: 'net.glxn', name: 'qrgen', version: '1.4'
 
     // BouncyCastle PKIX and OpenSSL compatibility library
@@ -67,7 +67,7 @@ dependencies {
     implementation 'com.hazelcast:hazelcast:5.5.0'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
     implementation 'com.github.ua-parser:uap-java:1.6.1'
-    implementation 'io.github.cdimascio:dotenv-java:3.0.2'
+    implementation 'io.github.cdimascio:dotenv-java:3.1.0'
     implementation 'org.apache.commons:commons-email:1.6.0'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'io.micrometer:micrometer-registry-jmx:1.14.2'
