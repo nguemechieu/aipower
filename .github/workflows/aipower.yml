@@ -36,7 +36,7 @@ jobs:
 
       # Step 5: Build the Java Spring Boot backend
       - name: Build Java Backend (Spring Boot)
-        working-directory: ./backend  # Adjust path if necessary
+        working-directory: .  # Adjust path if necessary
         run: ./gradlew build
 
       # Step 6: Authenticate to Google Cloud
