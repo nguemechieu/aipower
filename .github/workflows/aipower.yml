@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,8 +21,7 @@ jobs:
           node-version: '20'
 
       # Step 3: Install frontend dependencies and build frontend
-      - name: Install Frontend Dependencies and Build
-        working-directory: ./frontend  # Adjust path if necessary
+      - name: Install Frontend Dependencies
         run: |
           npm install
           npm run build
@@ -31,33 +30,29 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
-          java-version: '23'  # Change to your preferred LTS version
+          java-version: '23'
           distribution: 'adopt'
 
-      # Step 5: Build the Java Spring Boot backend
-      - name: Build Java Backend (Spring Boot)
-        working-directory: .  # Adjust path if necessary
-        run: ./gradlew build
+      # Step 5: Make gradlew executable
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
 
-      # Step 6: Authenticate to Google Cloud
-      - name: Authenticate to Google Cloud
+      # Step 6: Build the Java Spring Boot backend
+      - name: Build Java Backend (Spring Boot)
+        run: ./gradlew build  # If you're using Gradle. Use `mvn clean install` for Maven
+
+      # Step 7: Authenticate to Google Cloud using GitHub Secrets
+      - name: Set up Google Cloud Authentication
         uses: google-github-actions/auth@v0
         with:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
-      # Step 7: Deploy Frontend to Google Cloud Storage
+      # Step 8: Deploy Frontend to Google Cloud Storage (for static websites)
       - name: Deploy Frontend to Google Cloud Storage
         run: |
-          gsutil -m cp -r ./frontend/build/* gs://$GCP_BUCKET_NAME/
-        env:
-          GCP_BUCKET_NAME: ${{ secrets.GCP_BUCKET_NAME }}
+          gsutil -m cp -r build/* gs://aipower-cloud-bucket-name/
 
-      # Step 8: Deploy Backend to Google App Engine
+      # Step 9: Deploy Backend to Google App Engine (for Spring Boot)
       - name: Deploy Backend to Google App Engine
         run: |
-          gcloud app deploy ./aipower.yaml --project $GCP_PROJECT_ID --quiet
-        env:
-          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-
-      # Optional: Additional Deployment Targets
-      # Uncomment these steps as needed for GKE or Compute Engine
+          gcloud app deploy
