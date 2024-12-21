@@ -1,6 +1,6 @@
 # Stage 1: Build Frontend
-FROM node:latest AS frontend-builder
-WORKDIR /aipower/frontend
+FROM node:20 AS frontend-builder
+WORKDIR /frontend
 
 # Copy package.json and package-lock.json and install dependencies
 COPY frontend/package*.json ./
@@ -26,12 +26,11 @@ RUN apt-get update && \
 ENV JAVA_HOME=/usr/lib/jvm/jdk-23.0.1
 ENV PATH="$JAVA_HOME/bin:$PATH"
 
-
-WORKDIR /aipower
+WORKDIR /backend
 
 # Copy Gradle wrapper and build files
-COPY gradlew gradlew.bat settings.gradle build.gradle ./
-COPY gradle ./gradle
+COPY backend/gradlew backend/gradlew.bat backend/settings.gradle backend/build.gradle ./
+COPY backend/gradle ./gradle
 
 # Ensure gradlew is executable
 RUN chmod +x gradlew
@@ -40,19 +39,19 @@ RUN chmod +x gradlew
 RUN ./gradlew dependencies --no-daemon
 
 # Copy backend source code and build the application
-COPY . ./
-RUN \.gradlew bootJar --no-daemon
+COPY backend/ ./
+RUN ./gradlew bootJar --no-daemon
 
 # Stage 3: Production
 FROM openjdk:23 AS production
 
-WORKDIR /aipower
+WORKDIR /backend
 
 # Copy built backend JAR
-COPY --from=backend-builder /aipower/build/libs/*.jar aipower.jar
+COPY --from=backend-builder /backend/build/libs/*.jar aipower.jar
 
 # Copy frontend build output
-COPY --from=frontend-builder /aipower/frontend/build ./src/main/resources/static
+COPY --from=frontend-builder /frontend/build ./src/main/resources/static
 
 # Set environment variables
 ENV SPRING_PROFILES_ACTIVE=production
