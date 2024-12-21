@@ -22,6 +22,7 @@ jobs:
 
       # Step 3: Install frontend dependencies and build frontend
       - name: Install Frontend Dependencies
+        working-directory: ./frontend  # Corrected key from 'wdirectory' to 'working-directory'
         run: |
           npm install
           npm run build
@@ -35,11 +36,13 @@ jobs:
 
       # Step 5: Make gradlew executable
       - name: Grant execute permission for gradlew
+        working-directory: ./backend  # Assuming your backend directory is ./backend
         run: chmod +x ./gradlew
 
       # Step 6: Build the Java Spring Boot backend
       - name: Build Java Backend (Spring Boot)
-        run: ./gradlew build  # If you're using Gradle. Use `mvn clean install` for Maven
+        working-directory: .  # Assuming your backend directory is ./backend
+        run: ./gradlew build
 
       # Step 7: Authenticate to Google Cloud using GitHub Secrets
       - name: Set up Google Cloud Authentication
@@ -49,10 +52,12 @@ jobs:
 
       # Step 8: Deploy Frontend to Google Cloud Storage (for static websites)
       - name: Deploy Frontend to Google Cloud Storage
+        working-directory: ./frontend  # Optional, if deployment needs to be from ./frontend
         run: |
           gsutil -m cp -r build/* gs://aipower-cloud-bucket-name/
 
       # Step 9: Deploy Backend to Google App Engine (for Spring Boot)
       - name: Deploy Backend to Google App Engine
+        working-directory: .  # Assuming your backend directory is ./backend
         run: |
           gcloud app deploy
