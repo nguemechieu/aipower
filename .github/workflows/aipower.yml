@@ -11,7 +11,8 @@ jobs:
 
     steps:
       # Step 1: Checkout the repository
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
       # Step 2: Set up Node.js (for frontend)
       - name: Set up Node.js
@@ -19,9 +20,11 @@ jobs:
         with:
           node-version: '20'
 
-      # Step 3: Install frontend dependencies
-      - run: npm install --yes
-      - run: npm run build
+      # Step 3: Install frontend dependencies and build frontend
+      - name: Install Frontend Dependencies
+        run: |
+          npm install
+          npm run build
 
       # Step 4: Set up Java (for backend)
       - name: Set up JDK
@@ -48,8 +51,8 @@ jobs:
       # Step 8: Deploy Backend to Google App Engine (for Spring Boot)
       - name: Deploy Backend to Google App Engine
         run: |
-          gcloud app browse  # This will deploy the app defined in your `app.yaml` (usually found in your backend project)
           gcloud app deploy  # This deploys the Spring Boot app to Google App Engine
+          gcloud app browse  # This will open the deployed app in the browser
 
       # Optional Step: Deploy Backend to Google Kubernetes Engine (GKE)
       # Uncomment this section if you are deploying to GKE instead
