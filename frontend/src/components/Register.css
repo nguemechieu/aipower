@@ -5,8 +5,8 @@ section.register {
     max-width: 600px;
     margin: 50px auto;
     padding: 20px;
-    background-color: #072333;
-    color: white;
+    background-color: #111e20;
+    color: #ffffff;
 
     border-radius: 8px;
 
@@ -45,7 +45,7 @@ form textarea:focus {
 }
 
 /* Button Styles */
-.form button {
+form button {
     background-color: #45d16f;
     color: #1d70cc;
     font-size: 16px;

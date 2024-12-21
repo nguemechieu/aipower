@@ -1,6 +1,5 @@
 package com.sopotek.aipower.routes.api;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,120 +12,83 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
 @Setter
 @RestController
-
 public class NewsController {
 
-    public static final Logger logger = LoggerFactory.getLogger(NewsController.class);
+    private static final Logger logger = LoggerFactory.getLogger(NewsController.class);
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final HttpClient client = HttpClient.newHttpClient();
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
     @Value("${news.api.key}")
     private String apiKey;
 
-   @Value("${news.api.url}")
-   private String url;
+    @Value("${news.api.url}")
+    private String url;
 
     public NewsController() {
-        // Default constructor for Spring
+        this.restTemplate = new RestTemplate();
+        this.objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        logger.info(this.toString());
     }
-
-    // Fetch Forex Factory calendar data
 
     @GetMapping("/forex-factory")
     public ResponseEntity<?> getForexFactoryCalendar() {
         try {
+            String forexApiUrl = "https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=a603b210ca0358c2414daec0c5a1247b";
+            String response = restTemplate.getForObject(forexApiUrl, String.class);
 
-
-            HttpResponse<String> response = client.send( HttpRequest.newBuilder()
-                    .uri(URI.create("https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=a603b210ca0358c2414daec0c5a1247b"))
-                    .GET()
-                    .build(), HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() != 200) {
-                logger.error("Failed to fetch Forex Factory calendar: {}", response.body());
-                return ResponseEntity.status(response.statusCode()).body("Failed to fetch Forex Factory calendar: " + response.body());
+            if (response == null) {
+                logger.error("Failed to fetch Forex Factory calendar");
+                return ResponseEntity.status(500).body("Failed to fetch Forex Factory calendar");
             }
 
-            // Parse the JSON data into a List of ForexFactoryCalendar
             List<News> forexEvents = objectMapper.readValue(
-                    response.body(),
+                    response,
                     objectMapper.getTypeFactory().constructCollectionType(List.class, News.class)
             );
 
-            //Filter upcoming events
             forexEvents = forexEvents.stream()
-                    .filter(event -> event.getStartDate().after(new java.util.Date()))
+                    .filter(event -> event.getStartDate().after(new Date()))
                     .limit(5)
+                    .sorted(Comparator.comparing(News::getStartDate))
                     .collect(Collectors.toList());
 
-            // Sort events by start date
-            forexEvents.sort(Comparator.comparing(News::getStartDate));
-
-            // Map events to a JSON object
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-            String json = mapper.writeValueAsString(forexEvents);
-            mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
-
-            // Return the JSON object
-            return ResponseEntity.ok(json);
-
-
-
-        } catch (IOException | InterruptedException e) {
+            return ResponseEntity.ok(forexEvents);
+        } catch (Exception e) {
             logger.error("Error fetching Forex Factory calendar", e);
             return ResponseEntity.status(500).body("Error fetching Forex Factory calendar: " + e.getMessage());
         }
     }
 
-
     @GetMapping("/news")
     public ResponseEntity<?> getNews() {
         try {
+            String date = new java.text.SimpleDateFormat("yyyy-MM-dd")
+                    .format(new Date(System.currentTimeMillis() - (1000 * 60 * 60 * 24)));
 
-                    // Fetch news for the previous day
-                    String date = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date(new java.util.Date().getTime() - (1000 * 60 * 60 * 24)));
+            String newsApiUrl = String.format(
+                    "https://newsapi.org/v2/everything?q=bitcoin&from=%s&sortBy=publishedAt&apiKey=%s",
+                    date, apiKey
+            );
 
-                   // Create the HTTP request to fetch news data from News API
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(
-                            "https://newsapi.org/v2/everything?" +
-                                    "q=bitcoin&" +
-                                    "from=" + date + "&" +
-                                    "sortBy=publishedAt&" +
-                                    "apiKey=" + apiKey
+            String response = restTemplate.getForObject(newsApiUrl, String.class);
 
-                    ))
-                    .GET()
-                    .build();
-
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() != 200) {
-                logger.error("Failed to fetch news: {}", response.body());
-                return ResponseEntity.status(response.statusCode()).body("Failed to fetch news: " + response.body());
+            if (response == null) {
+                logger.error("Failed to fetch news");
+                return ResponseEntity.status(500).body("Failed to fetch news");
             }
 
-            // Parse the JSON response
-            JsonNode rootNode = objectMapper.readTree(response.body());
-
-            // Extract articles node
+            JsonNode rootNode = objectMapper.readTree(response);
             if (rootNode.has("articles")) {
                 List<News> newsList = objectMapper.readValue(
                         rootNode.get("articles").toString(),
@@ -134,15 +96,12 @@ public class NewsController {
                 );
                 return ResponseEntity.ok(newsList);
             } else {
-                logger.error("Unexpected JSON structure: {}", response.body());
+                logger.error("Unexpected JSON structure: {}", response);
                 return ResponseEntity.status(500).body("Unexpected JSON structure");
             }
-
-        } catch (IOException | InterruptedException e) {
+        } catch (Exception e) {
             logger.error("Error fetching news", e);
             return ResponseEntity.status(500).body("Error fetching news: " + e.getMessage());
         }
     }
-
-
 }

@@ -9,9 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RestControllerAdvice
-
-
 @RequestMapping("/api/v3/crypto")
 public class CryptoController {
 CryptoService cryptoService;

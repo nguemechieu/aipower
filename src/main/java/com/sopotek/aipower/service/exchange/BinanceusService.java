@@ -1,7 +1,6 @@
 package com.sopotek.aipower.service.exchange;
 
-import com.sopotek.aipower.component.Binanceus;
-import lombok.AllArgsConstructor;
+import com.sopotek.aipower.routes.api.binanceus.Binanceus;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;

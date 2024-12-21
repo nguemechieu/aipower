@@ -28,8 +28,8 @@ import java.util.Optional;
 public class UserService {
     private static final Log LOG = LogFactory.getLog(UserService.class);
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private  UserRepository userRepository;
+    private  PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
     @Autowired
@@ -41,14 +41,6 @@ public class UserService {
         this.emailService = emailService;
     }
 
-    @Transactional
-    @Cacheable(value = "users", key = "#username")
-    public boolean authenticate(String username, String password) {
-        Optional<User> optionalUser = userRepository.findByUsername(username);
-
-        return optionalUser.isPresent() &&
-                passwordEncoder.matches(password, optionalUser.get().getPassword());
-    }
 
     @Transactional
     @Cacheable(value = "users", key = "#id")
@@ -77,40 +69,10 @@ public class UserService {
         LOG.info("Deleted user with ID: {}");
     }
 
-    public Optional<User> findByUsername(@NotBlank(message = "Username is required") String username) {
-        return userRepository.findByUsername(username);
-    }
 
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
 
-    public boolean existsByUsernameOrEmail(String username, String email) {
-        return userRepository.findByUsername(username).isPresent() ||
-                userRepository.findByEmail(email).isPresent();
-    }
 
-    public void saveUser(@Valid @NotNull User user) {
-        if (existsByUsernameOrEmail(user.getUsername(), user.getEmail())) {
-            throw new IllegalArgumentException("User with the same username or email already exists");
-        }
-        userRepository.save(user);
-    }
 
-    @Transactional
-    public List<GrantedAuthority> getAuthoritiesByUsername(String username) {
-        Optional<User> optionalUser = userRepository.findByUsername(username);
-
-        if (optionalUser.isEmpty()) {
-            throw new UsernameNotFoundException("User not found with username: " + username);
-        }
-
-        User user = optionalUser.get();
-        return user.getRoles()
-                .stream()
-                .map(role -> (GrantedAuthority) role)
-                .toList();
-    }
 
     public User getCurrentUser() {
         return SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof User?

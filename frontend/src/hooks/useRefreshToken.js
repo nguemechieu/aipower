@@ -1,11 +1,11 @@
-import axios from '../api/axios';
+import  {axiosPublic} from '../api/axios';
 import useAuth from './useAuth';
 
 const useRefreshToken = () => {
     const { setAuth } = useAuth();
 
     return async () => {
-        const response = await axios.get('/api/v3/auth/refresh', {
+        const response = await axiosPublic.get('/api/v3/refresh', {
             withCredentials: true
         });
         setAuth(prev => {

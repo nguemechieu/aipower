@@ -2,16 +2,19 @@ package com.sopotek.aipower.service;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-import static com.sopotek.aipower.routes.api.NewsController.logger;
+
 @Getter
 @Setter
 @Service
 public class EmailService {
+  private static final Log logger= LogFactory.getLog(EmailService.class);
 
     private final JavaMailSender mailSender;
 
@@ -40,9 +43,9 @@ public class EmailService {
             message.setText(text);
 
             mailSender.send(message);
-            logger.info("Email sent successfully to {}", to);
+            logger.info("Email sent successfully to {}");
         } catch (Exception ex) {
-            logger.error("Failed to send email: {}", ex.getMessage());
+            logger.error("Failed to send email: {}");
 
         }
     }

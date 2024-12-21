@@ -1,11 +1,10 @@
 package com.sopotek.aipower.routes.api;
 
-
 import com.sopotek.aipower.model.User;
-
 import com.sopotek.aipower.service.UserService;
-
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -15,95 +14,88 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.sopotek.aipower.routes.api.NewsController.logger;
-
-
 @RestController
 @RequestMapping("/api/v3/users")
 public class UsersController {
 
+    public static final Logger logger = LoggerFactory.getLogger(UsersController.class);
+    private final UserService userService;
     private final CacheManager cacheManager;
-@Autowired
+
+    @Autowired
     public UsersController(UserService userService, CacheManager cacheManager) {
         this.userService = userService;
         this.cacheManager = cacheManager;
     }
 
     @PostConstruct
-    public void testCache() {
+    public void initializeCache() {
         Cache cache = cacheManager.getCache("users");
         if (cache == null) {
             throw new IllegalStateException("Cache 'users' not found");
         }
         cache.put("testKey", "testValue");
+        logger.info("Cache 'users' initialized with test data.");
     }
-
-    private final UserService userService;
-
-
 
     // Get all users
     @GetMapping("/all")
     public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
-        if (users == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        try {
+            List<User> users = userService.getAllUsers();
+            if (users.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(users);
+            }
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            logger.error("Error fetching all users", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-
-
-        return ResponseEntity.ok(users);
     }
 
-
-    // Get a single user by ID
+    // Get a user by ID
     @GetMapping("/id:{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
-
-         try {
-             User user = userService.getUserById(id);
-             if (user == null) {
-                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-             }
-             return ResponseEntity.ok(user);
-         }
-         catch(Exception e){
-             logger.error(
-                     e.getMessage(), e);
-             return ResponseEntity.status(500).body(null);
-         }
-
-
+        try {
+            User user = userService.getUserById(id);
+            return user != null
+                    ? ResponseEntity.ok(user)
+                    : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            logger.error("Error fetching user by ID: " + id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
-
-
-// Update a user by ID (PUT method)
+    // Update a user by ID
     @PutMapping("/update/id:{id}")
-    public ResponseEntity<String> updateItem(@PathVariable Long id, @RequestBody User updatedItem) {
-
-  try{
-         userService.update(updatedItem);return ResponseEntity.status(200).body(id+" updated successfully");
-   }
-  catch(Exception e){
-           return ResponseEntity.status(500).body(e.getMessage());
+    public ResponseEntity<String> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
+        try {
+            if (!userService.getUserRepository().existsById(id)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("No user found with ID: " + id);
+            }
+            userService.update(updatedUser);
+            return ResponseEntity.ok("User with ID " + id + " updated successfully.");
+        } catch (Exception e) {
+            logger.error("Error updating user with ID: " + id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
-
-
     }
 
-    // DELETE: Remove or delete users by ID
-
+    // Delete a user by ID
     @DeleteMapping("/delete/id:{id}")
-    public ResponseEntity<String> deleteItem(@PathVariable Long id) {
-        if (userService.getUserRepository().existsById(id)) {
+    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
+        try {
+            if (!userService.getUserRepository().existsById(id)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("No user found with ID: " + id);
+            }
             userService.deleteById(id);
-
-            return ResponseEntity.status(200).body("User deleted successfully");
+            return ResponseEntity.ok("User with ID " + id + " deleted successfully.");
+        } catch (Exception e) {
+            logger.error("Error deleting user with ID: " + id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
-        return ResponseEntity.status(500).body(
-                "No user found with id: %d".formatted(id)
-        );
     }
-
-
 }

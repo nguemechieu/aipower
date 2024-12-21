@@ -7,7 +7,7 @@ export default class ROLES {
     static EDITOR = 'EDITOR';
     static SUPERVISOR = 'SUPERVISOR';
     static OWNER = 'OWNER';
-    static AUTHOR = 'AUTHOR';
+
 
     constructor(value) {
         this.value = value;

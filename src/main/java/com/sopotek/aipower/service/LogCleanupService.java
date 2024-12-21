@@ -2,6 +2,7 @@ package com.sopotek.aipower.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -9,7 +10,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-@Service
+@Component
 public class LogCleanupService {
 
     private static final Logger logger = Logger.getLogger(LogCleanupService.class.getName());

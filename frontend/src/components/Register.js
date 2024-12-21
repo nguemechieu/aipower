@@ -1,17 +1,17 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "../api/axios.js";
+import {axiosPublic} from "../api/axios.js";
 import {
     Button,
     TextField,
-    MenuItem,
     Select,
-    InputLabel,
     FormControl,
     CircularProgress,
     Typography,
     Box,
     Alert,
+    InputLabel,
+    MenuItem,
 } from "@mui/material";
 import "./Register.css";
 
@@ -21,6 +21,8 @@ const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ZIP_REGEX = /^[0-9]{5}(?:-[0-9]{4})?$/;
 const PHONE_REGEX = /^\d{10,15}$/;
+
+// Constants
 const genderOptions = ["Male", "Female", "Others"];
 const securityQuestions = [
     "What was the name of your first pet?",
@@ -32,7 +34,6 @@ const securityQuestions = [
 ];
 
 const Register = () => {
-    useRef(null);
     const errRef = useRef();
     const navigate = useNavigate();
 
@@ -56,7 +57,7 @@ const Register = () => {
         profilePictureUrl: "",
         bio: "",
         securityQuestion: securityQuestions[0],
-        securityAnswer: "",
+        securityAnswer: ""
     });
 
     const [validation, setValidation] = useState({
@@ -101,171 +102,148 @@ const Register = () => {
         setErrMsg("");
 
         try {
-            const response = await axios.post("/api/v3/auth/register", JSON.stringify(formData));
-
-            if (response.status === 200 || response.status === 201) {
+            const response = await axiosPublic.post("/api/v3/register", JSON.stringify(formData)
+            );
+            if ([200, 201].includes(response.status)) {
                 setSuccess(true);
                 navigate("/", { replace: true });
             } else {
-                setErrMsg("Registration failed!");
+                setErrMsg("Registration failed.");
             }
         } catch (error) {
-            setErrMsg(JSON.stringify(error?.response?.data) || "Registration failed!");
+            setErrMsg(JSON.stringify(error.response?.data) || error.message || "Error occurred.");
         } finally {
             setIsLoading(false);
         }
     };
 
-    return (
-        <section className="register" >
-            {success ? (
-                <Box textAlign="center">
-                    <Typography variant="h4" gutterBottom>
-                        Registration Successful!
-                    </Typography>
-                    <Link to="/" style={{ textDecoration: "none" }}>
-                        <Button variant="contained" color="primary">
-                            Sign In
-                        </Button>
-                    </Link>
-                </Box>
-            ) : (
-                <form onSubmit={handleSubmit}>
-                    <Typography variant="h4" gutterBottom>
-                        Register
-                    </Typography>
+    const inputFields = [
+        { label: "Username", name: "username", type: "text", errorKey: "validName" },
+        { label: "Email", name: "email", type: "email", errorKey: "validEmail" },
+        { label: "Password", name: "password", type: "password", errorKey: "validPwd" },
+        { label: "Confirm Password", name: "matchPwd", type: "password", errorKey: "validMatch" },
+        { label: "First Name", name: "firstName", type: "text" },
+        { label: "Middle Name", name: "middleName", type: "text" },
+        { label: "Last Name", name: "lastName", type: "text" },
+        { label: "Phone Number", name: "phoneNumber", type: "tel", errorKey: "validPhone" },
+        { label: "Zip Code", name: "zipCode", type: "text", errorKey: "validZip" },
+        { label: "Address", name: "address", type: "text" },
+        { label: "City", name: "city", type: "text" },
+        { label: "State", name: "state", type: "text" },
+        { label: "Country", name: "country", type: "text" },
+        { label: "Profile Picture URL", name: "profilePictureUrl", type: "text" },
+    ];
 
-                    {errMsg && (
-                        <Alert severity="error" ref={errRef}>
-                            {errMsg}
-                        </Alert>
-                    )}
-
-                    {/* Dynamic Input Fields */}
-                    {[
-                        { label: "Username", name: "username", errorKey: "validName", type: "text" },
-                        { label: "Email", name: "email", errorKey: "validEmail", type: "email" },
-                        { label: "Password", name: "password", errorKey: "validPwd", type: "password" },
-                        { label: "Confirm Password", name: "matchPwd", errorKey: "validMatch", type: "password" },
-                        { label: "First Name", name: "firstName", type: "text" },
-                        { label: "Middle Name", name: "middleName", type: "text" },
-                        { label: "Last Name", name: "lastName", type: "text" },
-                        { label: "Phone Number", name: "phoneNumber", errorKey: "validPhone", type: "tel" },
-                        { label: "Zip Code", name: "zipCode", errorKey: "validZip", type: "text" },
-                        { label: "Address", name: "address", type: "text" },
-                        { label: "City", name: "city", type: "text" },
-                        { label: "State", name: "state", type: "text" },
-                        { label: "Country", name: "country", type: "text" },
-                        { label: "Profile Picture URL", name: "profilePictureUrl", type: "text" },
-                    ].map(({ label, name, type, errorKey }) => (
-                        <TextField
-                            key={name}
-                            fullWidth
-                            margin="normal"
-                            label={label}
-                            name={name}
-                            type={type}
-                            value={formData[name]}
-                            onChange={handleInputChange}
-                            error={errorKey && !validation[errorKey]}
-                            helperText={errorKey && !validation[errorKey] ? `Invalid ${label.toLowerCase()}` : ""}
-                            required={!["middleName", "address", "city", "state", "country", "profilePictureUrl"].includes(name)}
-                        />
-                    ))}
-
-                    <TextField
-                        fullWidth
-                        margin="normal"
-                        label="Birthdate"
-                        name="birthdate"
-                        type="date"
-                        InputLabel={{ shrink: true }}
-                        value={formData.birthdate}
-                        onChange={handleInputChange}
-                        required
-                    />
-
-                    <FormControl fullWidth margin="normal">
-                        <InputLabel id="gender-label">Gender</InputLabel>
-                        <Select
-                            labelId="gender-label"
-                            name="gender"
-                            value={formData.gender}
-                            onChange={handleInputChange}
-                            required
-                          variant={"filled"}>
-                            {genderOptions.map((option) => (
-                                <MenuItem key={option} value={option}>
-                                    {option}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-
-                    <FormControl fullWidth margin="normal">
-                        <InputLabel id="security-question-label">Security Question</InputLabel>
-                        <Select
-                            labelId="security-question-label"
-                            name="securityQuestion"
-                            value={formData.securityQuestion}
-                            onChange={handleInputChange}
-                            required
-                         variant={"filled"}>
-                            {securityQuestions.map((question) => (
-                                <MenuItem key={question} value={question}>
-                                    {question}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-
-                    <TextField
-                        fullWidth
-                        margin="normal"
-                        label="Security Answer"
-                        name="securityAnswer"
-                        type="text"
-                        value={formData.securityAnswer}
-                        onChange={handleInputChange}
-                        required
-                    />
-
-                    <TextField
-                        fullWidth
-                        margin="normal"
-                        label="Bio"
-                        name="bio"
-                        type="text"
-                        value={formData.bio}
-                        onChange={handleInputChange}
-                        multiline
-                        rows={4}
-                    />
-
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        disabled={
-                            !validation.validName ||
-                            !validation.validEmail ||
-                            !validation.validPwd ||
-                            !validation.validMatch ||
-                            isLoading
-                        }
-                        sx={{ marginTop: 2 }}
-                    >
-                        {isLoading ? <CircularProgress size={24} /> : "Register"}
-                    </Button>
-
-                    <Typography variant="body2" align="center" sx={{ marginTop: 2 }}>
-                        Already registered? <Link to="/">Sign In</Link>
-                    </Typography>
-                </form>
-            )}
+    return success ? (<section>
+            <Box textAlign="center">
+                <Typography variant="h4">Registration Successful!</Typography>
+                <Link to="/" style={{ textDecoration: "none" }}>
+                    <Button variant="contained" color="primary">Sign In</Button>
+                </Link>
+            </Box>
         </section>
-    );
+    ) : (<section>
+        <Box display="flex" justifyContent="center">
+            <CircularProgress size={30} color="primary" />
+        </Box>
+        <Typography variant="h5" gutterBottom>
+            Registering...
+        </Typography>
+
+            <form onSubmit={handleSubmit}>
+                <Typography variant="h4" gutterBottom>Register</Typography>
+                {errMsg && <Alert severity="error" ref={errRef}>{errMsg}</Alert>}
+                {inputFields.map(({ label, name, type, errorKey }) => (
+                    <TextField
+                        key={name}
+                        fullWidth
+                        margin="normal"
+                        label={label}
+                        name={name}
+                        type={type}
+                        value={formData[name]}
+                        onChange={handleInputChange}
+                        error={errorKey && !validation[errorKey]}
+                        helperText={errorKey && !validation[errorKey] && `Invalid ${label.toLowerCase()}`}
+                        required={!["middleName", "address", "city", "state", "country", "profilePictureUrl"].includes(name)}
+                    />
+                ))}
+                <TextField
+                    fullWidth
+                    margin="normal"
+                    label="Birthdate"
+                    name="birthdate"
+                    type="date"
+                    value={formData.birthdate}
+                    onChange={handleInputChange}
+                    required
+                />
+                <FormControl fullWidth margin="normal">
+                    <InputLabel id="gender-label">Gender</InputLabel>
+                    <Select
+                        labelId="gender-label"
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleInputChange}
+                        variant={"filled"}
+                    >
+                        {genderOptions.map((option) => (
+                            <MenuItem key={option} value={option}>
+                                {option}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+                <FormControl fullWidth margin="normal">
+                    <InputLabel id="security-question-label">Security Question</InputLabel>
+                    <Select
+                        labelId="security-question-label"
+                        name="securityQuestion"
+                        value={formData.securityQuestion}
+                        onChange={handleInputChange}
+                        variant={'filled'}
+                    >
+                        {securityQuestions.map((question) => (
+                            <MenuItem key={question} value={question}>
+                                {question}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+                <TextField
+                    fullWidth
+                    margin="normal"
+                    label="Security Answer"
+                    name="securityAnswer"
+                    value={formData.securityAnswer}
+                    onChange={handleInputChange}
+                    type="text"
+                    required
+                />
+                <TextField
+                    fullWidth
+                    margin="normal"
+                    label="Bio"
+                    name="bio"
+                    multiline
+                    rows={4}
+                    value={formData.bio}
+                    onChange={handleInputChange}
+                    type="text"
+                />
+                <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    disabled={!validation.validName || !validation.validEmail || !validation.validPwd || !validation.validMatch || isLoading}
+                    sx={{ marginTop: 2 }}
+                >
+                    {isLoading ? <CircularProgress size={24} /> : "Register"}
+                </Button>
+            </form>
+
+    </section>);
 };
 
 export default Register;

@@ -1,47 +1,88 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 import useAuth from "../hooks/useAuth";
+import {axiosPrivate} from "../api/axios";
+
 
 const GitHubRedirect = () => {
-    const { auth, setAuth } = useAuth(); // Custom hook to manage authentication
+    const { setAuth } = useAuth(); // Custom hook to manage authentication
     const [error, setError] = useState("");
     const navigate = useNavigate(); // Hook for navigation
 
-
-
     useEffect(() => {
-        // Listen for OAuth callback message
         const handleOAuthCallback = async (event) => {
-            // Validate event origin
-            if (event.origin !== "http://localhost:3000") return;
 
-            const params = new URLSearchParams(event.data);
-            const code = params.get("code");
 
             try {
-                const response = await fetch("http://localhost:3000/api/v3/auth/github/callback", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${event?.data?.access_token}`,
-                    },
-                    body: JSON.stringify({ code }),
-                });
+                const params = new URLSearchParams(event.data);
+                const code = params.get("code");
 
-                const data = await response.json();
-                    if (data.status === 200) {
-                        // Set user data and redirect to dashboard
-                        setAuth({ ...data });
-                        navigate("/dashboard");
-                    } else {
-                        setError("Failed to authenticate with GitHub. Please try again.");
-                        navigate("/login");
-                    }
+                if (!code) {
+                    setTimeout(
+                        () => {
+                            navigate("/login"); // Redirect to login if authentication fails
+                        },
+                        2000)
 
+
+                    return;
+                }
+
+                const response = await axiosPrivate.post("/api/v3/auth/github/callback",
+                    { code }
+
+                    );
+
+                const data = await response.data;
+                if (data?.username) {
+                    console.log("User logged in:", data.username);
+                } else {
+                    console.error("User not logged in.");
+                    setTimeout(
+                        () => {
+                            setError(
+                                "Failed to authenticate with GitHub. Please try again."
+                            )
+                            navigate("/login"); // Redirect to login if authentication fails
+                        },
+                        2000)
+
+
+                }
+
+                if (response.status === 200 && data) {
+                    // Assuming the response contains the necessary authentication data
+                    setAuth({ ...data });
+                    navigate("/", {replace :true}); // Redirect to dashboard or home page
+                } else {
+
+                    setTimeout(
+                        () => {
+                            setError(
+                                "Failed to authenticate with GitHub. Please try again."
+                            )
+                            navigate("/login"); // Redirect to login if authentication fails
+                        },
+                        2000)
+
+
+                    console.error("Failed to authenticate with GitHub. Please try again.");
+
+
+                }
             } catch (error) {
-                console.error("Error:"+JSON.stringify( error));
-                setError("An error occurred while authenticating with GitHub.");
-                navigate("/login");
+                console.log("Error during GitHub authentication:", error);
+                setTimeout(
+                    () => {
+                        setError(
+                            "An error occurred while authenticating with GitHub."
+                        )
+                        navigate("/login"); // Redirect to login if authentication fails
+                    },
+                    2000)
+
+
+
             }
         };
 
@@ -52,7 +93,7 @@ const GitHubRedirect = () => {
         return () => {
             window.removeEventListener("message", handleOAuthCallback);
         };
-    }, [auth, setAuth, navigate]);
+    }, [setAuth, navigate]);
 
     return (
         <div>

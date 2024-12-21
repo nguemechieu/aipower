@@ -1,46 +1,80 @@
-/* Header.css */
 .header {
+    padding: 20px;
+    background-color: #282c34;
+    color: #fff;
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    width: 50px;
+    height: auto;
+    margin-right: 10px;
+}
+
+.site-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.nav-links {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
-    background-color: #0f73d8;
-    color: #ecf0f1;
 }
 
-.logo a {
-    font-size: 1.5rem;
-    color: #45d16f;
-    text-decoration: none;
-}
-
-.navigation ul {
+.nav-list {
     list-style: none;
     display: flex;
     gap: 15px;
 }
 
-.navigation li a {
-    color: #ecf0f1;
+.nav-list li {
+    margin: 0;
+}
+
+.nav-list li a {
     text-decoration: none;
+    color: #fff;
     font-size: 1rem;
-    padding: 5px 10px;
-    transition: background-color 0.3s;
 }
 
-.navigation li a:hover {
-    background-color: #34495e;
-    border-radius: 5px;
+.nav-list li a:hover {
+    color: #4caf50;
 }
 
-.login-button {
-    font-weight: bold;
-    border: 1px solid #ecf0f1;
-    border-radius: 5px;
-    padding: 5px 10px;
+.user-info {
+    margin-right: 20px;
+    font-weight: 500;
 }
 
-.login-button:hover {
-    background-color: #ecf0f1;
-    color: #2c3e50;
+.logout-btn {
+    margin-left: 20px;
+}
+
+.navbar-icon {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .navbar-icon {
+        display: block;
+    }
+
+    .nav-list {
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .nav-list li {
+        text-align: center;
+    }
+
+    .nav-links:hover .nav-list {
+        display: flex;
+    }
 }

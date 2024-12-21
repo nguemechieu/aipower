@@ -1,13 +1,14 @@
 /* Define color variables for reusability */
 :root {
-    --primary-color: #072333; /* Background */
+    --primary-color: #caefd5; /* Background */
     --secondary-color: #48bb78; /* Highlights */
     --accent-color: #45d16f; /* Buttons */
-    --text-color: #ffffff; /* Main text */
+    --text-color: #1d70cc; /* Main text */
     --text-muted: rgba(255, 255, 255, 0.7); /* Muted text */
     --input-border: #5c97da; /* Form borders */
     --error-color: #e53e3e; /* Error messages */
     --shadow-color: rgba(0, 0, 0, 0.2); /* Box shadows */
+    font-weight: 400;
 }
 
 /* Global Reset */
@@ -17,9 +18,19 @@
     box-sizing: border-box;
     font-family: Arial, sans-serif;
 }
+.model-collapse {
+    cursor: pointer;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin: 5px 0;
+}
+.operation-container {
+    padding: 10px;
+}
 
 /* Body Styling */
-body {
+.body {
     background-color: var(--primary-color);
     color: var(--text-color);
     font-size: 16px;

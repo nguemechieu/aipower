@@ -1,6 +1,5 @@
 package com.sopotek.aipower.routes.api.telegram;
 
-import com.sopotek.aipower.service.TelegramClient;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,8 +61,7 @@ public class TelegramController {
             }
         } catch (Exception e) {
             LOG.error("Error processing command: {}", e.getMessage());
-            telegramClient.sendMessage(chatId, "An error occurred while processing your request. Please try again later.");
-        }
+                  }
     }
 
 

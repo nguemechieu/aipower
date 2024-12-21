@@ -1,5 +1,5 @@
 import React from "react";
-import {Link, Route, Routes} from "react-router-dom";
+import {Route, Routes} from "react-router-dom";
 import Layout from "./components/Layout";
 import Login from "./components/Login";
 import Register from "./components/Register";
@@ -30,31 +30,20 @@ import FriendsPage from "./components/FriendsPage";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import Dashboard from "./components/Dashboard";
-import Redirect from "./components/Redirect";
+import GoogleRedirect from "./components/GoogleRedirect";
 import GitHubRedirect from "./components/GitHubRedirect";
+import Welcome from "./components/Welcome";
+import LogOut from "./components/LogOut";
+import StellarAccount from "./components/StellarAccount";
+import PrivacyPolicy from "./components/PrivacyPolicy";
+import CookiePolicy from "./components/CookiePolicy";
+import PressContact from "./components/PressContact";
+import Sitemap from "./components/Sitemap";
+import Faqs from "./components/Faqs";
+import Careers from "./components/Careers";
+import Security from "./components/Security";
 
-function Welcome() {
-  return (
-      <div>
-        <h1>Welcome!</h1>
-        <p>
-          This is the AI Power platform's welcome page. You can use the navigation
-          links above to explore its features and services.
-        </p>
-        <div>
-          <Link to="/">Home</Link>
 
-          <Link to="/terms-of-service">Terms of Service</Link>
-          <Link to="/help">Help</Link>
-          <Link to="/docs">API Documentation</Link>
-
-          <Link to="/about">About</Link>
-
-        </div>
-      </div>
-
-  );
-}
 
 
 const App = () => {
@@ -63,7 +52,7 @@ const App = () => {
         <Route element={<Layout />}>
           {/* Public Routes */}
           <Route path="/" element={<Login />} />
-          <Route path="/api/v3/auth/google/callback" element={<Redirect/>}/>
+          <Route path="/api/v3/auth/google/callback" element={<GoogleRedirect/>}/>
           <Route path="api/v3/auth/github/callback" element={<GitHubRedirect/>}/>
           <Route path="aipower" element={<Welcome />} />
           <Route path="login" element={<Login />} />
@@ -74,6 +63,16 @@ const App = () => {
           <Route path="help" element={<HelpPage />} />
           <Route path="about" element={<About />} />
           <Route path="docs" element={<SwaggerUIComponent />} />
+          <Route path="logout" element={<LogOut />} />
+          <Route path="stellar/accounts" element={<StellarAccount />} />
+          <Route path="privacy-policy" element={ <PrivacyPolicy /> } />
+          <Route path={'cookie-policy'} element={<CookiePolicy />} />
+          <Route path="press-contact" element={ <PressContact /> } />
+          <Route path="sitemap" element={ <Sitemap /> } />
+          <Route path={'faqs'} element={ <Faqs/> } />
+          <Route path="careers" element={ <Careers/> } />
+          <Route path="security" element={ <Security/> } />
+          <Route path="documentation" element={<SwaggerUIComponent />} />
 
           {/* Authenticated Routes */}
           <Route element={<PersistLogin />}>
@@ -81,7 +80,7 @@ const App = () => {
 
             {/* User Role Routes */}
             <Route element={<RequireAuth allowedRoles={[ROLES.USER, ROLES.ADMIN]} />}>
-              <Route path="home" element={<Home />} />
+              <Route path="/" element={<Home />} >
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="forex" element={<ForexMarket />} />
               <Route path="account" element={<AccountSummary />} />
@@ -105,6 +104,7 @@ const App = () => {
               <Route path="admin" element={<Admin />} />
               <Route path="admin/manager" element={<AdminUserManagement />} />
             </Route>
+          </Route>
           </Route>
 
           {/* Catch-All */}

@@ -13,11 +13,14 @@ import java.time.LocalDateTime;
 public class Token {
 
     @Id
-
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String username;
+
+    public Token() {
+    }
+
     private String token;
     private boolean revoked;
     private boolean expired;

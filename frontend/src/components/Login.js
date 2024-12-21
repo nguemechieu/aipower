@@ -1,19 +1,21 @@
 import React, {useEffect, useRef, useState} from "react";
-import {Link, useLocation, useNavigate} from "react-router-dom";
+import { Link, useNavigate} from "react-router-dom";
 import useAuth from "../hooks/useAuth.js";
-import axios from "../api/axios.js";
-import usePersist from "../hooks/usePersist";
+import  {axiosPublic} from "../api/axios.js";
+
 import {Button, CircularProgress} from "@mui/material";
 import {GitHub, Google} from "@mui/icons-material";
+import "./Login.css";
 
-const LOGIN_URL = "/api/v3/auth/login";
-import "./Login.css"
+
+
+
+
 
 const Login = () => {
-    const { auth } = useAuth();
+    const { setAuth } = useAuth();
     const navigate = useNavigate();
-    const location = useLocation();
-    const from = location.state?.from?.pathname || "/";
+
 
     const errRef = useRef();
     const [username, setUsername] = useState("");
@@ -21,97 +23,111 @@ const Login = () => {
     const [errMsg, setErrMsg] = useState("");
     const [loading, setLoading] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
-    const [persist] = usePersist();
+
 
     useEffect(() => {
         setErrMsg("");
-    }, [username, password, persist]);
+    }, [username, password]);
 
     // Check persist state
     useEffect(() => {
-        if (persist) {
-            localStorage.setItem("persist", "true");
-        } else {
-            localStorage.removeItem("persist");
-        }
-    }, [persist]);
+        if (rememberMe) localStorage.setItem(
+            "persist",
+            "true"
+        )
 
+
+    }, [rememberMe]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setErrMsg("");
-        try {
-
-            const response = await axios.post(
-                LOGIN_URL,
-                JSON.stringify({ username, password,rememberMe }),
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
 
 
+            await axiosPublic.post(
+                "/api/v3/login",
+                JSON.stringify({ username, password, rememberMe: rememberMe || false },
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        timeout: 30000,
+                        withCredentials: true
                     }
-                    ,
-                    withCredentials: true,
-                    onUploadProgress: (progressEvent) => {
-                        const progress = Math.round(
-                            (progressEvent.loaded / progressEvent.total) * 100
-                        );
-                        console.log(`Upload progress: ${progress}%`);
-                    }
+
+
+                )
+            ).then(
+                (response) => {
+                    console.log(response.data);
+                    const { username, role, accessToken } = response.data;
+                    setAuth({ username, role, accessToken });
+                    localStorage.setItem("accessToken", accessToken)
+
+                    setUsername("");
+                    setPassword("");
+                    console.log("Logged in successfully!");
+                    navigate("/", { replace: true });
                 }
-            );
+            ).catch(
+                (err) => {
+                    console.error(
+                        "Failed to log in. Please check your credentials and try again."
+                        + " " +JSON.stringify( err)
+                    )
+                    if (err.response) {
+                        switch (err.response.status) {
+                            case 401:
+                                setErrMsg("Invalid username or password.");
+                                break;
+                            case 403:
+                                setErrMsg("Access Denied: Not authorized.");
+                                break;
+                            case 500:
+                                setErrMsg("Internal server error. Please try again later.");
+                                break;
+                            default:
+                                setErrMsg(
+                                    `Unexpected error: ${err.response.statusText || "Unknown"}`
+                                );
+                        }
+                    } else {
+                        setErrMsg("Unable to connect to the server. Please try again later.");
+                    }
+                    setLoading(false);
 
-            if (response.status === 200) {
-                const { username, role, accessToken } = response.data;
-
-                // Update auth context
-                auth({ username, role, accessToken });
-
-                if (rememberMe) localStorage.setItem("persist", "true");
-
-                // Reset form fields
-                setUsername("");
-                setPassword("");
-                console.log("Logged in successfully!");
-
-                // Navigate to the intended page
-                navigate(from, { replace: true });
-            }
-        } catch (err) {
-            if (err?.response?.data) {
-                setErrMsg(JSON.stringify(err.response.data));
-            } else {
-                setErrMsg(
-                    err?.response?.data?.message || "Server unreachable! Please try again later."
-                );
-
-            }
-            errRef.current?.focus();
-            console.log(
-
-                err.response
+                }
             )
-        } finally {
-            setLoading(false);
-        }
 
     };
-
     const googleLogin = () => {
-        const CLIENT_ID =
-            "539426084783-ju5ppl2ofi85nk1bti3ic6hos6vrr62s.apps.googleusercontent.com";
+        const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+
+        // Check if CLIENT_ID is available
+        if (!CLIENT_ID) {
+            console.error("Google client ID is missing in environment variables.");
+            return; // Or handle accordingly
+        }
+
         const REDIRECT_URI = "http://localhost:3000/api/v3/auth/google/callback";
+
+        // Check if CLIENT_ID is available
         const SCOPE = "profile email";
 
-        window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPE}&access_type=offline`;
+        const responseType = "code";
+        const flowName = window.location.pathname.includes("/admin") ? "admin" : "user";
+
+        window.location.href =
+            `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${responseType}&scope=${SCOPE}&prompt=select_account&access_type=offline&login_hint=${username}&flow=${flowName}`;
     };
 
     const githubLogin = () => {
-        const CLIENT_ID = "Iv1.23779dd826d2df1f"; // Replace with your GitHub client ID
-        const REDIRECT_URI = "http://localhost:3000/api/v3/auth/github/callback";
-
+        const CLIENT_ID = process.env.REACT_APP_GITHUB_CLIENT_ID;
+        const REDIRECT_URI =
+            process.env.REACT_APP_GITHUB_REDIRECT_URI ||
+            "http://localhost:3000/api/v3/auth/github/callback";
+        // Check if CLIENT_ID is available
         window.location.href = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=read:user`;
     };
 
@@ -168,7 +184,6 @@ const Login = () => {
                             {loading ? "Logging in..." : "Login"}
                         </Button>
 
-
                         <div className="social-media-buttons">
                             <Button
                                 startIcon={<Google />}
@@ -193,10 +208,6 @@ const Login = () => {
                         </p>
                     </div>
                 </div>
-                <p>
-                    By continuing, you agree to our{" "}
-                    <Link to="/terms-of-service">Terms of Service</Link>.
-                </p>
             </div>
         </section>
     );

@@ -1,0 +1,66 @@
+name: Build and Deploy AiPower App
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - uses: actions/checkout@v2
+
+      # Step 2: Set up Node.js (for frontend)
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 'latest'
+
+      # Step 3: Install frontend dependencies
+      - run: npm install --yes
+      - run: npm run build
+
+      # Step 4: Set up Java (for backend)
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '23'  # or another version of Java you are using
+          distribution: 'adoptopenjdk'
+
+      # Step 5: Build the Java Spring Boot backend
+      - name: Build Java Backend (Spring Boot)
+        run: ./gradlew build  # If you're using Gradle. Use `mvn clean install` for Maven
+
+      # Step 6: Authenticate to Google Cloud using GitHub Secrets
+      - name: Set up Google Cloud Authentication
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'  # Store your service account JSON key in GitHub Secrets
+
+      # Step 7: Deploy Frontend to Google Cloud Storage (for static websites)
+      - name: Deploy Frontend to Google Cloud Storage
+        run: |
+          gsutil -m cp -r build/* gs://your-bucket-name/  # Replace with your bucket name
+
+      # Step 8: Deploy Backend to Google App Engine (for Spring Boot)
+      - name: Deploy Backend to Google App Engine
+        run: |
+          gcloud app browse  # This will deploy the app defined in your `app.yaml` (usually found in your backend project)
+          gcloud app deploy  # This deploys the Spring Boot app to Google App Engine
+
+      # Optional Step: Deploy Backend to Google Kubernetes Engine (GKE)
+      # Uncomment this section if you are deploying to GKE instead
+      # - name: Deploy Backend to Google Kubernetes Engine (GKE)
+      #   run: |
+      #     gcloud container clusters get-credentials your-cluster-name --zone your-zone --project your-project-id
+      #     kubectl apply -f kubernetes/deployment.yaml
+
+      # Optional Step: Deploy Backend to Google Compute Engine (VM)
+      # Uncomment if deploying to Google Compute Engine instead of App Engine or GKE
+      # - name: Deploy Backend to Google Compute Engine
+      #   run: |
+      #     gcloud compute instances stop your-instance-name --zone=your-zone
+      #     gcloud compute instances start your-instance-name --zone=your-zone

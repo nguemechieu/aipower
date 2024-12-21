@@ -27,7 +27,7 @@ ENV JAVA_HOME=/usr/lib/jvm/jdk-23.0.1
 ENV PATH="$JAVA_HOME/bin:$PATH"
 
 WORKDIR /aipower
-
+COPY /.env  /.env
 # Copy Gradle wrapper and build files
 COPY gradlew gradlew.bat settings.gradle build.gradle ./
 COPY gradle ./gradle
@@ -40,7 +40,7 @@ RUN ./gradlew dependencies --no-daemon
 
 # Copy backend source code and build the application
 COPY . ./
-RUN ./gradlew bootJar --no-daemon
+RUN \.gradlew bootJar --no-daemon
 
 # Stage 3: Production
 FROM openjdk:23 AS production

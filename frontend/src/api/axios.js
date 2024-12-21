@@ -1,46 +1,35 @@
 import axios from 'axios';
-const BASE_URL = 'http://localhost:8080';
+import axiosRetry from 'axios-retry';
 
-export default axios.create({
-    baseURL: BASE_URL
-});
-function getCsrfToken() {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.startsWith('XSRF-TOKEN=')) {
-            return cookie.substring('XSRF-TOKEN='.length, cookie.length);
-        }
-    }
-    return null;
-}
+// Set up API base URL and timeout from environment variables
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const TIMEOUT = process.env.REACT_APP_API_TIMEOUT || 5000;
 
-export const axiosPrivate = axios.create({
+// Public Axios instance
+const axiosPublic = axios.create({
     baseURL: BASE_URL,
-    headers: { 'Content-Type': 'application/json' },
-     xsrfCookieName: 'XSRF-TOKEN',
-    xsrfHeaderName: 'X-XSRF-TOKEN',
-     // Include CSRF token in requests
-    transformRequest: [
-        (data, headers) => {
-            if (headers['Content-Type'] === 'application/x-www-form-urlencoded') {
-                return data;
-            }
-            return JSON.stringify(data);
-        },
-        (headers) => {
-            headers['X-XSRF-TOKEN'] = getCsrfToken();
-            return headers;
-        }
-    ],
+    headers: { 'Content-Type': 'application/json'
+    , 'Accept': 'application/json'
+    },
+    timeout: TIMEOUT
+});
+
+// Private Axios instance
+const axiosPrivate = axios.create({
+    baseURL: BASE_URL,
+    headers: { 'Content-Type': 'application/json'
+     , 'Accept': 'application/json'},
+    timeout: TIMEOUT,
     withCredentials: true
 });
-axiosPrivate.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        if (error.response && error.response.status === 403) {
-            console.error('CSRF token missing or invalid.');
-        }
-        return Promise.reject(error);
-    }
-);
+
+
+// Add retry logic with exponential backoff
+axiosRetry(axiosPrivate, {
+    retries: 3,
+    retryDelay: axiosRetry.exponentialDelay,
+    retryCondition: (error) =>
+        !error.response || [500, 503].includes(error.response.status),
+});
+
+export { axiosPublic, axiosPrivate };

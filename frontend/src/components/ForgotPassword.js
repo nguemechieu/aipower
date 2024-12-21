@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import axios from "../api/axios.js";
+import {axiosPublic} from "../api/axios.js";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -26,7 +26,7 @@ const ForgotPassword = () => {
 try {
 
 
-    const res = await axios.post("/auth/forgot-password", {email})
+    const res = await axiosPublic.post("/auth/forgot-password", {email})
     if (res.status === 200) {
         setSuccess(true);
 

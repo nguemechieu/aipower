@@ -1,6 +1,5 @@
 package com.sopotek.aipower.routes.api.binanceus;
 
-import com.sopotek.aipower.component.Binanceus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,15 +92,7 @@ public class BinanceusController {
                .doOnError(e -> LOG.error("Error fetching open orders: {}", e.getMessage()))
                .block();
     }
-    //Get the best price
-    @GetMapping("/best-price/{symbol}/{side}")
-    public ResponseEntity<?> getBestPrice(@PathVariable String symbol, @PathVariable String side) {
-        LOG.info("{}: Fetching best price for symbol {} with side {}", TAG, symbol, side);
-        return binanceus.getBestPrice(symbol, side)
-               .map(ResponseEntity::ok)
-               .doOnError(e -> LOG.error("Error fetching best price: {}", e.getMessage()))
-               .block();
-    }
+
 
     @DeleteMapping("/cancel-order")
     public ResponseEntity<?> cancelOrder(
