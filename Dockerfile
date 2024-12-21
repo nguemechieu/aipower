@@ -26,8 +26,9 @@ RUN apt-get update && \
 ENV JAVA_HOME=/usr/lib/jvm/jdk-23.0.1
 ENV PATH="$JAVA_HOME/bin:$PATH"
 
+
 WORKDIR /aipower
-COPY /.env  /.env
+
 # Copy Gradle wrapper and build files
 COPY gradlew gradlew.bat settings.gradle build.gradle ./
 COPY gradle ./gradle
