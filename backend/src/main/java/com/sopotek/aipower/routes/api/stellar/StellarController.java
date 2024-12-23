@@ -8,7 +8,7 @@ import org.stellar.sdk.AssetTypeCreditAlphaNum4;
 
 import java.math.BigDecimal;
 
-import static com.sopotek.aipower.model.ENUM_SIGNAL.SELL;
+import static com.sopotek.aipower.domain.ENUM_SIGNAL.SELL;
 @RestController
 @RequestMapping("/stellar")
 public class StellarController {

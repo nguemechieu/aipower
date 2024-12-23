@@ -13,5 +13,6 @@ public class GithubCallbackRequest {
         private String username;
         private  String email;
         private  String name;
+        private String avatar_url;
 
 }

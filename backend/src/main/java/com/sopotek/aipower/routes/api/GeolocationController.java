@@ -1,7 +1,7 @@
 package com.sopotek.aipower.routes.api;
 
 
-import com.sopotek.aipower.model.Location;
+import com.sopotek.aipower.domain.Location;
 import com.sopotek.aipower.service.GeolocationService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;

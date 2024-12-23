@@ -1,16 +1,16 @@
-package com.sopotek.aipower.model;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+package com.sopotek.aipower.domain;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-public class Token {
+@Table(name = "tokens")
+class Token implements Serializable {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,8 +18,7 @@ public class Token {
 
     private String username;
 
-    public Token() {
-    }
+
 
     private String token;
     private boolean revoked;

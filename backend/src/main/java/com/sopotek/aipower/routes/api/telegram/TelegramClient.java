@@ -3,7 +3,7 @@ package com.sopotek.aipower.routes.api.telegram;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sopotek.aipower.model.News;
+import com.sopotek.aipower.domain.News;
 import com.sopotek.aipower.service.ChatGPTService;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -13,7 +13,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -45,9 +44,7 @@ public class TelegramClient  {
 
         this.running = true;
         // Use a scheduler for update polling
-        this.telegram = new Telegram(
-                "2032573404:AAGnxJpNMJBKqLzvE5q4kGt1cCGF632bP7A"
-        );
+        this.telegram = new Telegram();
         this.scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(this::processUpdates, 0, 1, TimeUnit.SECONDS); // Poll every second
     }
@@ -97,7 +94,7 @@ public class TelegramClient  {
                         String text = message.has("text") ? message.get("text").asText() : "";
 
                         try {
-                            handleCommand(Long.parseLong(chatId), text);
+                            handleCommand( text);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
@@ -114,27 +111,29 @@ public class TelegramClient  {
     /**
      * Handles user commands and sends appropriate responses.
      *
-     * @param chatId The chat ID.
+
      * @param text   The user message text.
      */
-    private void handleCommand(long chatId, @NotNull String text) throws IOException {
+    private void handleCommand( @NotNull String text) throws IOException {
+
+
         switch (text.split(" ")[0]) { // Use the first word as the command
-            case "/start" -> getTelegram().sendMessage(chatId, "Welcome! Use /help to see available commands.",false,false);
-            case "/trade" -> handleTrade(chatId);
+            case "/start" -> getTelegram().sendMessage(Long.parseLong(chatId), "Welcome! Use /help to see available commands.",false,false);
+            case "/trade" -> handleTrade(Long.parseLong(chatId));
             case "/news" -> handleMarketNews(String.valueOf(chatId));
-            case "/portfolio" -> handlePortfolio(chatId);
+            case "/portfolio" -> handlePortfolio(Long.parseLong(chatId));
             case "/settings" -> handleSettings(String.valueOf(chatId));
             case "/deposit", "/withdraw", "/balance", "/deposit-history", "/withdraw-history" -> handleFinanceCommand(String.valueOf(chatId), text);
             case "/convert", "/rate" -> handleConversion(String.valueOf(chatId), text);
             case "/analysis" -> handleAnalysis(String.valueOf(chatId));
             case "/chat-gpt" -> handleChatGPT(String.valueOf(chatId));
             default -> getTelegram().sendMessage(
-                    chatId,text,false,false
+                    Long.parseLong(chatId),text,false,false
             );
         }
     }
 
-    private void handleTrade(long chatId) throws IOException {
+    private void handleTrade(long chatId) {
         // Trade logic to select exchange, trade pair, and execute
         telegram.sendMessage(chatId, "Trade command received. Please provide the trade details.",false,false);
     }
@@ -190,28 +189,6 @@ public class TelegramClient  {
         sendMessage(chatId, "ChatGPT: How can I assist you?");
         String chatGPTResponse = chatGPTService.getChatGPTResponse("Hello, ChatGPT! Provide a response.");
         sendMessage(chatId, "ChatGPT says: " + chatGPTResponse);
-    }
-
-    @Contract(pure = true)
-    private @NotNull String getHelpMessage() {
-        return """
-                Available commands:
-                /start - Start the bot
-                /help - Show help
-                /trade - Execute a trade
-                /news - Get market news
-                /portfolio - View your portfolio
-                /settings - View your settings
-                /deposit - Make a deposit
-                /withdraw - Make a withdrawal
-                /balance - Check your balance
-                /deposit-history - View deposit history
-                /withdraw-history - View withdrawal history
-                /convert - Convert currencies
-                /rate - Get currency rates
-                /analysis - Market analysis
-                /chat-gpt - Chat with ChatGPT
-                """;
     }
 
     private void sleepFor() {

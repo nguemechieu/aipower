@@ -22,27 +22,27 @@ public class HazelcastConfig {
     }
 
 
-        @Bean
-        public HazelcastInstance hazelcastInstance() {
-            Config config = new Config();
-            config.getCPSubsystemConfig().setCPMemberCount(0); // Disable CP subsystem
-            config.setClusterName("dev-cluster");
+    @Bean
+    public HazelcastInstance hazelcastInstance() {
+        Config config = new Config();
+        config.getCPSubsystemConfig().setCPMemberCount(0); // Disable CP subsystem
+        config.setClusterName("dev-cluster");
 
-            JoinConfig joinConfig = config.getNetworkConfig().getJoin();
-            joinConfig.getMulticastConfig().setEnabled(false);
-            joinConfig.getTcpIpConfig().setEnabled(true).addMember("127.0.0.1");
+        JoinConfig joinConfig = config.getNetworkConfig().getJoin();
+        joinConfig.getMulticastConfig().setEnabled(false);
+        joinConfig.getTcpIpConfig().setEnabled(true).addMember("127.0.0.1");
 
-            return Hazelcast.newHazelcastInstance(config);
-        }
+        return Hazelcast.newHazelcastInstance(config);
+    }
 
 
 
-        @Bean
-        public CacheManager cacheManager() {
-            SimpleCacheManager cacheManager = new SimpleCacheManager();
-            cacheManager.setCaches(List.of(new ConcurrentMapCache("users")));
-            return cacheManager;
-        }
+    @Bean
+    public CacheManager cacheManager() {
+        SimpleCacheManager cacheManager = new SimpleCacheManager();
+        cacheManager.setCaches(List.of(new ConcurrentMapCache("users")));
+        return cacheManager;
+    }
 
 
 }

@@ -1,26 +1,29 @@
-package com.sopotek.aipower.model;
+package com.sopotek.aipower.domain;
 
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
 @Setter
-@Data
+
 @Entity
 @Table(name = "users")
-public class User implements UserDetails {
+
+
+public class User implements Serializable, UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
 
     private Date lastLoginDate;
 
@@ -56,6 +59,7 @@ public class User implements UserDetails {
     private String hostname;
     private String region;
 
+
     @ManyToOne
     @JoinColumn(name = "location_id")
     private Location location;
@@ -86,10 +90,17 @@ public class User implements UserDetails {
 
     private Date resetTokenExpiryTime;
     private String fullName;
+    @Setter
+    private boolean emailVerified;
+
+    public Optional<User> map(Object o) {
+        return Optional.ofNullable((User) o);
+
+    }
 
     // Sample ROLES Enum (You can adjust this based on your actual roles)
     public enum ROLES {
-        ADMIN, USER, GUEST
+        ADMIN, USER, EMPLOYEE, MANAGER,GROUP
     }
 
     /**
@@ -106,6 +117,9 @@ public class User implements UserDetails {
         this.failedLoginAttempts = 0;
     }
 
+    public User() {
+    }
+
     /**
      * Returns a collection of granted authorities based on the user's roles.
      *
@@ -117,8 +131,6 @@ public class User implements UserDetails {
                 .map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toSet());
     }
-
-    private boolean enabled;
 
     /**
      * Indicates whether the account is enabled and has valid roles.

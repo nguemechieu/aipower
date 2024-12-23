@@ -2,7 +2,7 @@ package com.sopotek.aipower.routes.api.binanceus;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sopotek.aipower.model.AccountInfo;
+import com.sopotek.aipower.domain.AccountInfo;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;

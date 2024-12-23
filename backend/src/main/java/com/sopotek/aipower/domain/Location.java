@@ -1,14 +1,14 @@
-package com.sopotek.aipower.model;
+package com.sopotek.aipower.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 
 @Getter
 @Setter
@@ -16,7 +16,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 @Entity
 @Table(name = "locations")
-public class Location {
+public class Location  implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -56,7 +56,9 @@ public class Location {
     private String abuseNetwork;
     private String abusePhone;
 
-    public String getZipCode() {
-        return postal;
-    }
+    @Setter
+    @Getter
+    @OneToMany(mappedBy = "location")
+    private Collection<User> user = new ArrayList<>();
+
 }

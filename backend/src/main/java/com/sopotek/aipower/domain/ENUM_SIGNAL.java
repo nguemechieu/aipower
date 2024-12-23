@@ -1,4 +1,4 @@
-package com.sopotek.aipower.model;
+package com.sopotek.aipower.domain;
 
 public enum ENUM_SIGNAL  {
     BUY,SELL,HOLD;

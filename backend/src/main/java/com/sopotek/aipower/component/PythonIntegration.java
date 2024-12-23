@@ -1,10 +1,13 @@
-package com.sopotek.aipower.model;
+package com.sopotek.aipower.component;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sopotek.aipower.domain.ENUM_SIGNAL;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -14,9 +17,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+@Component
 public class PythonIntegration {
 
     private static final Logger LOG = LoggerFactory.getLogger(PythonIntegration.class);
+    @Value("${spring.boot.admin.ui.public-url}")
     private static final String PYTHON_SERVER_URL = "http://localhost:5000";
 
     /**

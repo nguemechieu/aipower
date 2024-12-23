@@ -1,9 +1,9 @@
 package com.sopotek.aipower.routes.api.stellar;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.sopotek.aipower.model.ENUM_SIGNAL;
+import com.sopotek.aipower.domain.ENUM_SIGNAL;
 
-import com.sopotek.aipower.model.PythonIntegration;
+import com.sopotek.aipower.component.PythonIntegration;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.NonNull;
@@ -37,8 +37,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static com.sopotek.aipower.component.StellarSorobanSmartContract.deploySmartContractXdr;
-import static com.sopotek.aipower.model.ENUM_SIGNAL.BUY;
-import static com.sopotek.aipower.model.ENUM_SIGNAL.SELL;
+import static com.sopotek.aipower.domain.ENUM_SIGNAL.BUY;
+import static com.sopotek.aipower.domain.ENUM_SIGNAL.SELL;
 
 /**
  * A service for interacting with the Stellar blockchain.
@@ -83,7 +83,7 @@ public class StellarClient {
             this.sourceKeyPair = KeyPair.fromSecretSeed(secretKey);
             this.accountResponse = server.accounts().account(publicKey);
             LOG.info("Stellar client initialized with public key: {}", publicKey);
-            deploySmartContractXdr(secretKey);
+            //deploySmartContractXdr(secretKey);
         } catch (Exception e) {
             LOG.error("Error initializing Stellar client: {}", e.getMessage(), e);
         }

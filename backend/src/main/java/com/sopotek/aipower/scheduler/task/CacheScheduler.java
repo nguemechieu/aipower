@@ -1,5 +1,5 @@
 
-package com.sopotek.aipower.task;
+package com.sopotek.aipower.scheduler.task;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.springframework.cache.annotation.CacheEvict;
@@ -15,4 +15,8 @@ public class CacheScheduler {
     public void clearAllUserCache() {
         LOG.info("Cache cleared on schedule.");
     }
+
+
+
+
 }

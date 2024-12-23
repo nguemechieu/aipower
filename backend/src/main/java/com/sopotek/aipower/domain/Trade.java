@@ -1,9 +1,7 @@
-package com.sopotek.aipower.model;
+package com.sopotek.aipower.domain;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -32,7 +30,10 @@ public class Trade  implements Serializable {
     private TradeStatus status; // OPEN, COMPLETED, CANCELLED
     private final LocalDateTime createdAt; // Time the trade was created
     private LocalDateTime executedAt; // Time the trade was executed
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-incremented ID
+
     private Long id;
 
     // Constructor

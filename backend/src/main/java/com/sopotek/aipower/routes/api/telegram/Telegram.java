@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
@@ -22,13 +21,13 @@ public class Telegram {
     private static final Logger logger = LoggerFactory.getLogger(Telegram.class);
     private static final String TELEGRAM_BASE_URL = "https://api.telegram.org";
 
-
+@Value("${spring.boot.admin.notify.telegram.auth-token:2032573404:AAGnxJpNMJBKqLzvE5q4kGt1cCGF632bP7A}")
     private String botToken;
 
     protected final RestTemplate restTemplate = new RestTemplate();
-@Autowired
-    public Telegram( @Value("${telegram.bot.token}") String botToken ) {
-    this.botToken = botToken;
+
+    public Telegram( ) {
+
 
 
     }
@@ -37,7 +36,7 @@ public class Telegram {
     public boolean sendScreenshot(long chatId, File screenshotFile) {
         if (screenshotFile == null || !screenshotFile.exists()) return false;
 
-        String url = TELEGRAM_BASE_URL + "/bot" + botToken + "/sendPhoto";
+        String url = TELEGRAM_BASE_URL + "/bot" + getBotToken()+ "/sendPhoto";
 
         try {
             HttpHeaders headers = new HttpHeaders();
@@ -63,7 +62,7 @@ public class Telegram {
     public boolean sendMessage(long chatId, String text, boolean asHtml, boolean silently) {
         if (text == null || text.isEmpty()) return false;
 
-        String url = TELEGRAM_BASE_URL + "/bot" + botToken + "/sendMessage";
+        String url = TELEGRAM_BASE_URL + "/bot" +getBotToken() + "/sendMessage";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -78,13 +77,13 @@ public class Telegram {
 
     // Get bot updates
     public JsonNode getUpdates(long offset) {
-        String url = TELEGRAM_BASE_URL + "/bot" + botToken + "/getUpdates?offset=" + offset;
+        String url = TELEGRAM_BASE_URL + "/bot" + getBotToken() + "/getUpdates?offset=" + offset;
         return restTemplate.getForObject(url, JsonNode.class);
     }
 
     // Example: Get bot info
     public JsonNode getMe() {
-        String url = TELEGRAM_BASE_URL + "/bot" + botToken + "/getMe";
+        String url = TELEGRAM_BASE_URL + "/bot" + getBotToken() + "/getMe";
         return restTemplate.getForObject(url, JsonNode.class);
     }
 

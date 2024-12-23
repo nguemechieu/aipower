@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
+import java.util.Properties;
+
 @Getter
 @Setter
 
@@ -21,16 +23,20 @@ public class MailConfig {
     private   String password = "your_gmail_password";
     @Value("${spring.mail.port}")
     private int port = 587;
-    JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
 
     @Bean
     public JavaMailSender javaMailSender() {
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         mailSender.setHost(host);
         mailSender.setPort(port);
         mailSender.setUsername(username);
         mailSender.setPassword(password);
-        mailSender.getJavaMailProperties().put("mail.smtp.auth", "true");
-        mailSender.getJavaMailProperties().put("mail.smtp.starttls.enable", "true");
+        Properties props = mailSender.getJavaMailProperties();
+        props.put("mail.transport.protocol", "smtp");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+
         return mailSender;
     }
+
 }

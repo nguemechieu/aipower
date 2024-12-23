@@ -1,25 +1,36 @@
-package com.sopotek.aipower.model;
+package com.sopotek.aipower.domain;
 
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.Instant;
-import java.util.Calendar;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
 @Getter
 @Setter
-public class News {
+@Entity
+@Table(name = "news")
+public class News implements Serializable {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     private String status;
     private int totalResults;
-    private List<Article> articles;
     private String country;
-    private String date;
+    private String date; // Consider storing as a `LocalDate` for better type safety.
     private String impact;
     private String forecast;
     private String previous;
     private String title;
+
+    @OneToMany(mappedBy = "news", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Article> articles;
 
     // Default Constructor
     public News() {
@@ -33,7 +44,6 @@ public class News {
         this.title = title;
         this.previous = previous;
         this.forecast = forecast;
-
     }
 
     // Constructor for complete news object
@@ -48,30 +58,38 @@ public class News {
         return "News{" +
                 "status='" + status + '\'' +
                 ", totalResults=" + totalResults +
-                ", articles=" + articles +
                 ", country='" + country + '\'' +
                 ", date='" + date + '\'' +
                 ", impact='" + impact + '\'' +
                 ", forecast='" + forecast + '\'' +
                 ", previous='" + previous + '\'' +
                 ", title='" + title + '\'' +
+                ", articles=" + articles +
                 '}';
     }
 
     public Date getStartDate() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(Date.from(Instant.parse(date)));
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        return calendar.getTime();
+        return Date.from(Instant.parse(date).atZone(ZoneId.systemDefault()).toInstant());
     }
 
     @Getter
     @Setter
-    public static class Article {
+    @Entity
+    @Table(name = "article_table")
+    public static class Article implements Serializable {
+
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
+
+        @ManyToOne(fetch = FetchType.LAZY)
+        @JoinColumn(name = "news_id")
+        private News news;
+
+        @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+        @JoinColumn(name = "source_id")
         private Source source;
+
         private String author;
         private String title;
         private String description;
@@ -85,7 +103,8 @@ public class News {
         }
 
         // Constructor
-        public Article(Source source, String author, String title, String description, String url, String urlToImage, String publishedAt, String content) {
+        public Article(Source source, String author, String title, String description, String url,
+                       String urlToImage, String publishedAt, String content) {
             this.source = source;
             this.author = author;
             this.title = title;
@@ -99,7 +118,8 @@ public class News {
         @Override
         public String toString() {
             return "Article{" +
-                    "source=" + source +
+                    "id=" + id +
+                    ", source=" + source +
                     ", author='" + author + '\'' +
                     ", title='" + title + '\'' +
                     ", description='" + description + '\'' +
@@ -112,8 +132,14 @@ public class News {
 
         @Getter
         @Setter
-        public static class Source {
-            private String id;
+        @Entity
+        @Table(name = "source_table")
+        public static class Source implements Serializable {
+
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+
             private String name;
 
             // Default Constructor
@@ -121,15 +147,14 @@ public class News {
             }
 
             // Constructor
-            public Source(String id, String name) {
-                this.id = id;
+            public Source(String name) {
                 this.name = name;
             }
 
             @Override
             public String toString() {
                 return "Source{" +
-                        "id='" + id + '\'' +
+                        "id=" + id +
                         ", name='" + name + '\'' +
                         '}';
             }

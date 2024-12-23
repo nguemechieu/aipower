@@ -1,42 +1,137 @@
 package com.sopotek.aipower.repository;
 
-import com.sopotek.aipower.model.User;
-import de.codecentric.boot.admin.server.domain.entities.Instance;
-import de.codecentric.boot.admin.server.domain.values.InstanceId;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import com.sopotek.aipower.domain.User;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
+import static com.sopotek.aipower.routes.api.UsersController.logger;
+
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public class UserRepository {
 
-    // Find user by email (Spring Data JPA automatically handles this query)
-    Optional<User> findByEmail(String email);
+    private final SessionFactory sessionFactory;
 
-    // Find user by username (Spring Data JPA automatically handles this query)
-    Optional<User> findByUsername(String username);
+    @Autowired
+    public UserRepository(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
 
-    // Update failed login attempts for the user
-    @Modifying
+    @Transactional(readOnly = true)
+    @Cacheable(value = "users", key = "#id")
+    public User findById(Long id) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.get(User.class, id);
+        }
+    }
+
     @Transactional
-    @Query("UPDATE User u SET u.failedLoginAttempts = :failedLoginAttempts WHERE u.id = :id")
-    void updateFailedLoginAttempts(@Param("failedLoginAttempts") int failedLoginAttempts, @Param("id") Long id);
+    @CacheEvict(value = "users", key = "#id")
+    public void deleteById(Long id) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            User user = session.get(User.class, id);
+            if (user != null) {
+                session.remove(user);
+            }
+            transaction.commit();
+        }
+    }
 
-    // Update reset token for the user
-    @Modifying
+    @Transactional(readOnly = true)
+    @Cacheable(value = "users", key = "#username")
+    public Optional<User> findByUsername(String username) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery("FROM User WHERE username = :username", User.class)
+                    .setParameter("username", username)
+                    .uniqueResultOptional();
+        }
+    }
+
+    @Transactional(readOnly = true)
+    @Cacheable(value = "users", key = "#email")
+    public Optional<User> findByEmail(String email) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery("FROM User WHERE email = :email", User.class)
+                    .setParameter("email", email)
+                    .uniqueResultOptional();
+        }
+    }
+
     @Transactional
-    @Query("UPDATE User u SET u.resetToken = :resetToken WHERE u.id = :id")
-    void updateResetToken(@Param("resetToken") String resetToken, @Param("id") Long id);
+    @CacheEvict(value = "users", allEntries = true)
+    public void updateFailedLoginAttempts(int attempts, Long userId) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            session.createQuery("UPDATE User SET failedLoginAttempts = :attempts WHERE id = :userId", User.class)
+                    .setParameter("attempts", attempts)
+                    .setParameter("userId", userId)
+                    .executeUpdate();
+            transaction.commit();
+        }
+    }
+    @Transactional
+    @CacheEvict(value = "users", key = "#user.id")
+    public void saveOrUpdate(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("User object cannot be null.");
+        }
 
-    // Find user by reset token
-    Optional<User> findByResetToken(String token);
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+
+            try {
+                if (user.getId() != null) {
+                    // Check if the user already exists in the database
+                    User existingUser = session.get(User.class, user.getId());
+                    if (existingUser != null) {
+                        // Update existing user
+                        session.merge(user);
+                        logger.info("User updated successfully with ID: {}", user.getId());
+                    } else {
+                        // Create new user if ID is provided but doesn't exist in DB
+                        session.persist(user);
+                        logger.info("New user created with ID: {}", user.getId());
+                    }
+                } else {
+                    // No ID provided, create a new user
+                    session.persist(user);
+                    logger.info("New user created successfully.");
+                }
+
+                transaction.commit();
+            } catch (Exception e) {
+                transaction.rollback();
+                logger.error("Error during save or update: {}", e.getMessage());
+                throw new RuntimeException("Error saving or updating user", e);
+            }
+        } catch (Exception e) {
+            logger.error("Error managing session: {}", e.getMessage());
+            throw new RuntimeException("Error saving or updating user", e);
+        }
+    }
 
 
+    @Transactional(readOnly = true)
+    public List<User> findAll() {
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery("FROM User", User.class).list();
+        }
+    }
 
+    public Optional<User> findByResetToken(String resetToken) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery("FROM User WHERE resetToken = :resetToken", User.class)
+                   .setParameter("resetToken", resetToken)
+                   .uniqueResultOptional();
+        }
+    }
 }

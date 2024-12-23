@@ -3,7 +3,7 @@ package com.sopotek.aipower.routes.api;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sopotek.aipower.model.News;
+import com.sopotek.aipower.domain.News;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
