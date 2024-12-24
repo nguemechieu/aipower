@@ -30,7 +30,7 @@
     "@sentry/webpack-plugin": "^2.22.7",
     "@testing-library/react": "^16.1.0",
     "autolinker": "^4.0.1",
-    "axios": "^1.7.8",
+    "axios": "^1.7.9",
     "axios-retry": "^4.5.0",
     "cross-env": "^7.0.3",
     "csurf": "^1.10.0",
