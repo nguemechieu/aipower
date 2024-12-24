@@ -4,7 +4,7 @@
     <session-factory>
         <!-- JDBC Database connection settings -->
         <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
-        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/aipower</property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost:3307/aipower</property>
         <property name="hibernate.connection.username">root</property>
         <property name="hibernate.connection.password">Bigboss307$</property>
 
@@ -25,6 +25,9 @@
 
         <!-- Drop and re-create the database schema on startup -->
         <property name="hibernate.hbm2ddl.auto">update</property>
+
+        <!-- Specify JTA transaction platform (if using JTA) -->
+        <property name="hibernate.transaction.jta.platform">org.hibernate.jta.platform.internal.NoJtaPlatform</property>
 
         <!-- Mention annotated class -->
         <mapping class="com.sopotek.aipower.domain.User"/>

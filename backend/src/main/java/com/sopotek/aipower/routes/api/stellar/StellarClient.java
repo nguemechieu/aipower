@@ -55,10 +55,10 @@ public class StellarClient {
 
     private volatile boolean running = true;
 
-    @Value("${stellar.public}")
+    @Value("${stellar.network.public-key}")
     private String publicKey;
 
-    @Value("${stellar.secret}")
+    @Value("${stellar.network.secret-key}")
     private String secretKey;
 
     private KeyPair sourceKeyPair;

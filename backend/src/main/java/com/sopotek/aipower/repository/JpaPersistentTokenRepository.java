@@ -2,6 +2,7 @@ package com.sopotek.aipower.repository;
 
 import com.sopotek.aipower.domain.PersistentLogin;
 import jakarta.transaction.Transactional;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.web.authentication.rememberme.PersistentRememberMeToken;
@@ -22,7 +23,7 @@ public class JpaPersistentTokenRepository implements PersistentTokenRepository {
 
     @Override
     @CacheEvict(value = "persistentTokens", key = "#token.series") // Evict any existing cache for the series key when a new token is created
-    public void createNewToken(PersistentRememberMeToken token) {
+    public void createNewToken(@NotNull PersistentRememberMeToken token) {
         PersistentLogin login = new PersistentLogin();
         login.setSeries(token.getSeries());
         login.setUsername(token.getUsername());

@@ -1,4 +1,3 @@
 export function capitalize() {
-    return 'Hello World!';
-
+  return "Hello World!";
 }

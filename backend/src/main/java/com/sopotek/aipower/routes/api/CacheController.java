@@ -18,4 +18,5 @@ public class CacheController {
         cacheService.clearCache(cacheName);
         return "Cache '" + cacheName + "' cleared.";
     }
+
 }

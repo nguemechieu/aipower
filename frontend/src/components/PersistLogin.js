@@ -11,7 +11,8 @@ const PersistLogin = () => {
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        if (auth?.accessToken) { // Check for an existing access token
+        if (auth?.accessToken) {
+          // Check for an existing access token
           const response = await axiosPrivate.post("/api/v3/refresh");
 
           if (response.status === 200) {
@@ -33,10 +34,10 @@ const PersistLogin = () => {
       }
     };
 
-    verifyToken().catch(error =>
-        console.error("Token verification failed:", error)
+    verifyToken().catch(
+      (error) => console.error("Token verification failed:", error),
       // Catch any errors during token verification and clear auth context on failure
-    )
+    );
   }, [auth?.accessToken, setAuth]); // Add only relevant dependencies
 
   if (loading) {

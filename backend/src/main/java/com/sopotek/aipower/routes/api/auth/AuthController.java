@@ -234,7 +234,7 @@ public class AuthController {
                     newUser.setId(githubCallbackRequest.getId());
 
         // Generate JWT token
-        String accessToken = JwtUtil.generateToken(user.getUsername());
+        String accessToken = jwtUtil.generateToken(user.getUsername());
 
         // Prepare response
         Map<String, Object> responsePayload = Map.of(

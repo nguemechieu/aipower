@@ -8,7 +8,7 @@
     "type": "git",
     "url": "git+https://github.com/nguemechieu/aipower.git"
   },
-  "author": "Noel nguemechieu <nguemechieu.github.io>",
+  "author": "Noel Nguemechieu <nguemechieu.github.io>",
   "bugs": {
     "url": "https://github.com/nguemechieu/aipower/issues"
   },
@@ -50,7 +50,6 @@
     "react-markdown": "^9.0.1",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.0.2",
-    "react-scripts": "^5.0.1",
     "recharts": "^2.13.3",
     "redux-thunk": "^3.1.0",
     "rimraf": "^6.0.1",
@@ -87,14 +86,14 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "development": "cross-env NODE_ENV=development npm run start",
+    "development": "npm install && cross-env NODE_ENV=development npm run start",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
     "eject": "react-scripts eject",
     "analyze": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --profile --json > stats.json",
     "analyze:bundle": "npm run analyze && npx bundle-visualizer stats.json",
     "test": "jest",
-    "build": "cross-env NODE_ENV=production react-scripts build",
+    "build": "npm install --omit-dev && cross-env NODE_ENV=production react-scripts build",
     "production": "npx serve -s build -l 3000",
     "test:coverage": "jest --coverage",
     "type-check": "tsc --noEmit",

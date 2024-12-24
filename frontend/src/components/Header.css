@@ -1,80 +1,80 @@
 .header {
-    padding: 20px;
-    background-color: #282c34;
-    color: #fff;
+  padding: 20px;
+  background-color: #282c34;
+  color: #fff;
 }
 
 .header-logo {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
 .logo {
-    width: 50px;
-    height: auto;
-    margin-right: 10px;
+  width: 50px;
+  height: auto;
+  margin-right: 10px;
 }
 
 .site-title {
-    font-size: 1.8rem;
-    font-weight: 700;
+  font-size: 1.8rem;
+  font-weight: 700;
 }
 
 .nav-links {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .nav-list {
-    list-style: none;
-    display: flex;
-    gap: 15px;
+  list-style: none;
+  display: flex;
+  gap: 15px;
 }
 
 .nav-list li {
-    margin: 0;
+  margin: 0;
 }
 
 .nav-list li a {
-    text-decoration: none;
-    color: #fff;
-    font-size: 1rem;
+  text-decoration: none;
+  color: #fff;
+  font-size: 1rem;
 }
 
 .nav-list li a:hover {
-    color: #4caf50;
+  color: #4caf50;
 }
 
 .user-info {
-    margin-right: 20px;
-    font-weight: 500;
+  margin-right: 20px;
+  font-weight: 500;
 }
 
 .logout-btn {
-    margin-left: 20px;
+  margin-left: 20px;
 }
 
 .navbar-icon {
-    display: none;
+  display: none;
 }
 
 @media (max-width: 768px) {
-    .navbar-icon {
-        display: block;
-    }
+  .navbar-icon {
+    display: block;
+  }
 
-    .nav-list {
-        display: none;
-        flex-direction: column;
-        gap: 10px;
-    }
+  .nav-list {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+  }
 
-    .nav-list li {
-        text-align: center;
-    }
+  .nav-list li {
+    text-align: center;
+  }
 
-    .nav-links:hover .nav-list {
-        display: flex;
-    }
+  .nav-links:hover .nav-list {
+    display: flex;
+  }
 }

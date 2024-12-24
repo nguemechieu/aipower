@@ -160,4 +160,9 @@ process.on('SIGTERM', () => {
     process.exit();
 });
 
-start();
+start().catch(
+    (err) => {
+        console.error(`[ERROR] Application failed to start: ${err.message}`);
+        process.exit(1);
+    }
+)

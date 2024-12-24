@@ -26,17 +26,17 @@ public class JwtUtil {
     }
 
     @Value("${aipower.jwt.secret.key}")
-    private static String secretKey;
+    private  String secretKey;
 
     @Contract(" -> new")
-    private static @NotNull SecretKey getSigningKey() {
+    private  @NotNull SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
-
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60; // 1 hour
+@Value("${aipower.jwt.token-expiration-time}")
+    private  long EXPIRATION_TIME = 1000 * 60 * 60; // 1 hour
 
     // Generate a token
-    public static String generateToken(String username) {
+    public  String generateToken(String username) {
         return Jwts.builder().subject(username).issuedAt(new Date()).expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(getSigningKey()) // Automatically determines the algorithm from the key
                 .compact();

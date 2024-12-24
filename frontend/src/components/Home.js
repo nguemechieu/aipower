@@ -1,9 +1,8 @@
-import  React from 'react';
+import React from "react";
 
 import { useNavigate, Link } from "react-router-dom";
 import { useContext } from "react";
 import AuthContext from "../context/AuthProvider.js";
-
 
 const Home = () => {
   const { setAuth } = useContext(AuthContext);

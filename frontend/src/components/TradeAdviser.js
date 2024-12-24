@@ -1,7 +1,5 @@
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-
 
 const TradeAdviser = () => {
   const [fiat, setFiat] = useState("bitcoin"); // Default fiat currency

@@ -21,7 +21,7 @@ public class Telegram {
     private static final Logger logger = LoggerFactory.getLogger(Telegram.class);
     private static final String TELEGRAM_BASE_URL = "https://api.telegram.org";
 
-@Value("${spring.boot.admin.notify.telegram.auth-token:2032573404:AAGnxJpNMJBKqLzvE5q4kGt1cCGF632bP7A}")
+@Value("${spring.boot.admin.notify.telegram.auth-token}")
     private String botToken;
 
     protected final RestTemplate restTemplate = new RestTemplate();

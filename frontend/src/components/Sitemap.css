@@ -1,9 +1,7 @@
-
-*{
-
+* {
 }
-.sitemap-sections{
-    -moz-animation: alternate;
-    -webkit-animation: alternate;
-    animation: alternate 2s infinite;
+.sitemap-sections {
+  -moz-animation: alternate;
+  -webkit-animation: alternate;
+  animation: alternate 2s infinite;
 }
