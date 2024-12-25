@@ -1,80 +1,61 @@
-.header {
-  padding: 20px;
-  background-color: #282c34;
-  color: #fff;
+.facebook-style-header {
+  background-color: #0a3936;
+  color: white;
+  padding: 10px 20px;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.header-logo {
-  display: flex;
-  align-items: center;
-}
-
-.logo {
-  width: 50px;
-  height: auto;
-  margin-right: 10px;
-}
-
-.site-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-}
-
-.nav-links {
+.header-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.nav-list {
-  list-style: none;
-  display: flex;
-  gap: 15px;
-}
-
-.nav-list li {
+.app-title {
+  font-size: 1.5rem;
+  color: #45d16f;
   margin: 0;
 }
 
-.nav-list li a {
-  text-decoration: none;
-  color: #fff;
-  font-size: 1rem;
+.nav-bar {
+  display: flex;
+  align-items: center;
 }
 
-.nav-list li a:hover {
-  color: #4caf50;
+.nav-links {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-item {
+  text-decoration: none;
+  color: white;
+  margin: 0 10px;
+  font-weight: bold;
+  transition: color 0.3s;
+}
+
+.nav-item:hover {
+  color: #ddd;
+}
+
+.logout-button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.logout-button:hover {
+  color: #ddd;
 }
 
 .user-info {
-  margin-right: 20px;
-  font-weight: 500;
-}
-
-.logout-btn {
   margin-left: 20px;
-}
-
-.navbar-icon {
-  display: none;
-}
-
-@media (max-width: 768px) {
-  .navbar-icon {
-    display: block;
-  }
-
-  .nav-list {
-    display: none;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .nav-list li {
-    text-align: center;
-  }
-
-  .nav-links:hover .nav-list {
-    display: flex;
-  }
+  font-size: 1rem;
+  color: white;
 }

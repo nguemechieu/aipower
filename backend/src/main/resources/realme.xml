@@ -1,0 +1,21 @@
+
+<realms>
+    <realm name="realm1">
+        <authentication>
+            <jaas>
+                <login-module class-name="com.hazelcast.examples.MyRequiredLoginModule" usage="REQUIRED">
+                    <properties>
+                        <property name="property">value</property>
+                    </properties>
+                </login-module>
+            </jaas>
+        </authentication>
+        <identity>
+            <credentials-factory class-name="com.hazelcast.examples.MyCredentialsFactory">
+                <properties>
+                    <property name="property">value</property>
+                </properties>
+            </credentials-factory>
+        </identity>
+    </realm>
+</realms>

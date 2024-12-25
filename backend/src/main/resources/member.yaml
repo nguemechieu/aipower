@@ -1,0 +1,4 @@
+member-authentication:
+  realm: realm1
+client-authentication:
+  realm: realm1

@@ -1,0 +1,11 @@
+<network>
+    <ssl enabled="true">
+        <factory-class-name>com.hazelcast.nio.ssl.BasicSSLContextFactory</factory-class-name>
+        <properties>
+            <property name="keyStore">path_to_keystore</property>
+            <property name="keyStorePassword">password</property>
+            <property name="trustStore">path_to_truststore</property>
+            <property name="trustStorePassword">password</property>
+        </properties>
+    </ssl>
+</network>

@@ -22,6 +22,12 @@ module.exports = {
             },
         ],
     },
+    resolve: {
+            extensions: ['.js', '.jsx','.tsx']
+        },
+    optimization: {
+        runtimeChunk: 'single'
+    },
 
     devtool: "source-map"
 };

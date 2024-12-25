@@ -1,5 +1,5 @@
 /* Section Styles */
-section.register {
+.section.register {
   max-width: 600px;
   margin: 50px auto;
   padding: 20px;
@@ -13,12 +13,7 @@ section.register {
 }
 
 /* Form Styles */
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  align-items: center;
-}
+
 
 form input,
 form select,

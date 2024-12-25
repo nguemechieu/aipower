@@ -16,7 +16,8 @@ import java.util.Date;
 public class PersistentLogin {
     // Getters and Setters
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-incremented ID
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Auto-incremented ID
 
     private Long id;
     private String series; // Primary key

@@ -6,7 +6,9 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -23,21 +25,21 @@ public class News implements Serializable {
     private String status;
     private int totalResults;
     private String country;
-    private String date; // Consider storing as a `LocalDate` for better type safety.
+    private LocalDate date; // Consider storing as a `LocalDate` for better type safety.
     private String impact;
     private String forecast;
     private String previous;
     private String title;
 
     @OneToMany(mappedBy = "news", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Article> articles;
+    private List<Article> articles=new ArrayList<>();
 
     // Default Constructor
     public News() {
     }
 
     // Constructor for general news fields
-    public News(String country, String date, String impact, String title, String previous, String forecast) {
+    public News(String country, LocalDate date, String impact, String title, String previous, String forecast) {
         this.country = country;
         this.date = date;
         this.impact = impact;
@@ -46,11 +48,11 @@ public class News implements Serializable {
         this.forecast = forecast;
     }
 
-    // Constructor for complete news object
-    public News(String status, int totalResults, List<Article> articles) {
+    // Constructor for a complete news object
+    public News(String status, int totalResults) {
         this.status = status;
         this.totalResults = totalResults;
-        this.articles = articles;
+
     }
 
     @Override
@@ -68,9 +70,6 @@ public class News implements Serializable {
                 '}';
     }
 
-    public Date getStartDate() {
-        return Date.from(Instant.parse(date).atZone(ZoneId.systemDefault()).toInstant());
-    }
 
     @Getter
     @Setter
@@ -146,10 +145,7 @@ public class News implements Serializable {
             public Source() {
             }
 
-            // Constructor
-            public Source(String name) {
-                this.name = name;
-            }
+
 
             @Override
             public String toString() {

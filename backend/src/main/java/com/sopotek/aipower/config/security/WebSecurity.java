@@ -16,6 +16,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -55,7 +56,8 @@ public class WebSecurity {
     private static final Set<String> PUBLIC_ENDPOINTS = Set.of(
             "/applications", "/instances", "/csrf-token", "/login", "/logout",
             "/refresh-token", "/favicon", "/static/**", "/register", "/forgot-password",
-            "/reset-password", "/confirm-email", "/resend-verification-email", "/admin/**"
+            "/reset-password", "/confirm-email", "/resend-verification-email", "/admin/**",
+            "/error"
     );
 
 
@@ -66,8 +68,8 @@ public class WebSecurity {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+        http.csrf(AbstractHttpConfigurer::disable)
+                   //     .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())).httpBasic(
                         authentication -> authentication
                                 .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
@@ -112,10 +114,13 @@ public class WebSecurity {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("Content-Type", "Authorization", "X-XSRF-TOKEN", "X-Requested-With", "Accept"));
+        configuration.setAllowedHeaders(Arrays.asList("Content-Type",
+                "Authorization"
+                // "X-XSRF-TOKEN"
+                , "X-Requested-With", "Accept"));
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+               UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }

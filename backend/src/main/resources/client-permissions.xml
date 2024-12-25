@@ -1,0 +1,10 @@
+<client-permissions>
+    <map-permission name="myMap" principal="dev">
+        <actions>
+            <action>create</action>
+            <action>destroy</action>
+            <action>put</action>
+            <action>read</action>
+        </actions>
+    </map-permission>
+</client-permissions>

@@ -4,6 +4,7 @@
   "private": true,
   "proxy": "http://localhost:3000",
   "homepage": "https://nguemechieu.github.io/aipower",
+  "main": "./frontend",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nguemechieu/aipower.git"
@@ -94,7 +95,8 @@
     "analyze:bundle": "npm run analyze && npx bundle-visualizer stats.json",
     "test": "jest",
     "build": "npm install --omit-dev && cross-env NODE_ENV=production react-scripts build",
-    "production": "npx serve -s build -l 3000",
+    "serve": "serve -s build",
+    "production": "npm run serve",
     "test:coverage": "jest --coverage",
     "type-check": "tsc --noEmit",
     "format": "prettier --write 'src/**/*.{js,jsx,ts,tsx,css,scss,md,json}'"

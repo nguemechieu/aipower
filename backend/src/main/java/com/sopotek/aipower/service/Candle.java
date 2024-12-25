@@ -1,18 +1,28 @@
 package com.sopotek.aipower.service;
 
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.Date;
 
 @Getter
 @Setter
-public class Candle {
+@Entity
+@Table(name = "candle_data")
+public class Candle  implements Serializable {
 
 
     private Date time;
     private double open;
     private double high;
+    @Getter
+    @Setter
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    private Long id;
 
     public Candle() {
     }
@@ -32,4 +42,5 @@ public class Candle {
     private double close;
     private long volume;
     private double weightedAverage;
+
 }

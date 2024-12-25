@@ -3,6 +3,8 @@ package com.sopotek.aipower.component;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sopotek.aipower.domain.ENUM_SIGNAL;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,13 +18,14 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-
+@Getter
+@Setter
 @Component
 public class PythonIntegration {
 
     private static final Logger LOG = LoggerFactory.getLogger(PythonIntegration.class);
     @Value("${spring.boot.admin.ui.public-url}")
-    private static final String PYTHON_SERVER_URL = "http://localhost:5000";
+    private  String PYTHON_SERVER_URL = "http://localhost:5000";
 
     /**
      * Fetch predictions from the Python API.

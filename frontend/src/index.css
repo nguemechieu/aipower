@@ -1,7 +1,7 @@
 /* Define color variables for reusability */
 :root {
-  --primary-color: #caefd5; /* Background */
-  --secondary-color: #48bb78; /* Highlights */
+  --primary-color: #1d70cc; /* Background */
+  --secondary-color: rgb(87, 175, 113); /* Highlights */
   --accent-color: #45d16f; /* Buttons */
   --text-color: #1d70cc; /* Main text */
   --text-muted: rgba(255, 255, 255, 0.7); /* Muted text */
@@ -90,7 +90,7 @@ header {
 }
 
 /* Section */
-section {
+.section {
   margin-bottom: 20px;
   padding: 20px;
   background-color: var(--primary-color);
@@ -184,4 +184,13 @@ footer {
   text-align: center;
   margin-bottom: 20px;
   font-size: 24px;
+}
+.root{
+  --font-size: 16px; /* Default font size */
+  --line-height: 1.5; /* Default line height */
+  --color: #0a3463; /* Default text color */
+  --background-color: #072333; /* Default background color */
+  --border-radius: 4px; /* Default border radius */
+  --border-color: #ccc; /* Default border color */
+  --transition: background-color 0.3s ease-in-out; /* Default transition */
 }

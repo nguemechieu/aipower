@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -58,9 +59,11 @@ public class NewsController {
             );
 
             forexEvents = forexEvents.stream()
-                    .filter(event -> event.getStartDate().after(new Date()))
+                    .filter(event -> event.getDate().isBefore(
+                            LocalDate.now()
+                    ))
                     .limit(5)
-                    .sorted(Comparator.comparing(News::getStartDate))
+                    .sorted(Comparator.comparing(News::getDate))
                     .collect(Collectors.toList());
 
             return ResponseEntity.ok(forexEvents);

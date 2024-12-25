@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
 
 @Getter
 @Setter
@@ -56,9 +54,6 @@ public class Location  implements Serializable {
     private String abuseNetwork;
     private String abusePhone;
 
-    @Setter
-    @Getter
-    @OneToMany(mappedBy = "location")
-    private Collection<User> user = new ArrayList<>();
+
 
 }

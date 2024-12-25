@@ -13,17 +13,13 @@ import java.util.stream.Collectors;
 
 @Getter
 @Setter
-
 @Entity
 @Table(name = "users")
-
-
 public class User implements Serializable, UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
 
     private Date lastLoginDate;
 
@@ -59,14 +55,12 @@ public class User implements Serializable, UserDetails {
     private String hostname;
     private String region;
 
-
     @ManyToOne
     @JoinColumn(name = "location_id")
     private Location location;
 
     private String org;
     private String postal;
-
     private String timezone;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -77,9 +71,6 @@ public class User implements Serializable, UserDetails {
     )
     private Set<Role> roles = new HashSet<>();
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    private Role role;
-
     @Column(nullable = false)
     private int failedLoginAttempts = 0;
 
@@ -89,42 +80,26 @@ public class User implements Serializable, UserDetails {
     private String securityAnswer;
 
     private Date resetTokenExpiryTime;
-    private String fullName;
-    @Setter
+
     private boolean emailVerified;
+
+    private String language;
+    private String currency;
+
+    public User() {}
 
     public Optional<User> map(Object o) {
         return Optional.ofNullable((User) o);
-
     }
 
-    // Sample ROLES Enum (You can adjust this based on your actual roles)
-    public enum ROLES {
-        ADMIN, USER, EMPLOYEE, MANAGER,GROUP
-    }
-
-    /**
-     * Increment the number of failed login attempts for this user.
-     */
     public void incrementFailedLoginAttempts() {
         this.failedLoginAttempts++;
     }
 
-    /**
-     * Reset the number of failed login attempts for this user.
-     */
     public void resetFailedLoginAttempts() {
         this.failedLoginAttempts = 0;
     }
 
-    public User() {
-    }
-
-    /**
-     * Returns a collection of granted authorities based on the user's roles.
-     *
-     * @return A collection of granted authorities.
-     */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()
@@ -132,21 +107,11 @@ public class User implements Serializable, UserDetails {
                 .collect(Collectors.toSet());
     }
 
-    /**
-     * Indicates whether the account is enabled and has valid roles.
-     *
-     * @return True if the account is enabled, false otherwise.
-     */
     @Override
     public boolean isEnabled() {
-        return accountNonExpired && accountNonLocked &&
-                roles.stream().anyMatch(role ->
-                        Arrays.stream(ROLES.values())
-                                .map(Enum::name)
-                                .anyMatch(role.getName()::equals));
+        return accountNonExpired && accountNonLocked && !roles.isEmpty();
     }
 
-    // Overridden methods for UserDetails interface
     @Override
     public boolean isAccountNonExpired() {
         return accountNonExpired;
@@ -167,7 +132,6 @@ public class User implements Serializable, UserDetails {
         this.firstName = names[0];
         this.lastName = names.length > 1 ? names[names.length - 1] : "";
         this.middleName = names.length > 2 ? String.join(" ", Arrays.copyOfRange(names, 1, names.length - 1)) : "";
-        this.fullName = name;
     }
 
     @Override
@@ -179,7 +143,4 @@ public class User implements Serializable, UserDetails {
     public String getPassword() {
         return password;
     }
-
-    private String language;
-    private String currency;
 }

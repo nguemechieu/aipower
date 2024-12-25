@@ -135,7 +135,10 @@ public class AuthController {
 
                 // Encode password
                 user.setPassword(passwordEncoder.encode(user.getPassword()));
-                user.setRole(new Role("USER"));
+
+                user.setRoles(Set.of(new Role("USER")
+                , new Role("ADMIN")
+                ));
                 user.setResetToken(UUID.randomUUID().toString());
                 user.setResetTokenExpiryTime(Date.from(LocalDateTime.now().plusHours(2).atZone(ZoneId.systemDefault()).toInstant()));
 
@@ -169,7 +172,7 @@ public class AuthController {
         }
 
         @NotNull
-        private ResponseEntity<?> getResponseEntity(String accessToken, String refreshToken, User userDetails) {
+        private ResponseEntity<?> getResponseEntity(String accessToken, String refreshToken, @NotNull User userDetails) {
             Map<String, String> response = new HashMap<>();
             response.put("accessToken", accessToken);
             response.put("refreshToken", refreshToken);
@@ -230,7 +233,7 @@ public class AuthController {
                     newUser.setEmail(githubCallbackRequest.getEmail());
                     newUser.setFullName(githubCallbackRequest.getName());
                     newUser.setPassword(new BCryptPasswordEncoder().encode(UUID.randomUUID().toString()));
-                    newUser.setRole(new Role("USER"));
+                    newUser.setRoles(Set.of(new Role("USER")));
                     newUser.setId(githubCallbackRequest.getId());
 
         // Generate JWT token
@@ -239,12 +242,42 @@ public class AuthController {
         // Prepare response
         Map<String, Object> responsePayload = Map.of(
                 "username", user.getUsername(),
-                "role", user.getRole().getName(),
+                "roles", user.getRoles(),
                 "accessToken", accessToken
         );
         return ResponseEntity.ok(responsePayload);
 
 
+
+
+    }
+
+
+    // ForgotPassword
+    @PostMapping("/forgotpassword")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+            // Retrieve user by email
+            Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
+
+            if (userOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid email.");
+            }
+
+            User user = userOptional.get();
+
+            // Generate reset token and expiry time
+            String resetToken = UUID.randomUUID().toString();
+            long resetTokenExpiryTime = new Date().getTime() + (1000 * 60 * 60 * 24); // 24 hours
+
+            user.setResetToken(resetToken);
+            user.setResetTokenExpiryTime(new Date(resetTokenExpiryTime));
+
+            userRepository.saveOrUpdate(user);
+
+            // Send email with reset link
+            String resetLink = "http://localhost:8080/reset-password?resetToken=" + resetToken;
+            emailService.sendEmail(user.getEmail(), "Reset Password", "Click here to reset your password: " + resetLink);
+            return ResponseEntity.ok("Reset password link sent to your email.");
 
 
     }

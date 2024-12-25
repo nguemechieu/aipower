@@ -2,7 +2,6 @@ package com.sopotek.aipower;
 
 import de.codecentric.boot.admin.server.config.EnableAdminServer;
 import io.github.cdimascio.dotenv.Dotenv;
-
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -11,7 +10,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
-
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.io.File;
@@ -19,23 +17,18 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
-
-
 @EnableScheduling
-
 @EnableBatchProcessing
 @EntityScan(basePackages = "com.sopotek.aipower.domain")
-
 @SpringBootApplication(scanBasePackages = "com.sopotek.aipower")
 @EnableAdminServer
 public class AipowerServer {
     private static final Log LOG = LogFactory.getLog(AipowerServer.class);
     public static void main(String[] args) throws IOException {
-//
 
         File file = new File(".env");
         //Check if .env file exists if not create one
-       if (!file.exists()) file.createNewFile();
+       if (!file.exists()) {LOG.info("File :"+file.createNewFile()+"  have been created!");}
         // Create a writer for.env file
         try (FileWriter writer = new FileWriter(file)) {
             // Write key-value pairs to.env file
@@ -84,10 +77,10 @@ public class AipowerServer {
             writer.write("# --- Admin Server Configuration ---\n");
             writer.write("SPRING_BOOT_ADMIN_CLIENT_URL=http://localhost:8081\n");
 
-            writer.write("# --- TELEGRAM Configuration\n");
+            writer.write("# --- TELEGRAM Configuration---\n");
             writer.write("TELEGRAM_BOT_TOKEN=2032573404:AAGnxJpNMJBKqLzvE5q4kGt1cCGF632bP7A\n");
             writer.write("TELEGRAM_CHAT_ID=your-telegram-chat-id\n");
-
+            writer.write("#------ADMIN -- CONFIG --------------------------------\n");
             writer.write("ADMIN_USERNAME=admin\n");
             writer.write("ADMIN_PASSWORD=password\n");
             writer.write("\n");
@@ -96,7 +89,7 @@ public class AipowerServer {
             writer.write("MAIL_HOST=smtp.gmail.com\n");
             writer.write("MAIL_PORT=587\n");
             writer.write("MAIL_USERNAME=noelmartialnguemechieu@gmail.com\n");
-            writer.write("MAIL_PASSWORD=Bigboss307$\n");
+            writer.write("MAIL_PASSWORD=Bigboss307\n");
             writer.write("\n");
             writer.write("# --- Swagger Configuration ---\n");
             writer.write("OPENAI_API_URL=https://api.openai.com/v1/chat/completions\n");
@@ -150,9 +143,34 @@ writer.write("# --- STELLAR --- NETWORK ---CONFIG\n");
         writer.write("OPENAI_API_URL=https://api.openai.com/v1/chat/completions\n");
         writer.write("OPENAI_API_KEY=your-openai-api-key\n");
         writer.write("OPENAI_API_MODEL=text-davinci-003\n");
+
+        // GOOGLE AUTH COINFIG
+            writer.write("\n");
+
+            //THIS CONFIG MUST START WITH REACT_APP_ SO REACT ENGINE CAN READ THIS ENVIRONMENT
+            writer.write("# --- GOOGLE AUTH --- CONFIG");
+            writer.write("REACT_APP_GOOGLE_CLIENT_ID=your-google-auth-client-id\n");
+            writer.write("REACT_APP_GOOGLE_CLIENT_SECRET=your-google-auth-client-secret\n");
+            writer.write("REACT_APP_GOOGLE_CLIENT_REDIRECT_URI=http://localhost:8080/auth/google/callback\n");
+            writer.write("\n");
+
+            //GITHUB AUTH CONFIG
+            writer.write("# --- GITHUB AUTH --- CONFIG");
+            writer.write("REACT_APP_GITHUB_CLIENT_ID=252116\n");
+            writer.write("REACT_APP_GITHUB_CLIENT_SECRET=Iv1.23779dd826d2df1f\n");
+            writer.write("REACT_APP_GITHUB_CLIENT_REDIRECT_URI=http://localhost:8080/auth/github/callback\n");
+            writer.write(
+                    "HZ_JET_ENABLED=true\n"
+            );
+            writer.write("\n");
+
+
+
+
+
             writer.flush();
         }
-        LOG.info("Warning: You need to set your .env variable with your own environment variable");
+        LOG.info("======== Warning ==========\nYou need to set your .env variable with your own environment variable");
 
         // Load environment variables
         Dotenv dotenv = Dotenv.load();
