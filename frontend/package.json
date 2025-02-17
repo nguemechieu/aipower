@@ -41,7 +41,7 @@
     "lru-cache": "^11.0.2",
     "node-polyfill-webpack-plugin": "^4.0.0",
     "nth-check": "^2.1.1",
-    "postcss": "^8.4.49",
+    "postcss": "^8.5.2",
     "prettier": "^3.4.2",
     "process": "^0.11.10",
     "prop-types": "^15.8.1",
