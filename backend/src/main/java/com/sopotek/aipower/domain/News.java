@@ -1,6 +1,7 @@
 package com.sopotek.aipower.domain;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +16,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
+@Data
 @Table(name = "news")
 public class News implements Serializable {
 
@@ -68,6 +70,26 @@ public class News implements Serializable {
                 ", title='" + title + '\'' +
                 ", articles=" + articles +
                 '}';
+    }
+
+    public char[] getDescription() {
+        StringBuilder descriptionBuilder = new StringBuilder();
+        if (articles!= null &&!articles.isEmpty()) {
+            for (Article article : articles) {
+                descriptionBuilder.append(article.getDescription()).append("\n");
+            }
+        }
+        return descriptionBuilder.toString().toCharArray();
+    }
+
+    public char[] getUrl() {
+        StringBuilder urlBuilder = new StringBuilder();
+        if (articles!= null &&!articles.isEmpty()) {
+            for (Article article : articles) {
+                urlBuilder.append(article.getUrl()).append("\n");
+            }
+        }
+        return urlBuilder.toString().toCharArray();
     }
 
 

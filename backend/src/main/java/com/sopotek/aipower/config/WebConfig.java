@@ -33,24 +33,21 @@ public class WebConfig implements WebMvcConfigurer {
         return new RestTemplate();
     }
 
-    /**
-     * Configure message converters for handling HTTP requests and responses.
-     */
-    @Override
-    public void configureMessageConverters(@NotNull List<HttpMessageConverter<?>> converters) {
-        // Adding Jackson for JSON conversion (Spring Boot already configures it, but you can customize if needed)
-        converters.add(new MappingJackson2HttpMessageConverter());
-    }
+
+
     @Override
     public void addCorsMappings(@NotNull CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins(isProductionEnvironment()
-                        ? new String[]{"https://tradeadviser.org", "http://localhost:8081","http://localhost:3000", "http://localhost:8080"}
+                        ? new String[]{"http://localhost:8080","http://localhost:3001", "http://localhost:3000","http://localhost:8081"}
                         : new String[]{"http://localhost:3000", "https://tradeadviser.org","http://localhost:3001", "http://localhost:8081"})
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-                .allowedHeaders("Content-Type", "Authorization", "X-XSRF-TOKEN", "X-Requested-With", "Accept")
+                .allowedHeaders("Content-Type", "Authorization", "X-Requested-With", "Accept")
+                .allowCredentials(
+                        true  // Enable CORS for all origins
+                )
                 .exposedHeaders("Authorization", "Content-Type")
-                .allowCredentials(true).maxAge(2000).allowPrivateNetwork(true);
+                .maxAge(2000);
 
     }
 
@@ -75,4 +72,16 @@ public class WebConfig implements WebMvcConfigurer {
         }
         return "prod".equalsIgnoreCase(activeProfile);
     }
+    /**
+     * Configure message converters for handling HTTP requests and responses.
+     */
+    @Override
+    public void configureMessageConverters(@NotNull List<HttpMessageConverter<?>> converters) {
+        // Adding JSON converter
+        converters.add(new MappingJackson2HttpMessageConverter());
+
+        // Adding support for text-based responses (important for SSE)
+        converters.add(new org.springframework.http.converter.StringHttpMessageConverter());
+    }
+
 }

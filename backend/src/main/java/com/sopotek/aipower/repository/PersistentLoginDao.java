@@ -12,7 +12,7 @@ import java.util.Optional;
 @Repository
 public class PersistentLoginDao {
 
-    private final SessionFactory sessionFactory;
+     SessionFactory sessionFactory;
 
     @Autowired
     public PersistentLoginDao(SessionFactory sessionFactory) {

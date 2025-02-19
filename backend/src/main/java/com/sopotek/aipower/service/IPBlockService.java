@@ -1,5 +1,6 @@
 package com.sopotek.aipower.service;
 
+import com.sopotek.aipower.config.security.GeolocationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.Setter;

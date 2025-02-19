@@ -2,8 +2,8 @@ package com.sopotek.aipower.service;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -14,9 +14,9 @@ import org.springframework.stereotype.Service;
 @Setter
 @Service
 public class EmailService {
-  private static final Log logger= LogFactory.getLog(EmailService.class);
+  private static final Logger logger= LoggerFactory.getLogger(EmailService.class);
 
-    private final JavaMailSender mailSender;
+  JavaMailSender mailSender;
 
     @Value("${spring.mail.username}") // Use username for the "from" address
     private String from;
@@ -43,9 +43,9 @@ public class EmailService {
             message.setText(text);
 
             mailSender.send(message);
-            logger.info("Email sent successfully to {}");
+            logger.info("Email sent successfully to{}", to);
         } catch (Exception ex) {
-            logger.error("Failed to send email: {}");
+            logger.error("Failed to send email:{}", ex.getMessage());
 
         }
     }

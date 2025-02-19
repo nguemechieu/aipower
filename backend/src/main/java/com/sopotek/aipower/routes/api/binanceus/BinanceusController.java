@@ -15,10 +15,10 @@ public class BinanceusController {
     private static final Logger LOG = LoggerFactory.getLogger(BinanceusController.class);
     public static final String TAG = "BinanceusController";
 
-    private final Binanceus binanceus;
+    private final BinanceUs binanceus;
 
     @Autowired
-    public BinanceusController(Binanceus binanceus) {
+    public BinanceusController(BinanceUs binanceus) {
         this.binanceus = binanceus;
     }
 

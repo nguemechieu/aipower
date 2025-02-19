@@ -17,6 +17,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         // Set response content type to JSON for consistent API error handling
         response.setContentType("application/json");
 
+
         // Send 401 Unauthorized status with a detailed error message
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed: " + authException.getMessage());
 

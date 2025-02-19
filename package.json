@@ -1,38 +1,134 @@
 {
-
   "name": "aipower",
-
-  "version": "1.0.0",
-
-  "description": "A smart and social trade advisor web application",
-
-  "scripts": {
-
-    "development": "node run.js development",
-
-    "production": "node run.js production"
-
-  },
-
-  "author": "NOEL NGUEMECHIEU",
-
-  "license": "MIT",
+  "version": "0.2.0",
+  "private": true,
+  "proxy": "http://localhost:3000",
+  "homepage": "https://nguemechieu.github.io/aipower",
 
   "repository": {
-
     "type": "git",
-
-    "url": "https://github.com/nguemechieu/aipower.git"
-
+    "url": "git+https://github.com/nguemechieu/aipower.git"
   },
-
+  "author": "Noel Nguemechieu <nguemechieu.github.io>",
+  "bugs": {
+    "url": "https://github.com/nguemechieu/aipower/issues"
+  },
+  "description": "A professional-grade React for AIPower.",
   "dependencies": {
-
-    "child_process": "^1.0.2",
-
-    "react-scripts": "^5.0.1"
-
+    "@babel/plugin-transform-private-property-in-object": "^7.25.9",
+    "@emotion/styled": "^11.14.0",
+    "@fortawesome/fontawesome-svg-core": "^6.7.1",
+    "@fortawesome/free-solid-svg-icons": "^6.7.1",
+    "@fortawesome/react-fontawesome": "^0.2.2",
+    "@jridgewell/sourcemap-codec": "^1.5.0",
+    "@mui/icons-material": "^6.2.1",
+    "@mui/material": "^6.1.10",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@sentry/react": "^8.47.0",
+    "@sentry/tracing": "^7.114.0",
+    "@sentry/webpack-plugin": "^2.22.7",
+    "@testing-library/react": "^16.1.0",
+    "@types/react-dom": "^18.3.5",
+    "autolinker": "^4.0.1",
+    "axios": "^1.7.8",
+    "axios-retry": "^4.5.0",
+    "cross-env": "^7.0.3",
+    "csurf": "^1.2.2",
+    "dotenv": "^16.4.7",
+    "jest-worker": "^29.7.0",
+    "lightweight-charts": "^4.2.1",
+    "lint-staged": "^15.2.10",
+    "lru-cache": "^11.0.2",
+    "node-polyfill-webpack-plugin": "^4.0.0",
+    "nth-check": "^2.1.1",
+    "postcss": "^8.4.49",
+    "process": "^0.11.10",
+    "prop-types": "^15.8.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-icons": "^5.4.0",
+    "react-markdown": "^9.0.1",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.0.2",
+    "react-scripts": "^5.0.1",
+    "redux-thunk": "^3.1.0",
+    "rimraf": "^6.0.1",
+    "serve": "^14.2.4",
+    "styled-components": "^6.1.13",
+    "svgo": "^3.3.2",
+    "swagger-ui-react": "^5.18.2",
+    "web-vitals": "^4.2.4",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^6.0.1",
+    "workbox-cacheable-response": "^7.3.0",
+    "workbox-webpack-plugin": "^7.3.0",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@typescript-eslint/eslint-plugin": "^8.19.1",
+    "gh-pages": "^6.2.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "npm": "^11.0.0",
+    "patch-package": "^8.0.0",
+    "prettier": "^3.4.2",
+    "sass": "^1.83.0",
+    "sass-loader": "^16.0.3",
+    "util": "^0.12.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "developments": "cross-env NODE_ENV=development npm run start",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
+    "development": "node run.js development",
+    "production": "node run.js production",
+    "eject": "react-scripts eject",
+    "analyze": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --profile --json > stats.json",
+    "analyze:bundle": "npm run analyze && npx bundle-visualizer stats.json",
+    "test": "jest",
+    "build": "npm install --omit-dev && cross-env NODE_ENV=production react-scripts build",
+    "serve": "serve -s build",
+    "productions": "npm run serve",
+    "test:coverage": "jest --coverage",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write 'src/**/*.{js,jsx,ts,tsx,css,scss,md,json}'"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest",
+      "airbnb",
+      "plugin:@typescript-eslint/recommended",
+      "prettier"
+    ],
+    "rules": {
+      "react/jsx-filename-extension": [
+        "warn",
+        {
+          "extensions": [
+            ".jsx",
+            ".tsx"
+          ]
+        }
+      ],
+      "import/prefer-default-export": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "warn"
+      ]
+    }
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
-
 }
-

@@ -2,13 +2,9 @@ package com.sopotek.aipower.config.security;
 
 import com.sopotek.aipower.repository.JpaPersistentTokenRepository;
 import com.sopotek.aipower.repository.PersistentLoginDao;
-
 import com.sopotek.aipower.repository.UserRepository;
-import com.sopotek.aipower.service.GeolocationService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,116 +18,96 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 @Getter
-@Setter
 @RequiredArgsConstructor
 @EnableWebSecurity
 @Configuration
 public class WebSecurity {
 
-    @Autowired
-    public WebSecurity(UserRepository userService, GeolocationService geolocationService, List<String> allowedOrigins, PersistentLoginDao persistLogin) {
-        this.userService = userService;
-        this.geolocationService = geolocationService;
-        this.allowedOrigins = allowedOrigins;
-        this.persistLogin = persistLogin;
-    }
-
-    private  UserRepository userService;
-    private  GeolocationService geolocationService;
-
-    @Value("${spring.security.cors.allowed-origins}")
-    private List<String> allowedOrigins;
-
     private static final Set<String> PUBLIC_ENDPOINTS = Set.of(
-            "/applications", "/instances", "/csrf-token", "/login", "/logout",
-            "/refresh-token", "/favicon", "/static/**", "/register", "/forgot-password",
-            "/reset-password", "/confirm-email", "/resend-verification-email", "/admin/**",
-            "/error"
+            "/applications", "/instances", "/csrf-token", "/api/v3/login", "/api/v3/logout",
+            "/refresh-token", "/favicon", "/static/**", "/api/v3/register", "/api/v3/forgot-password",
+            "/api/v3/reset-password", "/confirm-email", "/resend-verification-email", "/admin/**"
     );
 
+    private final UserRepository userService;
+    private final PersistentLoginDao persistLogin;
+    private final JwtUtil jwtUtil;
 
-
-
-
-    private PersistentLoginDao persistLogin;
+    @Value("${spring.security.cors.allowed-origins}")
+    private final List<String> allowedOrigins;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
-                   //     .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())).httpBasic(
-                        authentication -> authentication
-                                .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
+        http.csrf(AbstractHttpConfigurer::disable
 
-                )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)).authorizeHttpRequests(auth -> auth
-                        .requestMatchers( PUBLIC_ENDPOINTS.iterator().next()).permitAll()
+                        )
+    //csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .httpBasic(httpBasic -> httpBasic.authenticationEntryPoint(new CustomAuthenticationEntryPoint()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(PUBLIC_ENDPOINTS.toArray(String[]::new)).permitAll()
                         .requestMatchers("/api/v3/**").authenticated()
+
+                          .requestMatchers("/instances").permitAll()  // Allow public access
                         .anyRequest().permitAll())
-                .formLogin(
-                        login -> login
-                                .loginPage("/login")
-                                .loginProcessingUrl("/login")
-                                .successForwardUrl("/home")
-                                .failureUrl("/login?error=true")
-                                .permitAll()
-                ).logout(logout -> logout
+                .formLogin(formLogin -> formLogin
+                        .loginPage("/login")
+                        .loginProcessingUrl("/login")
+                        .successForwardUrl("/home")
+                        .failureUrl("/login?error=true")
+                        .permitAll())
+                .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/")
-                        .permitAll()
-                ) // allow login page
-                .rememberMe(rememberMe -> {
-                    try {
-                        rememberMe
-                                .tokenRepository(persistentTokenRepository())
-                                .tokenValiditySeconds(24 * 60 * 60) // 1 day
-                                .userDetailsService(userDetailsService());
-                    } catch (IOException | InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .addFilterBefore(new JwtRequestFilter(userService, new JwtUtil()), UsernamePasswordAuthenticationFilter.class);
+                        .permitAll())
+                .rememberMe(rememberMe -> rememberMe
+                        .tokenRepository(persistentTokenRepository())
+                        .tokenValiditySeconds(24 * 60 * 60) // 1 day
+                        .userDetailsService(userDetailsService()))
+                .addFilterBefore(new JwtRequestFilter(userService, jwtUtil), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
     @Bean
-    public UserDetailsServiceImpl userDetailsService() throws IOException, InterruptedException {return new UserDetailsServiceImpl(userService, passwordEncoder());}
+    public UserDetailsServiceImpl userDetailsService() {
+        return new UserDetailsServiceImpl(userService, passwordEncoder());
+    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(allowedOrigins);
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("Content-Type",
-                "Authorization"
-                // "X-XSRF-TOKEN"
-                , "X-Requested-With", "Accept"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
-        configuration.setAllowCredentials(true);
-               UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        CorsConfiguration corsConfig = new CorsConfiguration();
+        corsConfig.setAllowCredentials(true);
+        corsConfig.setAllowedOrigins(allowedOrigins);
+//        corsConfig.addAllowedHeader("*");
+//        corsConfig.addAllowedMethod("*");
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfig);
         return source;
     }
 
     @Bean
-    public PersistentTokenRepository persistentTokenRepository() {return new JpaPersistentTokenRepository(persistLogin);}
+    public PersistentTokenRepository persistentTokenRepository() {
+        return new JpaPersistentTokenRepository(persistLogin);
+    }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {return authenticationConfiguration.getAuthenticationManager();}
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
 }

@@ -9,6 +9,8 @@ import lombok.Setter;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 @Getter
@@ -16,11 +18,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class NettyClient {
 
-    private static final Log LOG = LogFactory.getLog(NettyClient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(NettyClient.class);
     @Value("${server.address}")
     private String serverAddress1="localhost";
     @Value("${server.port}")
-    private int serverPort1=8080;
+     int serverPort1=8080;
 
     public void startNettyClient() {
         EventLoopGroup group = new NioEventLoopGroup();
@@ -39,7 +41,7 @@ public class NettyClient {
             ChannelFuture future = bootstrap.connect(serverAddress1, serverPort1).sync();
             future.channel().closeFuture().sync();
         } catch (Exception e) {
-            LOG.error("Netty client failed to connect: " + e.getMessage());
+            LOG.error("Netty client failed to connect: {}", e.getMessage());
         } finally {
             group.shutdownGracefully();
             LOG.info("Netty client shutdown.");
@@ -53,13 +55,12 @@ public class NettyClient {
     static class SimpleClientHandler extends ChannelInboundHandlerAdapter {
         private static final Log logger = LogFactory.getLog(SimpleClientHandler.class);
         @Override
-        public void channelActive(ChannelHandlerContext ctx) {
+        public void channelActive(@NotNull ChannelHandlerContext ctx) {
             logger.info("Netty client connected. Sending message...");
             ctx.writeAndFlush("Hello from AIPOWER CLIENT!");
         }
-
         @Override
-        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        public void exceptionCaught(@NotNull ChannelHandlerContext ctx, Throwable cause) {
             logger.error("Exception in Netty client: " + cause.getMessage(), cause);
             ctx.close();
         }
@@ -68,7 +69,7 @@ public class NettyClient {
             logger.info("Received message from server: " + msg);
         }
         @Override
-        public void channelReadComplete(ChannelHandlerContext ctx) {
+        public void channelReadComplete(@NotNull ChannelHandlerContext ctx) {
             ctx.flush();
         }
 

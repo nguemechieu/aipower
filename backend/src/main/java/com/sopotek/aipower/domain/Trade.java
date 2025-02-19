@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 @Getter
 @Setter
-@Entity
+@Entity(name = "trades")
 @Table(name = "trades")
 public class Trade  implements Serializable {
     @Serial

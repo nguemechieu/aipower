@@ -1,0 +1,5 @@
+<root>
+    <item name='org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator INSTANCE'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+</root>

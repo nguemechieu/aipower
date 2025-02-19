@@ -1,0 +1,5 @@
+<root>
+    <item name='org.springframework.boot.SpringApplication.CoordinatedRestoreAtCheckpointStartup java.lang.String action()'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+</root>

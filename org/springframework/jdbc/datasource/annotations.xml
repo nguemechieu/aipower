@@ -1,0 +1,5 @@
+<root>
+    <item name='org.springframework.jdbc.datasource.DataSourceUtils java.sql.Connection getConnection(javax.sql.DataSource)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+</root>

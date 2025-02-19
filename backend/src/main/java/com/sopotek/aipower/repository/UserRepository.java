@@ -1,137 +1,143 @@
 package com.sopotek.aipower.repository;
 
+import com.sopotek.aipower.domain.Role;
 import com.sopotek.aipower.domain.User;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
 
-import static com.sopotek.aipower.routes.api.UsersController.logger;
-
 @Repository
 public class UserRepository {
-
+    private static final Logger logger = LoggerFactory.getLogger(UserRepository.class);
     private final SessionFactory sessionFactory;
+    private Transaction transaction;
 
     @Autowired
     public UserRepository(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
     }
 
-    @Transactional(readOnly = true)
-    @Cacheable(value = "users", key = "#id")
     public User findById(Long id) {
         try (Session session = sessionFactory.openSession()) {
             return session.get(User.class, id);
+        } catch (Exception e) {
+            logger.error("Error finding User by ID: {}", e.getMessage(), e);
+            throw new RuntimeException("Error finding User by ID", e);
         }
     }
 
-    @Transactional
-    @CacheEvict(value = "users", key = "#id")
-    public void deleteById(Long id) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction transaction = session.beginTransaction();
-            User user = session.get(User.class, id);
-            if (user != null) {
-                session.remove(user);
-            }
-            transaction.commit();
-        }
-    }
-
-    @Transactional(readOnly = true)
-    @Cacheable(value = "users", key = "#username")
     public Optional<User> findByUsername(String username) {
         try (Session session = sessionFactory.openSession()) {
             return session.createQuery("FROM User WHERE username = :username", User.class)
                     .setParameter("username", username)
                     .uniqueResultOptional();
+        } catch (Exception e) {
+            logger.error("Error finding User by username: {}", e.getMessage(), e);
+            throw new RuntimeException("Error finding User by username", e);
         }
     }
 
-    @Transactional(readOnly = true)
-    @Cacheable(value = "users", key = "#email")
     public Optional<User> findByEmail(String email) {
         try (Session session = sessionFactory.openSession()) {
             return session.createQuery("FROM User WHERE email = :email", User.class)
                     .setParameter("email", email)
                     .uniqueResultOptional();
+        } catch (Exception e) {
+            logger.error("Error finding User by email: {}", e.getMessage(), e);
+            throw new RuntimeException("Error finding User by email", e);
         }
     }
 
-    @Transactional
     @CacheEvict(value = "users", allEntries = true)
     public void updateFailedLoginAttempts(int attempts, Long userId) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction transaction = session.beginTransaction();
-            session.createQuery("UPDATE User SET failedLoginAttempts = :attempts WHERE id = :userId", User.class)
+        Session session = sessionFactory.openSession();
+        try (session) {
+            transaction = session.beginTransaction();
+            session.createQuery("UPDATE User SET failedLoginAttempts = :attempts WHERE id = :userId")
                     .setParameter("attempts", attempts)
                     .setParameter("userId", userId)
                     .executeUpdate();
             transaction.commit();
+            logger.info("Failed login attempts updated for userId: {}", userId);
+        } catch (Exception e) {
+            transaction.rollback();
+            logger.error("Error updating failed login attempts: {}", e.getMessage(), e);
+            throw new RuntimeException("Error updating failed login attempts", e);
         }
     }
-    @Transactional
-    @CacheEvict(value = "users", key = "#user.id")
+
+    @CacheEvict(value = "users", allEntries = true)
     public void saveOrUpdate(User user) {
         if (user == null) {
             throw new IllegalArgumentException("User object cannot be null.");
         }
 
-        try (Session session = sessionFactory.openSession()) {
-            Transaction transaction = session.beginTransaction();
-
-            try {
-                if (user.getId() != null) {
-                    // Check if the user already exists in the database
-                    User existingUser = session.get(User.class, user.getId());
-                    if (existingUser != null) {
-                        // Update existing user
-                        session.merge(user);
-                        logger.info("User updated successfully with ID: {}", user.getId());
-                    } else {
-                        // Create new user if ID is provided but doesn't exist in DB
-                        session.persist(user);
-                        logger.info("New user created with ID: {}", user.getId());
-                    }
-                } else {
-                    // No ID provided, create a new user
-                    session.persist(user);
-                    logger.info("New user created successfully.");
-                }
-
-                transaction.commit();
-            } catch (Exception e) {
-                transaction.rollback();
-                logger.error("Error during save or update: {}", e.getMessage());
-                throw new RuntimeException("Error saving or updating user", e);
-            }
+        Session session = sessionFactory.openSession();
+        try (session) {
+             transaction = session.beginTransaction();
+            session.merge(user);
+            transaction.commit();
+            logger.info("User saved or updated successfully: {}", user.getId());
         } catch (Exception e) {
-            logger.error("Error managing session: {}", e.getMessage());
-            throw new RuntimeException("Error saving or updating user", e);
+            transaction.rollback();
+            logger.error("Error saving or updating User: {}", e.getMessage(), e);
+            throw new RuntimeException("Error saving or updating User", e);
         }
     }
 
-
-    @Transactional(readOnly = true)
     public List<User> findAll() {
         try (Session session = sessionFactory.openSession()) {
-            return session.createQuery("FROM User", User.class).list();
+            return session.createQuery("FROM User", User.class).getResultList();
+        } catch (Exception e) {
+            logger.error("Error retrieving all Users: {}", e.getMessage(), e);
+            throw new RuntimeException("Error retrieving all Users", e);
         }
     }
 
     public Optional<User> findByResetToken(String resetToken) {
         try (Session session = sessionFactory.openSession()) {
             return session.createQuery("FROM User WHERE resetToken = :resetToken", User.class)
-                   .setParameter("resetToken", resetToken)
-                   .uniqueResultOptional();
+                    .setParameter("resetToken", resetToken)
+                    .uniqueResultOptional();
+        } catch (Exception e) {
+            logger.error("Error finding User by reset token: {}", e.getMessage(), e);
+            throw new RuntimeException("Error finding User by reset token", e);
+        }
+    }
+
+    public void create(User user) {
+        Session session = sessionFactory.openSession();
+        try (session) {
+            transaction = session.beginTransaction();
+            session.persist(user);
+            transaction.commit();
+            logger.info("User created successfully with ID: {}", user.getId());
+        } catch (Exception e) {
+            transaction.rollback();
+            logger.error("Error creating User: {}", e.getMessage(), e);
+            throw new RuntimeException("Error creating User", e);
+        }
+    }
+
+    public void save(Role role) {
+        Session session = sessionFactory.openSession();
+        try (session) {
+            transaction = session.beginTransaction();
+            session.persist(role);
+            transaction.commit();
+            logger.info("Role saved successfully: {}", role);
+        } catch (Exception e) {
+            transaction.rollback();
+            logger.error("Error saving Role: {}", e.getMessage(), e);
+            throw new RuntimeException("Error saving Role", e);
         }
     }
 }

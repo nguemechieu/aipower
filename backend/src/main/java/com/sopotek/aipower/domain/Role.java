@@ -1,33 +1,24 @@
 package com.sopotek.aipower.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-
-import java.io.Serializable;
+import lombok.*;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@EqualsAndHashCode(of = "roleId")
+@ToString(of = "roleId")
 @Entity
-@Table(name = "roles")
-public class Role  implements Serializable {
-
+@Table(name = "roles", indexes = {@Index(name = "idx_role_id", columnList = "role_id")})
+public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "role_id")  // Ensure the column name matches in the database
+    private Long roleId;
 
-    @Column(unique = true, nullable = false)
-    private String name;
-
-
+    private String roleName;
 
 
-    public Role(String admin) {
-        this.name = admin;
-
-    }
-
-    public Role() {
-
-    }
 }

@@ -1,11 +1,14 @@
 package com.sopotek.aipower.service;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.sopotek.aipower.domain.User;
 import com.sopotek.aipower.repository.RoleRepository;
 import com.sopotek.aipower.repository.UserRepository;
+import com.sopotek.aipower.service.telegram.TelegramService;
 import jakarta.transaction.Transactional;
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,26 +16,44 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 @Getter
 @Setter
 @Service
 public class UserService {
 
-    private  UserRepository userRepository;
-    private RoleRepository roleRepository;
-    private  PasswordEncoder passwordEncoder;
+      UserRepository userRepository;
+     RoleRepository roleRepository;
+      PasswordEncoder passwordEncoder;
+      ScheduledExecutorService scheduledExecutorService;
 
     @Autowired
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
+
+
+        // Create a new thread pool with a single thread and a thread name prefix of "scheduled-task-"
+        scheduledExecutorService = new ScheduledThreadPoolExecutor(1, new ThreadFactoryBuilder()
+               .setNameFormat("scheduled-task-")
+               .build());
+
+        // Schedule a task to be executed every 10 seconds
+        // Simulate a task that sends a message to Telegram
+        scheduledExecutorService.scheduleAtFixedRate(this::sendMessagesToTelegram, 10, 10, java.util.concurrent.TimeUnit.SECONDS);
+
+
     }
 
-    public UserService() {
+    private void sendMessagesToTelegram() {
+     new TelegramService();
+
 
     }
+
 
     @Transactional
     public void updateFailedLoginAttempts(Long userId, int attempts) {
@@ -79,5 +100,14 @@ public class UserService {
 
     public void saveOrUpdate(User user) {
         userRepository.saveOrUpdate(user);
+    }
+
+    public void create(@NotNull User user) {
+        User user1 = userRepository.findByUsername(user.getUsername()).orElse(null);
+        if (user1!=null){
+            throw new RuntimeException("User already exists");
+        }
+        userRepository.create(user);
+
     }
 }

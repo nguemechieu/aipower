@@ -1,5 +1,8 @@
 package com.sopotek.aipower.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.security.Keys;
@@ -91,11 +94,16 @@ public class AuthService {
             if (!response.getStatusCode().is2xxSuccessful()) {
                 throw new RuntimeException("Failed to exchange Google code for access token: " + response.getStatusCode());
             }
-            Map<String, Object> responses = (Map<String, Object>) response.getBody();
+            JsonNode responses;
+            try {
+                responses = new ObjectMapper().readValue( response.toString(), JsonNode.class);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
             LOG.info("Exchange {}", response);
 
-            assert responses != null;
-            return (String) responses.get("access_token");
+
+            return  responses.get("access_token").toString();
         }
 
         public ResponseEntity<?> fetchGoogleUserInfo(String accessToken) {

@@ -36,7 +36,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static com.sopotek.aipower.component.StellarSorobanSmartContract.deploySmartContractXdr;
+import static com.sopotek.aipower.component.StellarSokobanSmartContract.deploySmartContractXdr;
 import static com.sopotek.aipower.domain.ENUM_SIGNAL.BUY;
 import static com.sopotek.aipower.domain.ENUM_SIGNAL.SELL;
 
@@ -48,9 +48,9 @@ import static com.sopotek.aipower.domain.ENUM_SIGNAL.SELL;
 @Component
 public class StellarClient {
     private static final Logger LOG = LoggerFactory.getLogger(StellarClient.class);
-    private static final String HORIZON_MAINNET_URL = "https://horizon.stellar.org";
+    private static final String HORIZON_MAINTAIN_URL = "https://horizon.stellar.org";
 
-    private final Server server = new Server(HORIZON_MAINNET_URL);
+    private final Server server = new Server(HORIZON_MAINTAIN_URL);
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     private volatile boolean running = true;

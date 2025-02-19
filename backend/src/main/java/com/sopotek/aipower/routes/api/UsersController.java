@@ -88,21 +88,6 @@ public class UsersController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
         return ResponseEntity.ok("User with ID " + id + " updated successfully.");
-    }
 
-    // Delete a user by ID
-    @DeleteMapping("/delete/id:{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
-        try {
-            if (userService.findById(id)==null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("No user found with ID: " + id);
-            }
-            userService.deleteById(id);
-            return ResponseEntity.ok("User with ID " + id + " deleted successfully.");
-        } catch (Exception e) {
-            logger.error("Error deleting user with ID: {}", id, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
     }
 }

@@ -10,16 +10,14 @@ import java.util.Date;
 
 @Setter
 @Getter
-@Entity
-@Table(name ="persistentlogins")
+@Entity(name = "persistent_logins")
 @Component
+@Table(name ="persistent_logins")
 public class PersistentLogin {
     // Getters and Setters
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    // Auto-incremented ID
-
-    private Long id;
+    private long id;
     private String series; // Primary key
     private String username;
     private String token;

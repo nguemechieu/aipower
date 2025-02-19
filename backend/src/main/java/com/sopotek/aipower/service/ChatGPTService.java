@@ -63,6 +63,7 @@ public class ChatGPTService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + apiKey);
         headers.set("Content-Type", "application/json");
+        headers.set("Accept", "application/json");
 
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("model", model);

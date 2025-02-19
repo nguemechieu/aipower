@@ -1,0 +1,8 @@
+<root>
+    <item name='org.hibernate.engine.transaction.jta.platform.internal.JtaPlatformInitiator INSTANCE'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform INSTANCE'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+</root>

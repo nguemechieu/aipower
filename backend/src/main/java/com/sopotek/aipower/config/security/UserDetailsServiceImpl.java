@@ -1,5 +1,6 @@
 package com.sopotek.aipower.config.security;
 
+import com.sopotek.aipower.domain.User;
 import com.sopotek.aipower.repository.UserRepository;
 import com.sopotek.aipower.service.UserService;
 import lombok.Getter;
@@ -12,7 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Getter
 @Setter
 public class UserDetailsServiceImpl implements UserDetailsService {
-    private final PasswordEncoder passwordEncoder;
+    private  PasswordEncoder passwordEncoder;
     private UserRepository userRepository;
 
     public UserDetailsServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
@@ -24,7 +25,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        return userRepository.findByUsername(username).orElse(null);
+        return userRepository.findByUsername(username).get();
+
 
     }
 

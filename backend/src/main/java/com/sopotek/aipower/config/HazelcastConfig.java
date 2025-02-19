@@ -24,7 +24,7 @@ import java.util.List;
 @EnableCaching
 public class HazelcastConfig {
 
-    private ConcurrentMapCacheManager cacheManager;
+    ConcurrentMapCacheManager cacheManager;
 
     public HazelcastConfig() {
         // Constructor logic if required (optional)

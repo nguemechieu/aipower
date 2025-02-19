@@ -17,15 +17,13 @@ public class Candle  implements Serializable {
     private Date time;
     private double open;
     private double high;
-    @Getter
-    @Setter
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
     private Long id;
 
-    public Candle() {
-    }
+
 
     private double low;
 
@@ -43,4 +41,8 @@ public class Candle  implements Serializable {
     private long volume;
     private double weightedAverage;
 
+    public Candle() {
+
+
+    }
 }

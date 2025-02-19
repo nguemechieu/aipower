@@ -21,8 +21,9 @@ import java.util.Date;
 public class JwtUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
-
     public JwtUtil() {
+        logger.atDebug().log("JwtUtil created");
+        logger.info("JwtUtil created");
     }
 
     @Value("${aipower.jwt.secret.key}")
@@ -32,7 +33,8 @@ public class JwtUtil {
     private  @NotNull SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
-@Value("${aipower.jwt.token-expiration-time}")
+
+    @Value("${aipower.jwt.token-expiration-time}")
     private  long EXPIRATION_TIME = 1000 * 60 * 60; // 1 hour
 
     // Generate a token
@@ -69,11 +71,11 @@ public class JwtUtil {
     }
 
 
-    public String generateAccessToken(UserDetails userDetails) {
+    public String generateAccessToken(@NotNull UserDetails userDetails) {
         return generateToken(userDetails.getUsername());
     }
 
-    public String generateRefreshToken(UserDetails userDetails) {
+    public String generateRefreshToken(@NotNull UserDetails userDetails) {
         return Jwts.builder().subject(userDetails.getUsername()).issuedAt(new Date()).expiration(new Date(System.currentTimeMillis() + (1000 * 60 * 60 * 24 * 7))) // 7 days
                .signWith(getSigningKey())
                .compact();
